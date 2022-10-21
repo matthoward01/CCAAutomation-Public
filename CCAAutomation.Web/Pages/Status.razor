@@ -1,0 +1,134 @@
+﻿@page "/status"
+@using System;
+@using System.Collections.Generic;
+@using System.IO;
+@using CCAAutomation.Lib;
+
+<table width="100%">
+    <tr width="50%">
+        <th><h3>Hard Surface</h3></th>
+        <th><h3>Soft Surface</h3></th>
+    </tr>
+    <tr width="50%">
+        <td>
+            @foreach (string p in programListHS)
+            {
+                <h5>Approval Status of <b><u>@p</u></b></h5>
+                <p>
+                    <ul>
+                        <li>
+                            Not Done: <b><u>@GetStatus("notdone", p, false)</u></b>
+                            <ul>
+                                <li>Front Labels: <b><u>@GetStatus("notdonefl", p, false)</u></b></li>
+                                <li>Back Labels: <b><u>@GetStatus("notdonebl", p, false)</u></b></li>
+                            </ul>
+                        </li>
+                        <li>
+                            Waiting for Approval: <b><u>@GetStatus("waiting", p, false)</u></b>
+                            <ul>
+                                <li>Front Labels: <b><u>@GetStatus("waitingfl", p, false)</u></b></li>
+                                <li>Back Labels: <b><u>@GetStatus("waitingbl", p, false)</u></b></li>
+                            </ul>
+                        </li>
+                        <li>
+                            Questions: <b><u>@GetStatus("questions", p, false)</u></b>
+                            <ul>
+                                <li>Front Labels: <b><u>@GetStatus("questionsfl", p, false)</u></b></li>
+                                <li>Back Labels: <b><u>@GetStatus("questionsbl", p, false)</u></b></li>
+                            </ul>
+                        </li>
+                        <li>
+                            Rejected: <b><u>@GetStatus("rejected", p, false)</u></b>
+                            <ul>
+                                <li>Front Labels: <b><u>@GetStatus("rejectedfl", p, false)</u></b></li>
+                                <li>Back Labels: <b><u>@GetStatus("rejectedbl", p, false)</u></b></li>
+                            </ul>
+                        </li>
+                        <li>
+                            Approved: <b><u>@GetStatus("approved", p, false)</u></b>
+                            <ul>
+                                <li>Front Labels: <b><u>@GetStatus("approvedfl", p, false)</u></b></li>
+                                <li>Back Labels: <b><u>@GetStatus("approvedbl", p, false)</u></b></li>
+                            </ul>
+                        </li>
+                        <li>
+                            Total: <b><u>@(Int32.Parse(GetStatus("notdone", p, false)) + Int32.Parse(GetStatus("waiting", p, false)) + Int32.Parse(GetStatus("questions", p, false)) + Int32.Parse(GetStatus("rejected", p, false)) + Int32.Parse(GetStatus("approved", p, false)))</u></b>
+                            <ul>
+                                <li>Front Labels: <b><u>@(Int32.Parse(GetStatus("notdonefl", p, false)) + Int32.Parse(GetStatus("waitingfl", p, false)) + Int32.Parse(GetStatus("questionsfl", p, false)) + Int32.Parse(GetStatus("rejectedfl", p, false)) + Int32.Parse(GetStatus("approvedfl", p, false)))</u></b></li>
+                                <li>Back Labels: <b><u>@(Int32.Parse(GetStatus("notdonebl", p, false)) + Int32.Parse(GetStatus("waitingbl", p, false)) + Int32.Parse(GetStatus("questionsbl", p, false)) + Int32.Parse(GetStatus("rejectedbl", p, false)) + Int32.Parse(GetStatus("approvedbl", p, false)))</u></b></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </p>
+            }
+        </td>
+        <td>
+            @foreach (string p in programListSS)
+            {
+                <h5>Approval Status of <b><u>@p</u></b></h5>
+                <p>
+                    <ul>
+                        <li>
+                            Not Done: <b><u>@GetStatus("notdone", p, true)</u></b>
+                            <ul>
+                                <li>Front Labels: <b><u>@GetStatus("notdonefl", p, true)</u></b></li>
+                                <li>Back Labels: <b><u>@GetStatus("notdonebl", p, true)</u></b></li>
+                            </ul>
+                        </li>
+                        <li>
+                            Waiting for Approval: <b><u>@GetStatus("waiting", p, true)</u></b>
+                            <ul>
+                                <li>Front Labels: <b><u>@GetStatus("waitingfl", p, true)</u></b></li>
+                                <li>Back Labels: <b><u>@GetStatus("waitingbl", p, true)</u></b></li>
+                            </ul>
+                        </li>
+                        <li>
+                            Questions: <b><u>@GetStatus("questions", p, true)</u></b>
+                            <ul>
+                                <li>Front Labels: <b><u>@GetStatus("questionsfl", p, true)</u></b></li>
+                                <li>Back Labels: <b><u>@GetStatus("questionsbl", p, true)</u></b></li>
+                            </ul>
+                        </li>
+                        <li>
+                            Rejected: <b><u>@GetStatus("rejected", p, true)</u></b>
+                            <ul>
+                                <li>Front Labels: <b><u>@GetStatus("rejectedfl", p, true)</u></b></li>
+                                <li>Back Labels: <b><u>@GetStatus("rejectedbl", p, true)</u></b></li>
+                            </ul>
+                        </li>
+                        <li>
+                            Approved: <b><u>@GetStatus("approved", p, true)</u></b>
+                            <ul>
+                                <li>Front Labels: <b><u>@GetStatus("approvedfl", p, true)</u></b></li>
+                                <li>Back Labels: <b><u>@GetStatus("approvedbl", p, true)</u></b></li>
+                            </ul>
+                        </li>
+                        <li>
+                            Total: <b><u>@(Int32.Parse(GetStatus("notdone", p, true)) + Int32.Parse(GetStatus("waiting", p, true)) + Int32.Parse(GetStatus("questions", p, true)) + Int32.Parse(GetStatus("rejected", p, true)) + Int32.Parse(GetStatus("approved", p, true)))</u></b>
+                            <ul>
+                                <li>Front Labels: <b><u>@(Int32.Parse(GetStatus("notdonefl", p, true)) + Int32.Parse(GetStatus("waitingfl", p, true)) + Int32.Parse(GetStatus("questionsfl", p, true)) + Int32.Parse(GetStatus("rejectedfl", p, true)) + Int32.Parse(GetStatus("approvedfl", p, true)))</u></b></li>
+                                <li>Back Labels: <b><u>@(Int32.Parse(GetStatus("notdonebl", p, true)) + Int32.Parse(GetStatus("waitingbl", p, true)) + Int32.Parse(GetStatus("questionsbl", p, true)) + Int32.Parse(GetStatus("rejectedbl", p, true)) + Int32.Parse(GetStatus("approvedbl", p, true)))</u></b></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </p>
+            }
+        </td>
+    </tr>
+</table>
+
+
+@code {
+
+    private List<string> programListHS = SqlMethods.SqlGetPrograms(false);
+    private List<string> programListSS = SqlMethods.SqlGetPrograms(true);
+
+    private string test = "";
+    private string GetStatus(string x, string program, bool isSoftSurface)
+    {
+        string status = SqlMethods.SqlGetStatus(x, program, isSoftSurface);
+
+        return status;
+    }
+
+}

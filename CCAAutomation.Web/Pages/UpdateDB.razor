@@ -1,0 +1,94 @@
+﻿@page "/updatedb"
+@using NPOI.SS.UserModel;
+@using NPOI.XSSF.UserModel;
+@using System;
+@using System.Collections.Generic;
+@using System.IO;
+@using CCAAutomation.Lib;
+<AuthorizeView>
+    <Authorized>
+        @if (@context.User.IsInRole(ADMINISTRATION_ROLE))
+        {
+            <h3>@type Update SQL Database</h3>
+            <p>
+                <label>Hard Surface:</label>
+                <input type="checkbox" class="form-check-inline" @bind-value="hardSurface" @onclick="SetHardSurface" name="hardSurface" />
+                <label>Soft Surface:</label>
+                <input type="checkbox" class="form-check-inline" @bind-value="softSurface" @onclick="SetSoftSurface" name="softSurface" />
+            </p>
+            @if ((hardSurface && !softSurface) || (!hardSurface && softSurface))
+            {
+                <p>
+                    <label>Limited Update (Update Using Original LAR):</label>
+                    <input type="checkbox" class="form-check-inline" @bind-value="limited" @bind-value:event="onchange" name="limited" />
+                    <label>Reset Insite and Change Status:</label>
+                    <input type="checkbox" class="form-check-inline" @bind-value="resetStatus" @bind-value:event="onchange" name="resetStatus" />
+                    <input class="form-text" @bind="fileName" size="150" name="fileName" type="text" placeholder="Xls File w/Path" />
+                </p>
+                <button class="btn-primary" @onclick="@(() => { Ingest(type); })">Click</button>
+                @if (show)
+                {
+                    <p>
+                        <button class="btn-primary" @onclick="@(() => { UpdateSqlDB(type); })">Import Data</button>
+                    </p>
+                }
+            }
+        }
+    </Authorized>
+</AuthorizeView>
+
+
+@code {
+
+    string ADMINISTRATION_ROLE = "Administrators";
+    private string fileName;
+    private LarModels.LARXlsSheet LARXlsSheet;
+    private bool show = false;
+    private bool limited = false;
+    private bool resetStatus = false;
+    private bool hardSurface = false;
+    private bool softSurface = false;
+    private string type = "";
+
+    private void Ingest(string artType)
+    {
+        LARXlsSheet = Lar.GetLar(fileName.Replace("\"", ""));
+        show = true;
+    }
+
+    private void SetHardSurface()
+    {
+        if (!hardSurface)
+        {
+            type = "HS";
+            hardSurface = !hardSurface;
+            softSurface = false;
+        }
+        else
+        {
+            type = "";
+            hardSurface = !hardSurface;
+        }
+    }
+
+    private void SetSoftSurface()
+    {
+        if (!softSurface)
+        {
+            type = "SS";
+            softSurface = !softSurface;
+        }
+        else
+        {
+            type = "";
+            softSurface = !softSurface;
+        }
+    }
+
+    private void UpdateSqlDB(string artType)
+    {
+        SqlMethods.SqlWebDBUpdate(LARXlsSheet, limited, artType, resetStatus);
+        show = false;
+    }
+
+}

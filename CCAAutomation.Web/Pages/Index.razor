@@ -1,0 +1,328 @@
+﻿@page "/"
+@using CCAAutomation.Lib
+@using System.IO;
+
+<h1>CCA Automation Web</h1>
+<p>
+    <label>Search:</label>
+    <input class="form-text" @bind-value="search" @bind-value:event="oninput" size="150" name="search" type="text" placeholder="Search" />
+</p>
+<p>
+    <label>Approvals Only:</label>
+    <input type="checkbox" class="form-check-inline" @bind-value="showApprovals" @bind-value:event="onchange" name="showApprovals" />
+    <label>Changes Only:</label>
+    <input type="checkbox" class="form-check-inline" @bind-value="showChanges" @bind-value:event="onchange" name="showChanges" />
+    <label>Questions Only:</label>
+    <input type="checkbox" class="form-check-inline" @bind-value="showQuestions" @bind-value:event="onchange" name="showQuestions" />
+    <label>Rejections Only:</label>
+    <input type="checkbox" class="form-check-inline" @bind-value="showRejections" @bind-value:event="onchange" name="showRejections" />
+</p>
+<AuthorizeView>
+    <Authorized>
+        @if (@context.User.IsInRole(ADMINISTRATION_ROLE))
+        {
+            <p>
+                <label>Export Path:</label>
+                <input class="form-text" @bind="export" size="150" name="export" type="text" placeholder="Export Path" />
+                <button class="btn-primary" @onclick="() => { IdCreate(plateId); }">Create All</button>
+            </p>
+        }
+    </Authorized>
+</AuthorizeView>
+@if (!missingImagesRun.Count.Equals(0))
+{
+    <p>
+        Missing images:<br />
+        @foreach (string s in missingImagesRun)
+        {
+            @s<br />;
+        }
+    </p>
+}
+<table class="table table-hover table-sm" width="100%">
+    <thead>
+        <tr>
+            <AuthorizeView>
+                <Authorized>
+                    @if (@context.User.IsInRole(ADMINISTRATION_ROLE))
+                    {
+                        <th>Create Xml</th>
+                    }
+                </Authorized>
+            </AuthorizeView>
+                <th @onclick="() => { SortPlates(); }">Plate #</th>
+                <th>Style - Color</th>
+                <th @onclick="() => { SortTemplates(); }">Template</th>
+                <th>Status</th>
+            <AuthorizeView>
+                <Authorized>
+                    @if (@context.User.IsInRole(ADMINISTRATION_ROLE))
+                    {
+                        <th>Update</th>
+                    }
+                </Authorized>
+            </AuthorizeView>
+        </tr>
+    </thead>
+    @foreach (LarModels.Details d in LARXlsSheet.DetailsList)
+    {
+        <tbody>
+            @if ((showRejections && d.Status.ToLower().Trim().Equals("rejected") &&
+            (d.Plate_ID.ToLower().Contains(search.ToLower()) ||
+            d.Division_Product_Name.ToLower().Contains(search.ToLower()) ||
+            d.Sample_ID.ToLower().Contains(search.ToLower()) ||
+            d.Merch_Color_Name.ToLower().Contains(search.ToLower()) ||
+            d.ArtType.ToLower().Contains(search.ToLower()) ||
+            d.Status.ToLower().Contains(search.ToLower()))) ||
+             (showApprovals && d.Status.ToLower().Trim().Equals("approved") &&
+            (d.Plate_ID.ToLower().Contains(search.ToLower()) ||
+            d.Division_Product_Name.ToLower().Contains(search.ToLower()) ||
+            d.Sample_ID.ToLower().Contains(search.ToLower()) ||
+            d.Merch_Color_Name.ToLower().Contains(search.ToLower()) ||
+            d.ArtType.ToLower().Contains(search.ToLower()) ||
+            d.Status.ToLower().Contains(search.ToLower()))) ||
+             (showQuestions && d.Status.ToLower().Trim().Equals("questions") &&
+            (d.Plate_ID.ToLower().Contains(search.ToLower()) ||
+            d.Division_Product_Name.ToLower().Contains(search.ToLower()) ||
+            d.Sample_ID.ToLower().Contains(search.ToLower()) ||
+            d.Merch_Color_Name.ToLower().Contains(search.ToLower()) ||
+            d.ArtType.ToLower().Contains(search.ToLower()) ||
+            d.Status.ToLower().Contains(search.ToLower()))) ||
+             (showChanges && !d.Change.ToLower().Trim().Equals("") &&
+            (d.Plate_ID.ToLower().Contains(search.ToLower()) ||
+            d.Division_Product_Name.ToLower().Contains(search.ToLower()) ||
+            d.Sample_ID.ToLower().Contains(search.ToLower()) ||
+            d.Merch_Color_Name.ToLower().Contains(search.ToLower()) ||
+            d.ArtType.ToLower().Contains(search.ToLower()) ||
+            d.Status.ToLower().Contains(search.ToLower()))) ||
+             ((d.Plate_ID.ToLower().Contains(search.ToLower()) ||
+            d.Division_Product_Name.ToLower().Contains(search.ToLower()) ||
+            d.Sample_ID.ToLower().Contains(search.ToLower()) ||
+            d.Merch_Color_Name.ToLower().Contains(search.ToLower()) ||
+            d.ArtType.ToLower().Contains(search.ToLower()) ||
+            d.Status.ToLower().Contains(search.ToLower())) && !showChanges && !showApprovals && !showRejections && !showQuestions))
+            {
+                <tr class="@TableClass(d.Status)">
+                    <AuthorizeView>
+                        <Authorized>
+                            @if (@context.User.IsInRole(ADMINISTRATION_ROLE))
+                            {
+                                <td width="10%">
+                                    @if (!export.Equals(""))
+                                    {
+                                        <button class="btn btn-dark" @onclick="() => { IdCreate(d.Plate_ID); }">Create XML</button>
+                                    }
+                                </td>
+                            }
+                        </Authorized>
+                    </AuthorizeView>
+                    <td width="10%" @onclick="() => d.ShowRow = !d.ShowRow">@d.Plate_ID <br /> <i>(@d.Sample_ID)</i></td>
+                    <td width="50%">
+                        @d.Division_Product_Name - @d.Merch_Color_Name<br />
+                        @if (!d.Console.Count.Equals(0))
+                        {
+                            <b>Console:</b><br />
+                            @foreach (string c in d.Console)
+                            {
+                                @c<br />
+                            }
+                        }
+                        @if (d.ShowRow)
+                        {
+                            <table>
+                                @if (!d.Change.Trim().Equals(""))
+                                {
+                                    <tr @onclick="() => d.EditChange = !d.EditChange">
+                                        <td colspan="4">
+                                            <b>Required Change: </b><br />
+                                            @foreach (string s in d.Change.Split(';'))
+                                            {
+                                                @s<br />
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                                <AuthorizeView>
+                                    <Authorized>
+                                        @if (@context.User.IsInRole(ADMINISTRATION_ROLE))
+                                        {
+                                            @if (d.EditChange)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        <div class="form-inline">
+                                                            <button class="btn btn-dark btn-sm" @onclick='(() => {SetChange(d.Plate_ID, d.Change); d.EditChange = !d.EditChange;})'>Edit</button><textarea cols="60" rows="5" class="form-text" @bind-value="@d.Change" @bind-value:event="oninput"></textarea>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                    </Authorized>
+                                </AuthorizeView>
+                                <tr @onclick="() => d.EditChange = !d.EditChange">
+                                    <td colspan="2">
+                                        <b>Sample ID:</b> @d.Sample_ID<br />
+                                        <b>Size_Name:</b> @d.Size_Name.Replace("\"", "")<br />
+                                        <b>Width:</b> @d.Width @d.Width_Measurement<br />
+                                        <b>Length:</b> @d.Length @d.Length_Measurement<br />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">
+                                        <b>Logos Used:</b><br />
+                                        @foreach (LarModels.Labels l in LARXlsSheet.LabelList)
+                                        {
+                                            @if (l.Sample_ID.Equals(d.Sample_ID))
+                                            {
+                                                @l.Division_Label_Name<br />
+                                            }
+                                        }
+                                    </td>
+                                    <td colspan="2">
+                                        <b>Roomscene Used:</b><br />
+                                        @Path.GetFileName(d.Roomscene)
+                                    </td>
+                                </tr>
+                            </table>
+                        }
+                    </td>
+                    <td width="10%" @onclick="() => d.ShowRow = !d.ShowRow">@d.ArtType</td>
+                    <td width="10%" @onclick="() => d.ShowRow = !d.ShowRow">@d.Status</td>
+                    <AuthorizeView>
+                        <Authorized>
+                            @if (@context.User.IsInRole(ADMINISTRATION_ROLE))
+                            {
+                                <td>
+                                    <table width="100%">
+                                        <tr height="20px">
+                                            <td width="20px" class="table-success" @onclick='(() => SetStatus(d.Plate_ID, "Approved"))'></td>
+                                            <td width="20px" class="table-danger" @onclick='(() => SetStatus(d.Plate_ID, "Rejected"))'></td>
+                                            <td width="20px" class="table-warning" @onclick='(() => SetStatus(d.Plate_ID, "Waiting for Approval"))'></td>
+                                            <td width="20px" class="table-primary" @onclick='(() => SetStatus(d.Plate_ID, "Questions"))'></td>
+                                            <td width="20px" class="table-light" @onclick='(() => SetStatus(d.Plate_ID, "Not Done"))'></td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            }
+                        </Authorized>
+                    </AuthorizeView>
+                </tr>
+            }
+        </tbody>
+    }
+</table>
+
+@code {
+    //[CascadingParameter]
+    //private Task<AuthenticationState> authenticationStateTask { get; set; }
+    string ADMINISTRATION_ROLE = "Administrators";
+    //System.Security.Claims.ClaimsPrincipal CurrentUser;
+    private string fileName = "";
+    private string export = "";
+    private string plateId = "";
+    static string lastPlate = "";
+    private string search = "";
+    private bool testing = false;
+    //private bool noExport = false;
+    //private bool show = false;
+    private bool showChanges = false;
+    private bool showApprovals = false;
+    private bool showQuestions = false;
+    private bool showRejections = false;
+    private bool plateSortAsc = false;
+    private LarModels.LARXlsSheet LARXlsSheet;
+    static List<LarModels.LARFinal> ssList = new List<LarModels.LARFinal>();
+    static List<string> missingImagesRun = new List<string>();
+    string[] files;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await IngestSql();
+    }
+
+    Task IngestSql()
+    {
+        LARXlsSheet = Lar.GetLar(false);
+
+        return Task.CompletedTask;
+    }
+
+    private bool Toggle()
+    {
+        bool showThis = false;
+
+        return showThis;
+    }
+
+    private void SetStatus(string id, string thisStatus)
+    {
+        int index = LARXlsSheet.DetailsList.FindIndex(S => S.Plate_ID == id);
+        if (index != -1)
+        {
+            LARXlsSheet.DetailsList[index].Status = SqlMethods.SqlUpdateStatus(id, thisStatus, false);
+            if (thisStatus.Equals("Approved"))
+            {
+                LARXlsSheet.DetailsList[index].Change = "";
+            }
+        }
+    }
+
+    private void SetChange(string id, string thisChange)
+    {
+        int index = LARXlsSheet.DetailsList.FindIndex(S => S.Plate_ID == id);
+        if (index != -1)
+        {
+            LARXlsSheet.DetailsList[index].Change = SqlMethods.SqlUpdateChange(id, thisChange, false);
+        }
+    }
+
+    private string TableClass(string id)
+    {
+        string tbClass = "table-default";
+        if (id.ToLower().Equals("rejected"))
+        {
+            tbClass = "table-danger";
+        }
+        if (id.ToLower().Contains("waiting"))
+        {
+            tbClass = "table-warning";
+        }
+        if (id.ToLower().Equals("approved"))
+        {
+            tbClass = "table-success";
+        }
+        if (id.ToLower().Equals("questions"))
+        {
+            tbClass = "table-primary";
+        }
+        return tbClass;
+    }
+
+    private void IdCreate(string plate)
+    {
+        plateId = plate;
+        bool goWorkshop = false;
+
+        Execute.Run(testing, files, goWorkshop, plateId, export.Replace("\"", ""), LARXlsSheet);
+    }
+
+    private void SortPlates()
+    {
+        if (!plateSortAsc)
+        {
+            LARXlsSheet.DetailsList.Sort((x, y) => x.Plate_ID.CompareTo(y.Plate_ID));
+            plateSortAsc = true;
+        }
+        else
+        {
+            LARXlsSheet.DetailsList.Sort((x, y) => y.Plate_ID.CompareTo(x.Plate_ID));
+            plateSortAsc = false;
+        }
+    }
+
+    private void SortTemplates()
+    {
+        LARXlsSheet.DetailsList.Sort((x, y) => x.ArtType.CompareTo(y.ArtType));
+    }
+}
