@@ -24,12 +24,12 @@ namespace CCAAutomation.Lib
             ISheet sheetDetails = wb.GetSheetAt(0);
             ISheet sheetSample = wb.GetSheetAt(1);
             ISheet sheetLabels = wb.GetSheetAt(2);
-            ISheet sheetWarranties = wb.GetSheetAt(3);
+            //ISheet sheetWarranties = wb.GetSheetAt(3);
 
             List<string> detailsHeaderList = new List<string>(GetHeaderColumns(sheetDetails));
             List<string> sampleHeaderList = new List<string>(GetHeaderColumns(sheetSample));
             List<string> labelsHeaderList = new List<string>(GetHeaderColumns(sheetLabels));
-            List<string> warrantiesHeaderList = new List<string>(GetHeaderColumns(sheetWarranties));
+            //List<string> warrantiesHeaderList = new List<string>(GetHeaderColumns(sheetWarranties));
 
             for (int i = 1; i < GetRowCount(sheetDetails); i++)
             {
@@ -43,10 +43,10 @@ namespace CCAAutomation.Lib
             {
                 larXlsSheet.LabelList.Add(GetLabels(sheetLabels, labelsHeaderList, i));
             }
-            for (int i = 1; i < GetRowCount(sheetWarranties); i++)
+            /*for (int i = 1; i < GetRowCount(sheetWarranties); i++)
             {
                 larXlsSheet.WarrantiesList.Add(GetWarranties(sheetWarranties, warrantiesHeaderList, i));
-            }
+            }*/
 
             
             return larXlsSheet;
@@ -81,16 +81,49 @@ namespace CCAAutomation.Lib
             details.ArtType = GetCell(sheet, i, detailHeaderList.IndexOf("Art_Type"));
             details.ADDNumber = GetCell(sheet, i, detailHeaderList.IndexOf("ADDNumber"));
             details.Appearance = GetCell(sheet, i, detailHeaderList.IndexOf("Appearance"));
-            details.Backing = GetCell(sheet, i, detailHeaderList.IndexOf("Backing"));
             details.Barcode = GetCell(sheet, i, detailHeaderList.IndexOf("Barcode"));
             details.CcaSkuId = GetCell(sheet, i, detailHeaderList.IndexOf("CCASKUID"));
+            details.Division_List = GetCell(sheet, i, detailHeaderList.IndexOf("Division_List"));
+            details.Division_Product_Name = GetCell(sheet, i, detailHeaderList.IndexOf("Division_Product_Name"));
+            details.Length = GetCell(sheet, i, detailHeaderList.IndexOf("Length"));
+            details.Length_Measurement = GetCell(sheet, i, detailHeaderList.IndexOf("Length_Measurement"));
+            details.Manufacturer_Product_Color_ID = GetCell(sheet, i, detailHeaderList.IndexOf("Manufacturer_Product_Color_ID"));
+            details.Match = GetCell(sheet, i, detailHeaderList.IndexOf("Match"));
+            details.Match_Length = GetCell(sheet, i, detailHeaderList.IndexOf("Match_Length"));
+            details.Match_Width = GetCell(sheet, i, detailHeaderList.IndexOf("Match_Width"));
+            details.Merchandised_Product_Color_ID = GetCell(sheet, i, detailHeaderList.IndexOf("Merchandised_Product_Color_ID"));
+            details.Merch_Color_Name = GetCell(sheet, i, detailHeaderList.IndexOf("Merch_Color_Name"));
+            details.Manufacturer_Feeler = GetCell(sheet, i, detailHeaderList.IndexOf("Manufacturer_Feeler"));
+            details.Merch_Color_Number = GetCell(sheet, i, detailHeaderList.IndexOf("Merch_Color_Number"));
+            details.Mfg_Color_Name = GetCell(sheet, i, detailHeaderList.IndexOf("Mfg_Color_Name"));
+            details.Mfg_Color_Number = GetCell(sheet, i, detailHeaderList.IndexOf("Mfg_Color_Number"));
+            details.Number_of_Colors = GetCell(sheet, i, detailHeaderList.IndexOf("Number_of_Colors"));
+            details.Pile_Line = GetCell(sheet, i, detailHeaderList.IndexOf("Pile_Line"));
+            details.Primary_Display = GetCell(sheet, i, detailHeaderList.IndexOf("Primary_Display"));
+            details.Product_Class = GetCell(sheet, i, detailHeaderList.IndexOf("Product_Class"));
+            details.Product_Type = GetCell(sheet, i, detailHeaderList.IndexOf("Product_Type"));
+            details.Roomscene = GetCell(sheet, i, detailHeaderList.IndexOf("Roomscene"));
+            details.Sample_ID = GetCell(sheet, i, detailHeaderList.IndexOf("Sample_ID"));
+            details.Size_Name = GetCell(sheet, i, detailHeaderList.IndexOf("Size_Name"));
+            details.Size_UC = GetCell(sheet, i, detailHeaderList.IndexOf("Size_UC"));
+            details.Species = GetCell(sheet, i, detailHeaderList.IndexOf("Species"));
+            details.Supplier_Name = GetCell(sheet, i, detailHeaderList.IndexOf("Supplier_Name"));
+            details.Taxonomy = GetCell(sheet, i, detailHeaderList.IndexOf("Taxonomy"));
+            details.Thickness_Fraction = GetCell(sheet, i, detailHeaderList.IndexOf("Thickness_Fraction"));
+            details.Thickness = GetCell(sheet, i, detailHeaderList.IndexOf("Thickness"));
+            details.Thickness_Measurement = GetCell(sheet, i, detailHeaderList.IndexOf("Thickness_Measurement"));
+            details.Wear_Layer = GetCell(sheet, i, detailHeaderList.IndexOf("Wear_Layer"));
+            details.Wear_Layer_Type = GetCell(sheet, i, detailHeaderList.IndexOf("Wear_Layer_Type"));
+            details.Width = GetCell(sheet, i, detailHeaderList.IndexOf("Width"));
+            details.Width_Measurement = GetCell(sheet, i, detailHeaderList.IndexOf("Width_Measurement"));
+            details.Color_Sequence = GetCell(sheet, i, detailHeaderList.IndexOf("Color_Sequence"));
+
+            /*details.Backing = GetCell(sheet, i, detailHeaderList.IndexOf("Backing"));
             details.Child_Supplier = GetCell(sheet, i, detailHeaderList.IndexOf("Child_Supplier"));
             details.Commercial_Rating = GetCell(sheet, i, detailHeaderList.IndexOf("Commercial_Rating"));
             details.Construction = GetCell(sheet, i, detailHeaderList.IndexOf("Construction"));
             details.Density = GetCell(sheet, i, detailHeaderList.IndexOf("Density"));
             details.Division_Collection = GetCell(sheet, i, detailHeaderList.IndexOf("Division_Collection"));
-            details.Division_List = GetCell(sheet, i, detailHeaderList.IndexOf("Division_List"));
-            details.Division_Product_Name = GetCell(sheet, i, detailHeaderList.IndexOf("Division_Product_Name"));
             details.Division_Rating = GetCell(sheet, i, detailHeaderList.IndexOf("Division_Rating"));
             details.Durability_Rating = GetCell(sheet, i, detailHeaderList.IndexOf("Durability_Rating"));
             details.Dye_Method = GetCell(sheet, i, detailHeaderList.IndexOf("Dye_Method"));
@@ -120,80 +153,54 @@ namespace CCAAutomation.Lib
             details.Is_Recommended_Outdoors = GetCell(sheet, i, detailHeaderList.IndexOf("Is_Recommended_Outdoors"));
             details.Is_Wall_Tile = GetCell(sheet, i, detailHeaderList.IndexOf("Is_Wall_Tile"));
             details.Is_Web_Product = GetCell(sheet, i, detailHeaderList.IndexOf("Is_Web_Product"));
-            details.Length = GetCell(sheet, i, detailHeaderList.IndexOf("Length"));
-            details.Length_Measurement = GetCell(sheet, i, detailHeaderList.IndexOf("Length_Measurement"));
             details.Locking_Type = GetCell(sheet, i, detailHeaderList.IndexOf("Locking_Type"));
             details.Made_In = GetCell(sheet, i, detailHeaderList.IndexOf("Made_In"));
-            details.Manufacturer_Product_Color_ID = GetCell(sheet, i, detailHeaderList.IndexOf("Manufacturer_Product_Color_ID"));
             details.Manufacturer_SKU_Number = GetCell(sheet, i, detailHeaderList.IndexOf("Manufacturer_SKU_Number"));
-            details.Match = GetCell(sheet, i, detailHeaderList.IndexOf("Match"));
-            details.Match_Length = GetCell(sheet, i, detailHeaderList.IndexOf("Match_Length"));
-            details.Match_Width = GetCell(sheet, i, detailHeaderList.IndexOf("Match_Width"));
-            details.Merchandised_Product_Color_ID = GetCell(sheet, i, detailHeaderList.IndexOf("Merchandised_Product_Color_ID"));
             details.Merchandised_Product_ID = GetCell(sheet, i, detailHeaderList.IndexOf("Merchandised_Product_ID"));
             details.Merchandised_SKU_Number = GetCell(sheet, i, detailHeaderList.IndexOf("Merchandised_SKU_Number"));
             details.Merchandise_Brand = GetCell(sheet, i, detailHeaderList.IndexOf("Merchandise_Brand"));
-            details.Merch_Color_Name = GetCell(sheet, i, detailHeaderList.IndexOf("Merch_Color_Name"));
-            details.Manufacturer_Feeler = GetCell(sheet, i, detailHeaderList.IndexOf("Manufacturer_Feeler"));
-            details.Merch_Color_Number = GetCell(sheet, i, detailHeaderList.IndexOf("Merch_Color_Number"));
             details.Merch_Color_Start_Date = GetCell(sheet, i, detailHeaderList.IndexOf("Merch_Color_Start_Date"));
             details.Merch_Prod_Start_Date = GetCell(sheet, i, detailHeaderList.IndexOf("Merch_Prod_Start_Date"));
-            details.Mfg_Color_Name = GetCell(sheet, i, detailHeaderList.IndexOf("Mfg_Color_Name"));
-            details.Mfg_Color_Number = GetCell(sheet, i, detailHeaderList.IndexOf("Mfg_Color_Number"));
             details.NBS_Smoke_Density_ASTME662 = GetCell(sheet, i, detailHeaderList.IndexOf("NBS_Smoke_Density_ASTME662"));
-            details.Number_of_Colors = GetCell(sheet, i, detailHeaderList.IndexOf("Number_of_Colors"));
             details.Percent_BCF = GetCell(sheet, i, detailHeaderList.IndexOf("Percent_BCF"));
             details.Percent_Spun = GetCell(sheet, i, detailHeaderList.IndexOf("Percent_Spun"));
             details.Pile_Height = GetCell(sheet, i, detailHeaderList.IndexOf("Pile_Height"));
-            details.Pile_Line = GetCell(sheet, i, detailHeaderList.IndexOf("Pile_Line"));
-            details.Primary_Display = GetCell(sheet, i, detailHeaderList.IndexOf("Primary_Display"));
             details.Primary_Fiber = GetCell(sheet, i, detailHeaderList.IndexOf("Primary_Fiber"));
             details.Primary_Fiber_Percentage = GetCell(sheet, i, detailHeaderList.IndexOf("Primary_Fiber_Percentage"));
-            details.Product_Class = GetCell(sheet, i, detailHeaderList.IndexOf("Product_Class"));
-            details.Product_Type = GetCell(sheet, i, detailHeaderList.IndexOf("Product_Type"));
             details.Radiant_Heat = GetCell(sheet, i, detailHeaderList.IndexOf("Radiant_Heat"));
             details.Radiant_Panel_ASTME648 = GetCell(sheet, i, detailHeaderList.IndexOf("Radiant_Panel_ASTME648"));
-            details.Roomscene = GetCell(sheet, i, detailHeaderList.IndexOf("Roomscene"));
             details.Sample_Box = GetCell(sheet, i, detailHeaderList.IndexOf("Sample_Box"));
             details.Sample_Box_Availability = GetCell(sheet, i, detailHeaderList.IndexOf("Sample_Box_Availability"));
             details.Sample_Box_Enabled = GetCell(sheet, i, detailHeaderList.IndexOf("Sample_Box_Enabled"));
-            details.Sample_ID = GetCell(sheet, i, detailHeaderList.IndexOf("Sample_ID"));
             details.Second_Fiber = GetCell(sheet, i, detailHeaderList.IndexOf("Second_Fiber"));
             details.Second_Fiber_Percentage = GetCell(sheet, i, detailHeaderList.IndexOf("Second_Fiber_Percentage"));
             details.Shade_Variation = GetCell(sheet, i, detailHeaderList.IndexOf("Shade_Variation"));
-            details.Size_Name = GetCell(sheet, i, detailHeaderList.IndexOf("Size_Name"));
-            details.Size_UC = GetCell(sheet, i, detailHeaderList.IndexOf("Size_UC"));
             details.Soil_Treatment = GetCell(sheet, i, detailHeaderList.IndexOf("Soil_Treatment"));
-            details.Species = GetCell(sheet, i, detailHeaderList.IndexOf("Species"));
             details.Stain_Treatment = GetCell(sheet, i, detailHeaderList.IndexOf("Stain_Treatment"));
             details.Static_AATCC134 = GetCell(sheet, i, detailHeaderList.IndexOf("Static_AATCC134"));
             details.Stitches = GetCell(sheet, i, detailHeaderList.IndexOf("Stitches"));
             details.Supplementary_SKUs = GetCell(sheet, i, detailHeaderList.IndexOf("Supplementary_SKUs"));
-            details.Supplier_Name = GetCell(sheet, i, detailHeaderList.IndexOf("Supplier_Name"));
             details.Supplier_Product_Name = GetCell(sheet, i, detailHeaderList.IndexOf("Supplier_Product_Name"));
-            details.Taxonomy = GetCell(sheet, i, detailHeaderList.IndexOf("Taxonomy"));
-            details.Thickness_Fraction = GetCell(sheet, i, detailHeaderList.IndexOf("Thickness_Fraction"));
-            details.Thickness = GetCell(sheet, i, detailHeaderList.IndexOf("Thickness"));
-            details.Thickness_Measurement = GetCell(sheet, i, detailHeaderList.IndexOf("Thickness_Measurement"));
             details.Third_Fiber = GetCell(sheet, i, detailHeaderList.IndexOf("Third_Fiber"));
             details.Third_Fiber_Percentage = GetCell(sheet, i, detailHeaderList.IndexOf("Third_Fiber_Percentage"));
-            details.Wear_Layer = GetCell(sheet, i, detailHeaderList.IndexOf("Wear_Layer"));
-            details.Wear_Layer_Type = GetCell(sheet, i, detailHeaderList.IndexOf("Wear_Layer_Type"));
             details.Web_Product_Name = GetCell(sheet, i, detailHeaderList.IndexOf("Web_Product_Name"));
-            details.Width = GetCell(sheet, i, detailHeaderList.IndexOf("Width"));
-            details.Width_Measurement = GetCell(sheet, i, detailHeaderList.IndexOf("Width_Measurement"));
-            details.Yarn_Twist = GetCell(sheet, i, detailHeaderList.IndexOf("Yarn_Twist"));
-            details.Color_Sequence = GetCell(sheet, i, detailHeaderList.IndexOf("Color_Sequence"));
+            details.Yarn_Twist = GetCell(sheet, i, detailHeaderList.IndexOf("Yarn_Twist"));*/
 
             return details;
         }
         public static Sample GetSample(ISheet sheet, List<string> sampleHeaderList, int i)
         {
             Sample sample = new Sample();
-            sample.Binder = GetCell(sheet, i, sampleHeaderList.IndexOf("Binder"));
+            sample.Feeler = GetCell(sheet, i, sampleHeaderList.IndexOf("Feeler"));
+            sample.Multiple_Color_Lines = GetCell(sheet, i, sampleHeaderList.IndexOf("Multiple_Color_Lines"));
+            sample.Sample_ID = GetCell(sheet, i, sampleHeaderList.IndexOf("Sample_ID"));
+            sample.Sample_Name = GetCell(sheet, i, sampleHeaderList.IndexOf("Sample_Name"));
+            sample.Sample_Type = GetCell(sheet, i, sampleHeaderList.IndexOf("Sample_Type"));
+            sample.Shared_Card = GetCell(sheet, i, sampleHeaderList.IndexOf("Shared_Card"));
+
+            /*sample.Binder = GetCell(sheet, i, sampleHeaderList.IndexOf("Binder"));
             sample.Border = GetCell(sheet, i, sampleHeaderList.IndexOf("Border"));
             sample.Character_Rating_by_Color = GetCell(sheet, i, sampleHeaderList.IndexOf("Character_Rating_by_Color"));
-            sample.Feeler = GetCell(sheet, i, sampleHeaderList.IndexOf("Feeler"));
             sample.MSRP = GetCell(sheet, i, sampleHeaderList.IndexOf("MSRP"));
             sample.MSRP_Canada = GetCell(sheet, i, sampleHeaderList.IndexOf("MSRP_Canada"));
             sample.Our_Price = GetCell(sheet, i, sampleHeaderList.IndexOf("Our_Price"));
@@ -202,16 +209,12 @@ namespace CCAAutomation.Lib
             sample.RRP_US = GetCell(sheet, i, sampleHeaderList.IndexOf("RRP_US"));
             sample.Sampled_Color_SKU = GetCell(sheet, i, sampleHeaderList.IndexOf("Sampled_Color_SKU"));
             sample.Sampled_With_Merch_Product_ID = GetCell(sheet, i, sampleHeaderList.IndexOf("Sampled_With_Merch_Product_ID"));
-            sample.Sample_ID = GetCell(sheet, i, sampleHeaderList.IndexOf("Sample_ID"));
-            sample.Sample_Name = GetCell(sheet, i, sampleHeaderList.IndexOf("Sample_Name"));
             sample.Sample_Note = GetCell(sheet, i, sampleHeaderList.IndexOf("Sample_Note"));
             sample.Sample_Size = GetCell(sheet, i, sampleHeaderList.IndexOf("Sample_Size"));
-            sample.Sample_Type = GetCell(sheet, i, sampleHeaderList.IndexOf("Sample_Type"));
             sample.Sampling_Color_Description = GetCell(sheet, i, sampleHeaderList.IndexOf("Sampling_Color_Description"));
-            sample.Shared_Card = GetCell(sheet, i, sampleHeaderList.IndexOf("Shared_Card"));
             sample.Split_Board = GetCell(sheet, i, sampleHeaderList.IndexOf("Split_Board"));
             sample.Trade_Up = GetCell(sheet, i, sampleHeaderList.IndexOf("Trade_Up"));
-            sample.Wood_Imaging = GetCell(sheet, i, sampleHeaderList.IndexOf("Wood_Imaging"));
+            sample.Wood_Imaging = GetCell(sheet, i, sampleHeaderList.IndexOf("Wood_Imaging"));*/
 
             return sample;
         }
@@ -220,7 +223,7 @@ namespace CCAAutomation.Lib
             Labels labels = new Labels();
             labels.Division_Label_Name = GetCell(sheet, i, labelsHeaderList.IndexOf("Division_Label_Name"));
             labels.Division_Label_Type = GetCell(sheet, i, labelsHeaderList.IndexOf("Division_Label_Type"));
-            labels.Merchandised_Product_ID = GetCell(sheet, i, labelsHeaderList.IndexOf("Merchandised_Product_ID"));
+            //labels.Merchandised_Product_ID = GetCell(sheet, i, labelsHeaderList.IndexOf("Merchandised_Product_ID"));
             labels.Sample_ID = GetCell(sheet, i, labelsHeaderList.IndexOf("Sample_ID"));
 
             return labels;
@@ -272,7 +275,7 @@ namespace CCAAutomation.Lib
                             lARFinal.WarrantiesFinal.Add(w);
                         }
                     }
-                    lARFinal = GetMerchandisedProductColorIds(lARFinal);
+                    lARFinal = GetMerchandisedProductColorIds(lARFinal, larXlsSheet);
                     lARFinalList.Add(lARFinal);
                     lARFinal = new LARFinal();
                 }
@@ -305,7 +308,7 @@ namespace CCAAutomation.Lib
                             lARFinal.WarrantiesFinal.Add(w);
                         }
                     }
-                    lARFinal = GetMerchandisedProductColorIds(lARFinal);
+                    lARFinal = GetMerchandisedProductColorIds(lARFinal, larXlsSheet);
                     lARFinalList.Add(lARFinal);
                     lARFinal = new LARFinal();
                 }

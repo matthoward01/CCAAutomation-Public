@@ -133,6 +133,7 @@ namespace CCAAutomation.Lib
             public string Sample_Type { get; set; }
             public string Sampled_Color_SKU { get; set; }
             public string Shared_Card { get; set; }
+            public string Multiple_Color_Lines { get; set; }
             public string Sampled_With_Merch_Product_ID { get; set; }
             public string Quick_Ship { get; set; }
             public string Binder { get; set; }
@@ -180,6 +181,12 @@ namespace CCAAutomation.Lib
             public Sample SampleFinal { get; set; } = new Sample();
             public List<Labels> LabelsFinal { get; set; } = new List<Labels>();
             public List<Warranties> WarrantiesFinal { get; set; } = new List<Warranties>();
+        }
+
+        public class CCASkuIdModel
+        {
+            public string Position { get; set; }
+            public string CCASkuId { get; set; }
         }
 
         public class WebTableItem

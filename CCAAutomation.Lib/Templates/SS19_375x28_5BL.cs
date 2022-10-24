@@ -79,7 +79,18 @@ namespace CCAAutomation.Lib
                 }
 
                 //Spec 3
-                specs.Add(width + " x " + length + " " + details.Match);
+                if (width.EqualsString(""))
+                {
+                    specs.Add(length + " " + details.Match);
+                }
+                else if (length.EqualsString(""))
+                {
+                    specs.Add(width + " " + details.Match);
+                }
+                else
+                {
+                    specs.Add(width + " x " + length + " " + details.Match);
+                }
             }            
             else
             {
@@ -119,6 +130,8 @@ namespace CCAAutomation.Lib
             List<string> widthList = new();
             List<int> featurePositionList = new();
             List<Swatches.SwatchColors> swatchColors = new List<Swatches.SwatchColors>();
+            List<CCASkuIdModel> ccaSkuIdList = new();
+            CCASkuIdModel cCASkuIdModel = new();
             bool error = false;
             string twoFeature = "";
 
@@ -155,14 +168,28 @@ namespace CCAAutomation.Lib
             {
                 if (lf.SampleFinal.Sample_Name.Contains("/") && lf.SampleFinal.Shared_Card.Trim().ToLower().Equals("yes"))
                 {
-                    string[] style = lf.SampleFinal.Sample_Name.Split('/');                    
+                    string[] style = lf.SampleFinal.Sample_Name.Split('/');
+                    if (style[0].Trim().ToLower().Equals(lf.DetailsFinal.Division_Product_Name.Trim().ToLower()))
+                    {
+                        if (lf.DetailsFinal.Merch_Color_Name.Trim().ToLower().Equals(lf.SampleFinal.Feeler.Trim().ToLower()))
+                        {
+                            cCASkuIdModel.Position = "01";
+                            cCASkuIdModel.CCASkuId = lf.DetailsFinal.CcaSkuId;
+                            ccaSkuIdList.Add(cCASkuIdModel);
+                            //ccaSkuId.Add(lf.DetailsFinal.CcaSkuId);
+                        }
+                    }
                     if (style[1].Trim().ToLower().Equals(lf.DetailsFinal.Division_Product_Name.Trim().ToLower()))
                     {
                         if (lf.DetailsFinal.Merch_Color_Name.Trim().ToLower().Equals(lf.SampleFinal.Feeler.Trim().ToLower()))
                         {
-                            ccaSkuId.Add(lf.DetailsFinal.CcaSkuId);
+                            cCASkuIdModel.Position = "02";
+                            cCASkuIdModel.CCASkuId = lf.DetailsFinal.CcaSkuId;
+                            ccaSkuIdList.Add(cCASkuIdModel);
+                            //ccaSkuId.Add(lf.DetailsFinal.CcaSkuId);
                         }
                     }
+                    cCASkuIdModel = new();
                 }
                 else
                 {
@@ -171,8 +198,12 @@ namespace CCAAutomation.Lib
                         ccaSkuId.Add(lf.DetailsFinal.CcaSkuId);
                     }                    
                 }                
-            }            
-
+            }
+            ccaSkuIdList.Sort((x, y) => x.Position.CompareTo(y.Position));
+            foreach (CCASkuIdModel sku in ccaSkuIdList)
+            {
+                ccaSkuId.Add(sku.CCASkuId);
+            }
             swatchColors.Sort((x, y) => x.ColorSequence.CompareTo(y.ColorSequence)); 
             foreach (Swatches.SwatchColors c in swatchColors)
             {
@@ -213,7 +244,7 @@ namespace CCAAutomation.Lib
             }
             string snippetWarranties = XmlRemapping(warranty.ToLower(), "Ratings") + ".idms";
 
-            string roomScene = "FPOwaitingonroom.tif" + "<!--Roomscene column is blank-->";
+            string roomScene = "FPOwaitingonroom.tif";
 
             foreach (string s in lARFinal[0].SampleFinal.Merchandised_Product_Color_ID_C1)
             {
@@ -252,7 +283,7 @@ namespace CCAAutomation.Lib
                 //files = ApprovedRoomscenes();
                 foreach (string s in files)
                 {
-                    foreach (string r in lARFinal[featurePosition].SampleFinal.Merchandised_Product_Color_ID_C1)
+                    foreach (string r in lARFinal[0].SampleFinal.Merchandised_Product_Color_ID_C1)
                     {
                         if (!r.EqualsString(""))
                         {
@@ -262,7 +293,7 @@ namespace CCAAutomation.Lib
                             }
                         }
                     }
-                    foreach (string r in lARFinal[featurePosition].SampleFinal.Merchandised_Product_Color_ID_FA)
+                    foreach (string r in lARFinal[0].SampleFinal.Merchandised_Product_Color_ID_FA)
                     {
                         if (!r.EqualsString(""))
                         {
@@ -419,7 +450,7 @@ namespace CCAAutomation.Lib
                     //Console.WriteLine("--------------------------------------------");
                     using (StreamWriter textFile = new StreamWriter(Path.Combine(export, "Roomscene Matchups.txt"), append:true))
                     {
-                        textFile.WriteLine(jobName + "||||||" + roomScene);
+                        textFile.WriteLine(jobName + "|" + styleName + "|" + "Yes" + "|" + lARFinal[0].DetailsFinal.Supplier_Name + "|" + roomScene);
                     }
                 }
                 else
@@ -435,7 +466,7 @@ namespace CCAAutomation.Lib
                 Console.WriteLine("Color Sequence Missing or Incomplete, but we have Roomscene");
                 using (StreamWriter textFile = new StreamWriter(Path.Combine(export, "Roomscenes no Sequence.txt"), append:true))
                 {
-                    textFile.WriteLine(jobName + "||||||" + roomScene);
+                    textFile.WriteLine(jobName + "|" + styleName + "|" + "No" + "|" + lARFinal[0].DetailsFinal.Supplier_Name + "|" + roomScene);
                 }
             }
             else if (error)

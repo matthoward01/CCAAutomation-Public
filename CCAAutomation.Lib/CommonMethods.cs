@@ -622,37 +622,6 @@ namespace CCAAutomation.Lib
             return path;
         }
 
-        public static LarModels.LARFinal GetMerchandisedProductColorIds(LarModels.LARXlsSheet ls, LarModels.LARFinal lf)
-        {
-            string merchandisedProductColorID = "";
-
-            foreach (LarModels.Details d in ls.DetailsList)
-            {
-                foreach (LarModels.Sample s in ls.SampleList)
-                {
-                    if (d.Sample_ID.EqualsString(s.Sample_ID))
-                    {
-                        if (s.Feeler.EqualsString(d.Merch_Color_Name) && d.Sample_ID.EqualsString(s.Sample_ID))
-                        {
-                            merchandisedProductColorID = d.Merchandised_Product_Color_ID;
-                        }
-                        if (d.Merchandised_Product_Color_ID.EqualsString(merchandisedProductColorID) && d.Sample_ID.EqualsString(s.Sample_ID))
-                        {
-                            if (d.Division_List.Trim().ToLower().Contains("fa") && !d.Division_List.EqualsString("fc"))
-                            {
-                                lf.SampleFinal.Merchandised_Product_Color_ID_FA.Add(d.Merchandised_Product_Color_ID);
-                            }
-                            if (d.Division_List.Trim().ToLower().Contains("c1") && !d.Division_List.EqualsString("cn"))
-                            {
-                                lf.SampleFinal.Merchandised_Product_Color_ID_C1.Add(d.Merchandised_Product_Color_ID);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return lf;
-        }
         public static LarModels.LARFinal GetMerchandisedProductColorIds(LarModels.LARFinal lf)
         {
             string merchandisedProductColorID = "";
@@ -676,6 +645,62 @@ namespace CCAAutomation.Lib
                 }
             }
 
+            return lf;
+        }
+
+        public static LarModels.LARFinal GetMerchandisedProductColorIds(LarModels.LARFinal lf, LarModels.LARXlsSheet ls)
+        {
+            string manufacturerProductColorID = "";
+
+            /*foreach (LarModels.Details d in ls.DetailsList)
+            {
+                foreach (LarModels.Sample s in ls.SampleList)
+                {
+                    if (d.Sample_ID.Equals(lf.DetailsFinal.Sample_ID))
+                    {
+                        if (s.Feeler.Trim().ToLower().Equals(lf.DetailsFinal.Merch_Color_Name.Trim().ToLower()) && lf.DetailsFinal.Sample_ID.EqualsString(s.Sample_ID))
+                        {
+                            manufacturerProductColorID = lf.DetailsFinal.Manufacturer_Product_Color_ID;
+                        }
+                    }
+                }
+            }*/
+            if (ls.DetailsList.Any(d => d.Sample_ID.Equals(lf.DetailsFinal.Sample_ID)))
+            {
+                if (ls.SampleList.Any(s => (s.Feeler.EqualsString(lf.DetailsFinal.Merch_Color_Name) && s.Sample_ID.EqualsString(lf.DetailsFinal.Sample_ID))))
+                {
+                    manufacturerProductColorID = lf.DetailsFinal.Manufacturer_Product_Color_ID;
+                }
+            }
+
+            foreach (LarModels.Details d in ls.DetailsList)
+            {
+                if (d.Manufacturer_Product_Color_ID.Equals(manufacturerProductColorID))
+                {
+                    if (d.Division_List.Trim().ToLower().Contains("fa") && !d.Division_List.Trim().ToLower().Equals("fc"))
+                    {
+                        lf.SampleFinal.Merchandised_Product_Color_ID_FA.Add(d.Merchandised_Product_Color_ID);
+                    }
+                    if (d.Division_List.Trim().ToLower().Contains("c1") && !d.Division_List.Trim().ToLower().Equals("cn"))
+                    {
+                        lf.SampleFinal.Merchandised_Product_Color_ID_C1.Add(d.Merchandised_Product_Color_ID);
+                    }
+                }
+            }
+
+            /*int index = ls.DetailsList.FindIndex(d => (d.Manufacturer_Product_Color_ID.EqualsString(manufacturerProductColorID) &&
+            d.Division_List.Trim().ToLower().Contains("fa") && !d.Division_List.Trim().ToLower().Equals("fc")));
+            if (index != -1)
+            {
+                lf.SampleFinal.Merchandised_Product_Color_ID_FA.Add(ls.DetailsList[index].Merchandised_Product_Color_ID);
+            }
+
+            index = ls.DetailsList.FindIndex(d => (d.Manufacturer_Product_Color_ID.EqualsString(manufacturerProductColorID) &&
+            d.Division_List.Trim().ToLower().Contains("c1") && !d.Division_List.Trim().ToLower().Equals("cn")));
+            if (index != -1)
+            {
+                lf.SampleFinal.Merchandised_Product_Color_ID_C1.Add(ls.DetailsList[index].Merchandised_Product_Color_ID);
+            }*/
 
             return lf;
         }
@@ -710,5 +735,20 @@ public static class Extensions
             value = true;
         }
         return value;
+    }
+    public static int IndexOf<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
+    {
+
+        var index = 0;
+        foreach (var item in source)
+        {
+            if (predicate.Invoke(item))
+            {
+                return index;
+            }
+            index++;
+        }
+
+        return -1;
     }
 }
