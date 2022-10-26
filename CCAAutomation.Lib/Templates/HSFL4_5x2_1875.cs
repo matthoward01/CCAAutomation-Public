@@ -98,11 +98,11 @@ namespace CCAAutomation.Lib
             return specs;
         }
 
-        public static List<string> CreateXMLHS4_5x2_1875(bool testing, bool goWorkShop, LARFinal lARFinal, string plateId, string export)
+        public static List<string> CreateXMLHS4_5x2_1875(bool goWorkShop, LARFinal lARFinal, string plateId, string export)
         {
             //goWorkShop = true;
             List<string> missingImages = new List<string>();
-            Settings.TemplateModel settings = Settings.GetTemplateSettings(XmlMethods.XmlRemapping(lARFinal.DetailsFinal.Division_List, "Divisions"), "FL");
+            TemplateModel settings = GetTemplateSettings(XmlRemapping(lARFinal.DetailsFinal.Division_List, "Divisions"), "FL");
             string mainPath = settings.WebShopPath;
             string template = settings.WebShopPath + settings.Name;
             string jobName = lARFinal.DetailsFinal.Plate_ID;
@@ -114,10 +114,10 @@ namespace CCAAutomation.Lib
             string snippetPath = mainPath + settings.SnippetPath;
 
             string imagesPath = mainPath + settings.ImagesPath;
-            string category = XmlMethods.XmlRemapping(lARFinal.DetailsFinal.Taxonomy.ToLower(), "Categories");
+            string category = XmlRemapping(lARFinal.DetailsFinal.Taxonomy.ToLower(), "Categories");
             string snippetCategory = "category:" + category + ".idms" + "<!--Taxonomy-->";
 
-            string snippetWarranties = "rating:" + XmlMethods.XmlRemapping(lARFinal.DetailsFinal.Division_Rating.ToLower(), "Ratings") + " " + category + ".idms" + "<!--Division_Rating-->";
+            string snippetWarranties = "rating:" + XmlRemapping(lARFinal.DetailsFinal.Division_Rating.ToLower(), "Ratings") + " " + category + ".idms" + "<!--Division_Rating-->";
             string styleName = ConvertToTitleCase(lARFinal.SampleFinal.Sample_Name.Trim());
             List<string> specList = GetSpecList(lARFinal.DetailsFinal);
             List<string> xmlData = new List<string>();
@@ -158,14 +158,7 @@ namespace CCAAutomation.Lib
             xmlData.Add("			</inlines>");
             xmlData.Add("		</graphics>");
             xmlData.Add("		<JobName>" + jobName + "</JobName>");
-            if (testing)
-            {
-                xmlData.Add("		<JobTemplate>" + "CCA Auto_Testing" + " </JobTemplate>");
-            }
-            else
-            {
-                xmlData.Add("		<JobTemplate>" + settings.PreJobTemplateName + "</JobTemplate>");
-            }
+            xmlData.Add("		<JobTemplate>" + settings.PreJobTemplateName + "</JobTemplate>");
             xmlData.Add("		<JobGroup>" + settings.PreJobPath + "</JobGroup>");
             xmlData.Add("		<inputfiles>");
             xmlData.Add("			<string>\\\\MAG1PVSF7\\WebShop\\InputPDF\\" + jobName + ".pdf</string>");
@@ -190,7 +183,7 @@ namespace CCAAutomation.Lib
                 {
                     //Console.WriteLine("--------------------------------------------");
                     ExportXML(jobName, xmlData, export, "WebShop XML");
-                    CreateXMLHS4_5x2_1875(testing, true, lARFinal, plateId, export);
+                    CreateXMLHS4_5x2_1875(true, lARFinal, plateId, export);
                 }
 
             }

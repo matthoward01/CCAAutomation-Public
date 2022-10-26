@@ -1178,6 +1178,16 @@
 			<SwatchSizeHeight>2.750</SwatchSizeHeight>
 		</Swatch>
 		<Swatch>
+			<Total>14</Total>
+			<Template>SS19.375x28.5BL wFeat</Template>
+			<FrameType>All</FrameType>
+			<SwatchWeight>0.000</SwatchWeight>
+			<SwatchCols>2</SwatchCols>
+			<SwatchRows>7</SwatchRows>
+			<SwatchSizeWidth>8.25</SwatchSizeWidth>
+			<SwatchSizeHeight>1.750</SwatchSizeHeight>
+		</Swatch>
+		<Swatch>
 			<Total>15</Total>
 			<Template>SS19.375x28.5BL</Template>
 			<FrameType>All</FrameType>

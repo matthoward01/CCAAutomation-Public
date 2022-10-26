@@ -265,7 +265,7 @@ namespace CCAAutomation.Lib
             return trimList;
         }
 
-        public static List<string> CreateXMLHS18x24BL(bool testing, string[] files, bool skip, bool goWorkShop, LARFinal lARFinal, string plateId, string export)
+        public static List<string> CreateXMLHS18x24BL(string[] files, bool skip, bool goWorkShop, LARFinal lARFinal, string plateId, string export)
         {
             //goWorkShop = true;
             List<string> missingImages = new List<string>();
@@ -391,14 +391,7 @@ namespace CCAAutomation.Lib
             xmlData.Add("			</images>");
             xmlData.Add("		</graphics>");
             xmlData.Add("		<JobName>" + jobName + "</JobName>");
-            if (testing)
-            {
-                xmlData.Add("		<JobTemplate>" + "CCA Auto_Testing" + "</JobTemplate>");
-            }
-            else
-            {
-                xmlData.Add("		<JobTemplate>" + settings.PreJobTemplateName + "</JobTemplate>");
-            }
+            xmlData.Add("		<JobTemplate>" + settings.PreJobTemplateName + "</JobTemplate>");
             xmlData.Add("		<JobGroup>" + settings.PreJobPath + "</JobGroup>");
             xmlData.Add("		<inputfiles>");
             xmlData.Add("			<string>\\\\MAG1PVSF7\\WebShop\\InputPDF\\" + jobName + ".pdf</string>");
@@ -423,7 +416,7 @@ namespace CCAAutomation.Lib
                 {
                     //Console.WriteLine("--------------------------------------------");
                     ExportXML(jobName, xmlData, export, "WebShop XML");
-                    CreateXMLHS18x24BL(testing, files, skip, true, lARFinal, plateId, export);
+                    CreateXMLHS18x24BL(files, skip, true, lARFinal, plateId, export);
                 }
 
             }

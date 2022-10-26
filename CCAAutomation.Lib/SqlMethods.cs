@@ -27,7 +27,8 @@ namespace CCAAutomation.Lib
                 "User ID = " + uid + ";" +
                 "Password = " + password + ";";
             connection = new SqlConnection(connectionString);
-        }
+        }        
+
         private static void SqlConnectTest()
         {
             server = "xxxxxx";
@@ -42,9 +43,61 @@ namespace CCAAutomation.Lib
                 "Password = " + password + ";";
             connection = new SqlConnection(connectionString);
         }
-        public static List<string> SqlSelectPlateId(bool isSoftSurface)
+
+        internal static bool SqlApprovalCheck(string plate_ID)
         {
-            List<string> plateList = new();
+            bool approved = false;
+
+            SqlCommand command;
+            SqlDataReader dataReader;
+
+            string sql = "SELECT Status FROM dbo.Details WHERE Plate_# = '" + plate_ID + "'";
+
+            try
+            {
+                SqlConnect("CCA");
+                connection.Open();
+                command = new SqlCommand(sql, connection);
+                dataReader = command.ExecuteReader();
+                while (dataReader.Read())
+                {
+                    if ((dataReader.GetString(dataReader.GetOrdinal("Plate_#")).EqualsString("approved")))
+                    {
+                        approved = true;
+                    }
+                }
+
+                dataReader.Close();
+                command.Dispose();
+                connection.Close();
+
+                SqlConnect("CCA-SS");
+                connection.Open();
+                command = new SqlCommand(sql, connection);
+                dataReader = command.ExecuteReader();
+                while (dataReader.Read())
+                {
+                    if ((dataReader.GetString(dataReader.GetOrdinal("Plate_#")).EqualsString("approved")))
+                    {
+                        approved = true;
+                    }
+                }
+
+                dataReader.Close();
+                command.Dispose();
+                connection.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            return approved;
+        }
+
+        public static LarModels.LARFinal SqlGetLarFinal(bool isSoftSurface, string plateId)
+        {
+            LarModels.LARFinal lfSql = new();
+
             if (isSoftSurface)
             {
                 SqlConnect("CCA-SS");
@@ -57,7 +110,7 @@ namespace CCAAutomation.Lib
             SqlCommand command;
             SqlDataReader dataReader;
 
-            string sql = "SELECT DISTINCT Plate_# FROM dbo.Details GROUP BY Plate_#";
+            string sql = "SELECT * FROM dbo.Details WHERE Plate_# = '" + plateId + "'";
 
             try
             {
@@ -66,7 +119,7 @@ namespace CCAAutomation.Lib
                 dataReader = command.ExecuteReader();
                 while (dataReader.Read())
                 {
-                    plateList.Add(dataReader.GetString(dataReader.GetOrdinal("Plate_#")));                
+                    lfSql.DetailsFinal.Plate_ID = (dataReader.GetString(dataReader.GetOrdinal("Plate_#")));
                 }
 
                 dataReader.Close();
@@ -77,9 +130,51 @@ namespace CCAAutomation.Lib
             {
                 Console.WriteLine(e.Message);
             }
-                    
-            return plateList;
+
+
+            return lfSql;
         }
+
+        public static List<string> GetRunJobs(bool isSoftSurface)
+        {
+            List<string> jobList = new();
+
+            if (isSoftSurface)
+            {
+                SqlConnect("CCA-SS");
+            }
+            else
+            {
+                SqlConnect("CCA");
+            }
+
+            SqlCommand command;
+            SqlDataReader dataReader;
+
+            string sql = "SELECT DISTINCT Plate_# FROM dbo.Details WHERE (Output='1' AND Plate_# != '')";
+
+            try
+            {
+                connection.Open();
+                command = new SqlCommand(sql, connection);
+                dataReader = command.ExecuteReader();
+                while (dataReader.Read())
+                {
+                    jobList.Add(dataReader.GetString(dataReader.GetOrdinal("Plate_#")));
+                }
+
+                dataReader.Close();
+                command.Dispose();
+                connection.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            return jobList;
+        }
+        
         public static List<string> SqlSelectSwatchColors(string sampleId, bool isSoftSurface)
         {
             List<string> colorList = new();
@@ -125,24 +220,27 @@ namespace CCAAutomation.Lib
 
             return colorList;
         }        
+
         public static List<LarModels.WebTableItem> SqlSelectWebTableItem(bool isSoftSurface, int offset)
         {
             List<LarModels.WebTableItem> webTableItems = new();
+            string sql = "";
 
             if (isSoftSurface)
             {
                 SqlConnect("CCA-SS");
+                sql = "SELECT DISTINCT dbo.Details.Plate_#, dbo.Details.Sample_ID, dbo.Details.Status, dbo.Details.Art_Type, Sample_Name, Shared_Card, Multiple_Color_Lines, dbo.Details.Change, dbo.Details.Output FROM dbo.Sample INNER JOIN dbo.Details ON dbo.Details.Sample_ID=dbo.Sample.Sample_ID";
             }
             else
             {
                 SqlConnect("CCA");
+                sql = "SELECT DISTINCT dbo.Details.Plate_#, dbo.Details.Sample_ID, dbo.Details.Status, dbo.Details.Art_Type, Sample_Name, dbo.Details.Change, dbo.Details.Output, dbo.Details.Size_Name, dbo.Details.Width, dbo.Details.Width_Measurement, dbo.Details.Length, dbo.Details.Length_Measurement FROM dbo.Sample INNER JOIN dbo.Details ON dbo.Details.Sample_ID=dbo.Sample.Sample_ID";
             }
 
             SqlCommand command;
             SqlDataReader dataReader;
 
             //string sql = "SELECT DISTINCT dbo.Details.Plate_#, dbo.Details.Sample_ID, dbo.Details.Status, dbo.Details.Art_Type, Sample_Name, Shared_Card, Multiple_Color_Lines, dbo.Details.Change FROM dbo.Sample INNER JOIN dbo.Details ON dbo.Details.Sample_ID=dbo.Sample.Sample_ID ORDER BY dbo.Details.Plate_# OFFSET " + offset + " ROWS FETCH NEXT 500 ROWS ONLY";
-            string sql = "SELECT DISTINCT dbo.Details.Plate_#, dbo.Details.Sample_ID, dbo.Details.Status, dbo.Details.Art_Type, Sample_Name, Shared_Card, Multiple_Color_Lines, dbo.Details.Change FROM dbo.Sample INNER JOIN dbo.Details ON dbo.Details.Sample_ID=dbo.Sample.Sample_ID";
 
             try
             {
@@ -158,21 +256,33 @@ namespace CCAAutomation.Lib
                     webTableItem.SearchTags += webTableItem.Art_Type = dataReader.GetString(dataReader.GetOrdinal("Art_Type"));
                     webTableItem.SearchTags += webTableItem.Change = dataReader.GetString(dataReader.GetOrdinal("Change"));
                     webTableItem.SearchTags += webTableItem.Style = dataReader.GetString(dataReader.GetOrdinal("Sample_Name"));
-                    if (dataReader.GetString(dataReader.GetOrdinal("Shared_Card")).EqualsString("yes"))
+                    webTableItem.Output = dataReader.GetInt32(dataReader.GetOrdinal("Output"));
+                    if (isSoftSurface)
                     {
-                        webTableItem.SearchTags += webTableItem.Shared_Card = "Shared Card";
+                        if (dataReader.GetString(dataReader.GetOrdinal("Shared_Card")).EqualsString("yes"))
+                        {
+                            webTableItem.SearchTags += webTableItem.Shared_Card = "Shared Card";
+                        }
+                        else
+                        {
+                            webTableItem.SearchTags += webTableItem.Shared_Card = "";
+                        }
+                        if (dataReader.GetString(dataReader.GetOrdinal("Multiple_Color_Lines")).EqualsString("yes"))
+                        {
+                            webTableItem.SearchTags += webTableItem.Multiple_Color_Lines = "Multiple Color Lines";
+                        }
+                        else
+                        {
+                            webTableItem.SearchTags += webTableItem.Multiple_Color_Lines = "";
+                        }
                     }
                     else
                     {
-                        webTableItem.SearchTags += webTableItem.Shared_Card = "";
-                    }
-                    if (dataReader.GetString(dataReader.GetOrdinal("Multiple_Color_Lines")).EqualsString("yes"))
-                    {
-                        webTableItem.SearchTags += webTableItem.Multiple_Color_Lines = "Multiple Color Lines";
-                    }
-                    else
-                    {
-                        webTableItem.SearchTags += webTableItem.Multiple_Color_Lines = "";
+                        webTableItem.Size_Name = dataReader.GetString(dataReader.GetOrdinal("Size_Name"));
+                        webTableItem.Width = dataReader.GetString(dataReader.GetOrdinal("Width"));
+                        webTableItem.Width_Measurement = dataReader.GetString(dataReader.GetOrdinal("Width_Measurement"));
+                        webTableItem.Length = dataReader.GetString(dataReader.GetOrdinal("Length"));
+                        webTableItem.Length_Measurement = dataReader.GetString(dataReader.GetOrdinal("Length_Measurement"));
                     }
 
                     webTableItems.Add(webTableItem);
@@ -205,7 +315,7 @@ namespace CCAAutomation.Lib
             SqlCommand command;
             SqlDataReader dataReader;
 
-            string sql = "SELECT TOP 1 Plate_#, Sample_ID, Status, Art_Type, Change FROM dbo.Details WHERE Plate_#='" + plateId + "'";
+            string sql = "SELECT TOP 1 Plate_#, Sample_ID, Status, Art_Type, Change, Output FROM dbo.Details WHERE Plate_#='" + plateId + "'";
 
             try
             {
@@ -219,6 +329,7 @@ namespace CCAAutomation.Lib
                     webTableItem.Status = dataReader.GetString(dataReader.GetOrdinal("Status"));
                     webTableItem.Art_Type = dataReader.GetString(dataReader.GetOrdinal("Art_Type"));
                     webTableItem.Change = dataReader.GetString(dataReader.GetOrdinal("Change"));
+                    webTableItem.Output = dataReader.GetInt32(dataReader.GetOrdinal("Output"));
                 }
                 dataReader.Close();
                 command.Dispose();
@@ -343,6 +454,7 @@ namespace CCAAutomation.Lib
                     //details.Merch_Color_Number = dataReader.GetString(dataReader.GetOrdinal("Merch_Color_Number")).Trim();
                     details.Merchandised_SKU_Number = dataReader.GetString(dataReader.GetOrdinal("Merchandised_SKU_Number")).Trim();
                     details.CcaSkuId = dataReader.GetString(dataReader.GetOrdinal("CcaSkuId")).Trim();
+                    details.Output = dataReader.GetInt32(dataReader.GetOrdinal("Output"));
 
                     if (!isSoftSurface)
                     {
@@ -600,8 +712,39 @@ namespace CCAAutomation.Lib
             {
                 Console.WriteLine(e.Message);
             }
-            return theChange;
 
+            return theChange;
+        }
+
+        public static int SqlSetToRun(string plateId, bool isSoftSurface, int run)
+        {
+            if (isSoftSurface)
+            {
+                SqlConnect("CCA-SS");
+            }
+            else
+            {
+                SqlConnect("CCA");
+            }
+            SqlCommand command;
+            SqlDataReader dataReader;
+            string sql = "UPDATE dbo.Details SET Output='" + run + "' WHERE \"Plate_#\"='" + plateId + "'";
+
+            try
+            {
+                connection.Open();
+                command = new SqlCommand(sql, connection);
+                dataReader = command.ExecuteReader();
+                dataReader.Close();
+                command.Dispose();
+                connection.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            return run;
         }
         public static void SqlWebDBUpdate(LarModels.LARXlsSheet larModels, bool limited, string artType, bool resetInsite)
         {

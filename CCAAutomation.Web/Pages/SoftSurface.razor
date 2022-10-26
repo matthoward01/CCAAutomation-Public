@@ -18,31 +18,12 @@
     <label>Rejections Only:</label>
     <input type="checkbox" class="form-check-inline" @bind-value="showRejections" @bind-value:event="onchange" name="showRejections" />
 </p>
-<AuthorizeView>
-    <Authorized>
-        <p>
-            <label>Export Path:</label>
-            <input class="form-text" @bind="export" size="150" name="export" type="text" placeholder="Export Path" />
-            <button class="btn-primary" @onclick="() => { IdCreate(plateId); }">Create All</button>
-        </p>
-    </Authorized>
-</AuthorizeView>
-@if (!missingImagesRun.Count.Equals(0))
-{
-    <p>
-        Missing images:<br />
-        @foreach (string s in missingImagesRun)
-        {
-            @s<br />;
-        }
-    </p>
-}
 <table class="table table-hover table-sm" width="100%">
     <thead>
         <tr>
             <AuthorizeView>
                 <Authorized>
-                    <th>Create Xml</th>
+                    <th>Run</th>
                 </Authorized>
             </AuthorizeView>
             <th @onclick="() => { SortPlates(); }">Plate #</th>
@@ -74,9 +55,13 @@
                 <AuthorizeView>
                     <Authorized>
                         <td width="10%">
-                            @if (!export.Equals(""))
+                            @if (wti.Output.Equals(1))
                             {
-                                <button class="btn btn-dark" @onclick="() => { IdCreate(wti.Plate_ID); }">Create XML</button>
+                                <button class="btn btn-outline-dark">Queued</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-dark" @onclick="() => { SetToRun(wti.Plate_ID, 1); }">Run</button>
                             }
                         </td>
                     </Authorized>
@@ -195,28 +180,15 @@
     [Parameter]
     public int offset { get; set; } = 0;
     string ADMINISTRATION_ROLE = "Administrators";
-    private string fileName = "";
-    private string export = "";
-    private string plateId = "";
-    static string lastPlate = "";
     private string search = "";
-    private bool testing = false;
-    //private bool noExport = false;
-    //private bool show = false;
     private bool showChanges = false;
     private bool showApprovals = false;
     private bool showQuestions = false;
     private bool showRejections = false;
     private bool plateSortAsc = false;
-    private LarModels.LARXlsSheet LARXlsSheet;
-    static List<LarModels.LARFinal> ssList = new List<LarModels.LARFinal>();
-    static List<string> missingImagesRun = new List<string>();
-    static List<string> plateList = new();
     static List<LarModels.WebTableItem> webTableItems = new();
     static List<LarModels.Labels> labelsList = new();
     static List<string> colorList = new();
-    string[] files;
-
 
     protected override async Task OnInitializedAsync()
     {
@@ -299,12 +271,13 @@
         return tbClass;
     }
 
-    private void IdCreate(string plate)
+    private void SetToRun(string id, int run)
     {
-        plateId = plate;
-        bool goWorkshop = false;
-
-        Execute.Run(testing, files, goWorkshop, plateId, export.Replace("\"", ""), LARXlsSheet);
+        int index = webTableItems.FindIndex(S => S.Plate_ID == id);
+        if (index != -1)
+        {
+            webTableItems[index].Output = SqlMethods.SqlSetToRun(id, true, run);
+        }
     }
 
     private void SortPlates()

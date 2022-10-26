@@ -173,9 +173,21 @@ namespace CCAAutomation.Lib
                     {
                         if (lf.DetailsFinal.Merch_Color_Name.Trim().ToLower().Equals(lf.SampleFinal.Feeler.Trim().ToLower()))
                         {
-                            cCASkuIdModel.Position = "01";
-                            cCASkuIdModel.CCASkuId = lf.DetailsFinal.CcaSkuId;
-                            ccaSkuIdList.Add(cCASkuIdModel);
+                            if (widthList.Distinct().Count() < (1))
+                            {
+                                cCASkuIdModel.Position = "01";
+                                cCASkuIdModel.CCASkuId = lf.DetailsFinal.CcaSkuId;
+                                ccaSkuIdList.Add(cCASkuIdModel);
+                            }
+                            else
+                            {
+                                if (lf.DetailsFinal.Size_Name.Contains("12"))
+                                {
+                                    cCASkuIdModel.Position = "01";
+                                    cCASkuIdModel.CCASkuId = lf.DetailsFinal.CcaSkuId;
+                                    ccaSkuIdList.Add(cCASkuIdModel);
+                                }
+                            }
                             //ccaSkuId.Add(lf.DetailsFinal.CcaSkuId);
                         }
                     }
@@ -183,10 +195,68 @@ namespace CCAAutomation.Lib
                     {
                         if (lf.DetailsFinal.Merch_Color_Name.Trim().ToLower().Equals(lf.SampleFinal.Feeler.Trim().ToLower()))
                         {
-                            cCASkuIdModel.Position = "02";
-                            cCASkuIdModel.CCASkuId = lf.DetailsFinal.CcaSkuId;
-                            ccaSkuIdList.Add(cCASkuIdModel);
+                            if (widthList.Distinct().Count() < (1))
+                            {
+                                cCASkuIdModel.Position = "02";
+                                cCASkuIdModel.CCASkuId = lf.DetailsFinal.CcaSkuId;
+                                ccaSkuIdList.Add(cCASkuIdModel);
+                            }
+                            else
+                            {
+                                if (lf.DetailsFinal.Size_Name.Contains("12"))
+                                {
+                                    cCASkuIdModel.Position = "02";
+                                    cCASkuIdModel.CCASkuId = lf.DetailsFinal.CcaSkuId;
+                                    ccaSkuIdList.Add(cCASkuIdModel);
+                                }
+                            }
+                        }
+                    }
+                    cCASkuIdModel = new();
+                }
+                else if (lf.SampleFinal.Shared_Card.Trim().ToLower().Equals("yes"))
+                {
+                    if (lf.DetailsFinal.Division_Product_Name.Trim().ToLower().Contains(lf.SampleFinal.Sample_Name.Trim().ToLower()))
+                    {
+                        if (lf.DetailsFinal.Merch_Color_Name.Trim().ToLower().Equals(lf.SampleFinal.Feeler.Trim().ToLower()))
+                        {
+                            if (widthList.Distinct().Count() < (1))
+                            {
+                                cCASkuIdModel.Position = "01";
+                                cCASkuIdModel.CCASkuId = lf.DetailsFinal.CcaSkuId;
+                                ccaSkuIdList.Add(cCASkuIdModel);
+                            }
+                            else
+                            {
+                                if (lf.DetailsFinal.Size_Name.Contains("12"))
+                                {
+                                    cCASkuIdModel.Position = "01";
+                                    cCASkuIdModel.CCASkuId = lf.DetailsFinal.CcaSkuId;
+                                    ccaSkuIdList.Add(cCASkuIdModel);
+                                }
+                            }
                             //ccaSkuId.Add(lf.DetailsFinal.CcaSkuId);
+                        }
+                    }
+                    else
+                    {
+                        if (lf.DetailsFinal.Merch_Color_Name.Trim().ToLower().Equals(lf.SampleFinal.Feeler.Trim().ToLower()))
+                        {
+                            if (widthList.Distinct().Count() < (1))
+                            {
+                                cCASkuIdModel.Position = "02";
+                                cCASkuIdModel.CCASkuId = lf.DetailsFinal.CcaSkuId;
+                                ccaSkuIdList.Add(cCASkuIdModel);
+                            }
+                            else
+                            {
+                                if (lf.DetailsFinal.Size_Name.Contains("12"))
+                                {
+                                    cCASkuIdModel.Position = "02";
+                                    cCASkuIdModel.CCASkuId = lf.DetailsFinal.CcaSkuId;
+                                    ccaSkuIdList.Add(cCASkuIdModel);
+                                }
+                            }
                         }
                     }
                     cCASkuIdModel = new();
@@ -196,8 +266,8 @@ namespace CCAAutomation.Lib
                     if (lf.DetailsFinal.Merch_Color_Name.Trim().ToLower().Equals(lf.SampleFinal.Feeler.Trim().ToLower()))
                     {
                         ccaSkuId.Add(lf.DetailsFinal.CcaSkuId);
-                    }                    
-                }                
+                    }
+                }
             }
             ccaSkuIdList.Sort((x, y) => x.Position.CompareTo(y.Position));
             foreach (CCASkuIdModel sku in ccaSkuIdList)
@@ -245,7 +315,6 @@ namespace CCAAutomation.Lib
             string snippetWarranties = XmlRemapping(warranty.ToLower(), "Ratings") + ".idms";
 
             string roomScene = "FPOwaitingonroom.tif";
-
             foreach (string s in lARFinal[0].SampleFinal.Merchandised_Product_Color_ID_C1)
             {
                 var result = GetSyncedRoomscenes(files, s, roomScene);
@@ -439,15 +508,12 @@ namespace CCAAutomation.Lib
             xmlData.Add("	</job>");
             xmlData.Add("</jobs>");
 
-            if ((!template.Equals("")) && (!error) && (!roomScene.Contains("FPOwaitingonroom")))
+            if ((!template.Equals("")) && (!error) && (!roomScene.Contains("FPOwaitingonroom")) && !lARFinal[0].DetailsFinal.ADDNumber.EqualsString(""))
             {
                 if (goWorkShop)
                 {
-                    //Console.WriteLine("--------------------------------------------");
                     ExportXML(jobName, xmlData, export, "WorkShop XML");
-                    //CreateInsiteXML("BL", settings.PreJobTemplateName, settings.PreJobPath, lARFinal[0].DetailsFinal.Supplier_Name, lARFinal[0].DetailsFinal.Division_List, export, jobName, styleName, ConvertToTitleCase(lARFinal[0].DetailsFinal.Merch_Color_Name), Path.GetFileNameWithoutExtension(template.Replace(":", "\\")));
                     goWorkShop = false;
-                    //Console.WriteLine("--------------------------------------------");
                     using (StreamWriter textFile = new StreamWriter(Path.Combine(export, "Roomscene Matchups.txt"), append:true))
                     {
                         textFile.WriteLine(jobName + "|" + styleName + "|" + "Yes" + "|" + lARFinal[0].DetailsFinal.Supplier_Name + "|" + roomScene);
@@ -455,7 +521,6 @@ namespace CCAAutomation.Lib
                 }
                 else
                 {
-                    //Console.WriteLine("--------------------------------------------");
                     ExportXML(jobName, xmlData, export, "WebShop XML");
                     CreateXMLSS19_375x28_5BL(files, skip, true, lARFinal, plateId, export);
                     Console.WriteLine("--------------------------------------------");
@@ -480,6 +545,10 @@ namespace CCAAutomation.Lib
             else if (roomScene.Contains("FPOwaitingonroom"))
             {
                 Console.WriteLine("Roomscene Missing.");
+            }
+            else if (lARFinal[0].DetailsFinal.ADDNumber.EqualsString(""))
+            {
+                Console.WriteLine("ADD Number is Blank.");
             }
 
             return (missingImages, files);

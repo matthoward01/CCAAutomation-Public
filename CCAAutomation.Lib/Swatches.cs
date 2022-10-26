@@ -28,7 +28,7 @@ namespace CCAAutomation.Lib
 
         public static List<string> SwatchXML(string feeler, List<string> colorList, string swatchArea, string template)
         {
-            if (!Check_Prime(colorList.Count()).Equals(0))
+            if ((!Check_Prime(colorList.Count()).Equals(0) && !colorList.Count().Equals(3)) || (colorList.Count().Equals(33)))
             {
                 if (colorList.Contains(feeler))
                 {

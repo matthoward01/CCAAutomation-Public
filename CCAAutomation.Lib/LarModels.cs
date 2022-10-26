@@ -120,11 +120,12 @@ namespace CCAAutomation.Lib
             public string Color_Sequence { get; set; }
             public bool ShowRow { get; set; } = false;
             public bool EditChange { get; set; } = false;
-            public List<string> Console { get; set; } = new List<string>();
             public string Program { get; set; }
+            public int Output { get; set; }
         }
         public class Sample
         {
+            public List<string> Merchandised_Product_Color_ID { get; set; } = new();
             public List<string> Merchandised_Product_Color_ID_FA { get; set; } = new();
             public List<string> Merchandised_Product_Color_ID_C1 { get; set; } = new();
             public string Sample_ID { get; set; }
@@ -204,7 +205,12 @@ namespace CCAAutomation.Lib
             public bool ShowRow { get; set; } = false;
             public bool EditChange { get; set; } = false;
             public List<string> Console { get; set; } = new List<string>();
+            public int Output { get; set; }
+            public string Size_Name { get; set; }
+            public string Width { get; set; }
+            public string Width_Measurement { get; set; }
+            public string Length { get; set; }
+            public string Length_Measurement { get; set; }
         }
-
     }
 }
