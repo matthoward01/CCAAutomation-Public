@@ -169,7 +169,7 @@ namespace CCAAutomation.Lib
                 {
                     if (width.EndsWith('0'))
                     {
-                        width = widthD.ToString("0.##");
+                        width = widthD.ToString("0.00");
                     }
                 }
                 specs.Add(width.ToLower().Replace(".00", "") + "\"<!--Widths-->");
@@ -295,11 +295,67 @@ namespace CCAAutomation.Lib
             string snippetWarranties = "warranties:" + XmlRemapping(lARFinal.DetailsFinal.Division_Rating.ToLower(), "Ratings") + " " + category + ".idms" + "<!--Division_Rating-->";
             string styleName = ConvertToTitleCase(lARFinal.SampleFinal.Sample_Name.Trim());
 
-            string roomScene = "FPOwaitingonroom.tif" + "<!--Roomscene column is blank-->";
+            string roomScene = "FPOwaitingonroom.tif";
+            foreach (string s in lARFinal.SampleFinal.Merchandised_Product_Color_ID_C1)
+            {
+                var result = GetSyncedRoomscenes(files, s, roomScene);
+                roomScene = result.Item1;
+                files = result.Item2;
+            }
+            if (roomScene.Contains("FPOwaitingonroom"))
+            {
+                foreach (string s in lARFinal.SampleFinal.Merchandised_Product_Color_ID_FA)
+                {
+                    var result = GetSyncedRoomscenes(files, s, roomScene);
+                    roomScene = result.Item1;
+                    files = result.Item2;
+                }
+            }
+            foreach (string s in files)
+            {
+                if (!lARFinal.DetailsFinal.Merchandised_Product_Color_ID.EqualsString(""))
+                {
+                    if (Path.GetFileName(s).StartsWith(lARFinal.DetailsFinal.Merchandised_Product_Color_ID))
+                    {
+                        roomScene = Path.GetFileName(s);
+                    }
+                }
+            }
             if (!lARFinal.DetailsFinal.Roomscene.Trim().Equals(""))
             {
                 roomScene = lARFinal.DetailsFinal.Roomscene + "<!--Roomscene-->";
             }
+            if (roomScene.EqualsString("FPOwaitingonroom.tif"))
+            {
+                //files = ApprovedRoomscenes();
+                foreach (string s in files)
+                {
+                    foreach (string r in lARFinal.SampleFinal.Merchandised_Product_Color_ID_C1)
+                    {
+                        if (!r.EqualsString(""))
+                        {
+                            if (Path.GetFileName(s).StartsWith(r))
+                            {
+                                roomScene = Path.GetFileName(s);
+                            }
+                        }
+                    }
+                    foreach (string r in lARFinal.SampleFinal.Merchandised_Product_Color_ID_FA)
+                    {
+                        if (!r.EqualsString(""))
+                        {
+                            if (Path.GetFileName(s).StartsWith(r))
+                            {
+                                roomScene = Path.GetFileName(s);
+                            }
+                        }
+                    }
+                }
+            }
+            //else
+            //{
+            //    Console.WriteLine("Error getting roomscene. Feature position exceeds color count.");
+            //}
             if (skip)
             {
                 roomScene = "FPOwaitingonroom.tif" + "<!--Roomscene skipped-->";
@@ -355,7 +411,6 @@ namespace CCAAutomation.Lib
             }
             catch (Exception e)
             {
-
                 Console.WriteLine("Something happened copying roomscene.");
                 Console.WriteLine(e.Message);
             }

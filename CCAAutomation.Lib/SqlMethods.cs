@@ -16,23 +16,8 @@ namespace CCAAutomation.Lib
 
         private static void SqlConnect(string db)
         {
-            server = "xxxxxx";
+            server = "xxxxxx;
             database = db;
-            uid = "xxxxxx";
-            password = "xxxxxx";
-
-            string connectionString =
-                "Data Source = " + server + ";" +
-                "Initial Catalog = " + database + ";" +
-                "User ID = " + uid + ";" +
-                "Password = " + password + ";";
-            connection = new SqlConnection(connectionString);
-        }        
-
-        private static void SqlConnectTest()
-        {
-            server = "xxxxxx";
-            database = "xxxxxx";
             uid = "xxxxxx";
             password = "xxxxxx";
 
@@ -746,124 +731,228 @@ namespace CCAAutomation.Lib
 
             return run;
         }
-        public static void SqlWebDBUpdate(LarModels.LARXlsSheet larModels, bool limited, string artType, bool resetInsite)
+        public static void SqlWebDBUpdate(LarModels.LARXlsSheet larModels, bool limited, bool isSoftSurface, bool resetInsite)
         {
-            string sql = "";
+            List<LarModels.MktSpreadsheetItem> mktSSI = SqlWebDBCleanup(larModels, isSoftSurface);
 
-            foreach (LarModels.Details d in larModels.DetailsList)
+            string sql = "";
+            if (!isSoftSurface)
             {
-                sql = "UPDATE dbo.Details " +
-                    "SET " +
-                    "Primary_Display = '" + d.Primary_Display + "', " +
-                    "Division_List = '" + d.Division_List + "', " +
-                    "Supplier_Name = '" + d.Supplier_Name.Replace("'", "''") + "', " +
-                    "Child_Supplier = '" + d.Child_Supplier + "', " +
-                    "Taxonomy = '" + d.Taxonomy + "', " +
-                    "Supplier_Product_Name = '" + d.Supplier_Product_Name.Replace("'", "''") + "', " +
-                    "Merchandised_Product_ID = '" + d.Merchandised_Product_ID + "', " +
-                    "Merch_Prod_Start_Date = '" + d.Merch_Prod_Start_Date + "', " +
-                    "Division_Product_Name = '" + d.Division_Product_Name.Replace("'", "''") + "', " +
-                    "Web_Product_Name = '" + d.Web_Product_Name.Replace("'", "''") + "', " +
-                    "Division_Collection = '" + d.Division_Collection + "', " +
-                    "Division_Rating = '" + d.Division_Rating + "', " +
-                    "Product_Type = '" + d.Product_Type + "', " +
-                    "Product_Class = '" + d.Product_Class + "', " +
-                    "Is_Web_Product = '" + d.Is_Web_Product + "', " +
-                    "Sample_Box_Enabled = '" + d.Sample_Box_Enabled + "', " +
-                    "Number_of_Colors = '" + d.Number_of_Colors + "', " +
-                    "Made_In = '" + d.Made_In + "', " +
-                    "Appearance = '" + d.Appearance + "', " +
-                    "Backing = '" + d.Backing + "', " +
-                    "Edge_Profile = '" + d.Edge_Profile + "', " +
-                    "End_Profile = '" + d.End_Profile + "', " +
-                    "FHA_Class = '" + d.FHA_Class + "', " +
-                    "FHA_Lab = '" + d.FHA_Lab + "', " +
-                    "FHA_Type = '" + d.FHA_Type + "', " +
-                    "Finish = '" + d.Finish + "', " +
-                    "Glazed_Hardness = '" + d.Glazed_Hardness + "', " +
-                    "Grade = '" + d.Grade + "', " +
-                    "Is_FHA_Certified = '" + d.Is_FHA_Certified + "', " +
-                    "Is_Recommended_Outdoors = '" + d.Is_Recommended_Outdoors + "', " +
-                    "Is_Wall_Tile = '" + d.Is_Wall_Tile + "', " +
-                    "Locking_Type = '" + d.Locking_Type + "', " +
-                    "Radiant_Heat = '" + d.Radiant_Heat + "', " +
-                    "Shade_Variation = '" + d.Shade_Variation + "', " +
-                    "Stain_Treatment = '" + d.Stain_Treatment + "', " +
-                    "Wear_Layer = '" + d.Wear_Layer + "', " +
-                    "Wear_Layer_Type = '" + d.Wear_Layer_Type + "', " +
-                    "Construction = '" + d.Construction + "', " +
-                    "Gloss_Level = '" + d.Gloss_Level + "', " +
-                    "Hardness_Rating = '" + d.Hardness_Rating + "', " +
-                    "Installation_Method = '" + d.Installation_Method + "', " +
-                    "Match = '" + d.Match + "', " +
-                    "Match_Length = '" + d.Match_Length + "', " +
-                    "Match_Width = '" + d.Match_Width + "', " +
-                    "Species = '" + d.Species + "', " +
-                    "Merchandise_Brand = '" + d.Merchandise_Brand + "', " +
-                    "Commercial_Rating = '" + d.Commercial_Rating + "', " +
-                    "Is_Green_Rated = '" + d.Is_Green_Rated + "', " +
-                    "Green_Natural_Sustained = '" + d.Green_Natural_Sustained + "', " +
-                    "Green_Recyclable_Content = '" + d.Green_Recyclable_Content + "', " +
-                    "Green_Recycled_Content = '" + d.Green_Recycled_Content + "', " +
-                    "Size_Name = '" + d.Size_Name + "', " +
-                    "Length = '" + d.Length + "', " +
-                    "Length_Measurement = '" + d.Length_Measurement + "', " +
-                    "Width = '" + d.Width + "', " +
-                    "Width_Measurement = '" + d.Width_Measurement + "', " +
-                    "Thickness = '" + d.Thickness + "', " +
-                    "Thickness_Measurement = '" + d.Thickness_Measurement + "', " +
-                    "Thickness_Fraction = '" + d.Thickness_Fraction + "', " +
-                    "Manufacturer_Product_Color_ID = '" + d.Manufacturer_Product_Color_ID + "', " +
-                    "Mfg_Color_Name = '" + d.Mfg_Color_Name + "', " +
-                    "Mfg_Color_Number = '" + d.Mfg_Color_Number + "', " +
-                    "Sample_Box = '" + d.Sample_Box + "', " +
-                    "Sample_Box_Availability = '" + d.Sample_Box_Availability + "', " +
-                    "Manufacturer_SKU_Number = '" + d.Manufacturer_SKU_Number + "', " +
-                    "Merchandised_Product_Color_ID = '" + d.Merchandised_Product_Color_ID + "', " +
-                    "Merch_Color_Start_Date = '" + d.Merch_Color_Start_Date + "', " +
-                    "Merch_Color_Name = '" + d.Merch_Color_Name.Replace("'", "''") + "', " +
-                    "Merch_Color_Number = '" + d.Merch_Color_Number + "', " +
-                    "Merchandised_SKU_Number = '" + d.Merchandised_SKU_Number + "', " +
-                    "Barcode = '" + d.Barcode + "', " +
-                    "CCASKUID = '" + d.CcaSkuId + "', " +
-                    "Size_UC = '" + d.Size_UC + "', ";
-                if (!limited)
+                foreach (LarModels.Details d in larModels.DetailsList)
                 {
-                    sql += "Roomscene = '" + d.Roomscene + "', " +
-                    "Style_Name_and_Color_Combo = '" + d.Division_Product_Name.Replace("'", "''") + " " + d.Merch_Color_Name.Replace("'", "''") + "', " +
-                    "Art_Type = '" + d.ArtType + "', ";
-                    if (resetInsite)
+                    sql = "UPDATE dbo.Details " +
+                        "SET " +
+                        "Primary_Display = '" + d.Primary_Display + "', " +
+                        "Division_List = '" + d.Division_List + "', " +
+                        "Supplier_Name = '" + d.Supplier_Name.Replace("'", "''") + "', " +
+                        "Child_Supplier = '" + d.Child_Supplier + "', " +
+                        "Taxonomy = '" + d.Taxonomy + "', " +
+                        "Supplier_Product_Name = '" + d.Supplier_Product_Name.Replace("'", "''") + "', " +
+                        "Merchandised_Product_ID = '" + d.Merchandised_Product_ID + "', " +
+                        "Merch_Prod_Start_Date = '" + d.Merch_Prod_Start_Date + "', " +
+                        "Division_Product_Name = '" + d.Division_Product_Name.Replace("'", "''") + "', " +
+                        "Web_Product_Name = '" + d.Web_Product_Name.Replace("'", "''") + "', " +
+                        "Division_Collection = '" + d.Division_Collection + "', " +
+                        "Division_Rating = '" + d.Division_Rating + "', " +
+                        "Product_Type = '" + d.Product_Type + "', " +
+                        "Product_Class = '" + d.Product_Class + "', " +
+                        "Is_Web_Product = '" + d.Is_Web_Product + "', " +
+                        "Sample_Box_Enabled = '" + d.Sample_Box_Enabled + "', " +
+                        "Number_of_Colors = '" + d.Number_of_Colors + "', " +
+                        "Made_In = '" + d.Made_In + "', " +
+                        "Appearance = '" + d.Appearance + "', " +
+                        "Backing = '" + d.Backing + "', " +
+                        "Edge_Profile = '" + d.Edge_Profile + "', " +
+                        "End_Profile = '" + d.End_Profile + "', " +
+                        "FHA_Class = '" + d.FHA_Class + "', " +
+                        "FHA_Lab = '" + d.FHA_Lab + "', " +
+                        "FHA_Type = '" + d.FHA_Type + "', " +
+                        "Finish = '" + d.Finish + "', " +
+                        "Glazed_Hardness = '" + d.Glazed_Hardness + "', " +
+                        "Grade = '" + d.Grade + "', " +
+                        "Is_FHA_Certified = '" + d.Is_FHA_Certified + "', " +
+                        "Is_Recommended_Outdoors = '" + d.Is_Recommended_Outdoors + "', " +
+                        "Is_Wall_Tile = '" + d.Is_Wall_Tile + "', " +
+                        "Locking_Type = '" + d.Locking_Type + "', " +
+                        "Radiant_Heat = '" + d.Radiant_Heat + "', " +
+                        "Shade_Variation = '" + d.Shade_Variation + "', " +
+                        "Stain_Treatment = '" + d.Stain_Treatment + "', " +
+                        "Wear_Layer = '" + d.Wear_Layer + "', " +
+                        "Wear_Layer_Type = '" + d.Wear_Layer_Type + "', " +
+                        "Construction = '" + d.Construction + "', " +
+                        "Gloss_Level = '" + d.Gloss_Level + "', " +
+                        "Hardness_Rating = '" + d.Hardness_Rating + "', " +
+                        "Installation_Method = '" + d.Installation_Method + "', " +
+                        "Match = '" + d.Match + "', " +
+                        "Match_Length = '" + d.Match_Length + "', " +
+                        "Match_Width = '" + d.Match_Width + "', " +
+                        "Species = '" + d.Species + "', " +
+                        "Merchandise_Brand = '" + d.Merchandise_Brand + "', " +
+                        "Commercial_Rating = '" + d.Commercial_Rating + "', " +
+                        "Is_Green_Rated = '" + d.Is_Green_Rated + "', " +
+                        "Green_Natural_Sustained = '" + d.Green_Natural_Sustained + "', " +
+                        "Green_Recyclable_Content = '" + d.Green_Recyclable_Content + "', " +
+                        "Green_Recycled_Content = '" + d.Green_Recycled_Content + "', " +
+                        "Size_Name = '" + d.Size_Name + "', " +
+                        "Length = '" + d.Length + "', " +
+                        "Length_Measurement = '" + d.Length_Measurement + "', " +
+                        "Width = '" + d.Width + "', " +
+                        "Width_Measurement = '" + d.Width_Measurement + "', " +
+                        "Thickness = '" + d.Thickness + "', " +
+                        "Thickness_Measurement = '" + d.Thickness_Measurement + "', " +
+                        "Thickness_Fraction = '" + d.Thickness_Fraction + "', " +
+                        "Manufacturer_Product_Color_ID = '" + d.Manufacturer_Product_Color_ID + "', " +
+                        "Mfg_Color_Name = '" + d.Mfg_Color_Name + "', " +
+                        "Mfg_Color_Number = '" + d.Mfg_Color_Number + "', " +
+                        "Sample_Box = '" + d.Sample_Box + "', " +
+                        "Sample_Box_Availability = '" + d.Sample_Box_Availability + "', " +
+                        "Manufacturer_SKU_Number = '" + d.Manufacturer_SKU_Number + "', " +
+                        "Merchandised_Product_Color_ID = '" + d.Merchandised_Product_Color_ID + "', " +
+                        "Merch_Color_Start_Date = '" + d.Merch_Color_Start_Date + "', " +
+                        "Merch_Color_Name = '" + d.Merch_Color_Name.Replace("'", "''") + "', " +
+                        "Merch_Color_Number = '" + d.Merch_Color_Number + "', " +
+                        "Merchandised_SKU_Number = '" + d.Merchandised_SKU_Number + "', " +
+                        "Barcode = '" + d.Barcode + "', " +
+                        "CCASKUID = '" + d.CcaSkuId + "', " +
+                        "Size_UC = '" + d.Size_UC + "', " + 
+                        "Output = '" + d.Output + "', ";
+                    if (!limited)
                     {
-                        sql += "Status = 'Waiting for Approval', ";
-                        sql += "Change = ' ', ";
+                        sql += "Roomscene = '" + d.Roomscene + "', " +
+                        "Style_Name_and_Color_Combo = '" + d.Division_Product_Name.Replace("'", "''") + " " + d.Merch_Color_Name.Replace("'", "''") + "', " +
+                        "Art_Type = '" + d.ArtType + "', ";
+                        if (resetInsite)
+                        {
+                            sql += "Status = 'Waiting for Approval', ";
+                            sql += "Change = ' ', ";
+                        }
+                        sql += "Sample_ID = '" + d.Sample_ID + "', " +
+                        "Program = '" + d.Program + "' " +
+                        "WHERE Plate_# = '" + d.Plate_ID + "'";
                     }
-                    sql += "Sample_ID = '" + d.Sample_ID + "', " +
-                    "Program = '" + d.Program + "' " +
-                    "WHERE Plate_# = '" + d.Plate_ID + "'";
+                    else
+                    {
+                        //"Roomscene = '" + d.Roomscene + "', " +
+                        //"Style_Name_and_Color_Combo = '" + d.Division_Product_Name.Replace("'", "''") + " " + d.Merch_Color_Name.Replace("'", "''") + "', " +
+                        //"Art_Type = '" + d.ArtType + "', " +                    
+                        if (resetInsite)
+                        {
+                            sql += "Status = 'Waiting for Approval', ";
+                            sql += "Change = ' ' ";
+                        }
+                        sql += "WHERE Sample_ID = '" + d.Sample_ID + "'";
+                    }
+
+                    try
+                    {
+                        SqlConnect("CCA");
+                        connection.Open();
+                        SqlCommand command;
+                        SqlDataReader dataReader;
+                        command = new SqlCommand(sql, connection);
+                        dataReader = command.ExecuteReader();
+                        dataReader.Close();
+                        command.Dispose();
+                        connection.Close();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                }
+            }
+            else
+            {
+                foreach (LarModels.Details d in larModels.DetailsList)
+                {
+                    sql = "INSERT INTO dbo.Details (" +
+                        "Sample_ID, Primary_Display, Division_List, " +
+                        "Supplier_Name, Child_Supplier, Taxonomy, " +
+                        "Supplier_Product_Name, Merchandised_Product_ID, Merch_Prod_Start_Date, " +
+                        "Division_Product_Name, Division_Collection, Division_Rating, " +
+                        "Product_Type, Product_Class, Is_Web_Product, Sample_Box_Enabled, " +
+                        "Number_of_Colors, Made_In, Fiber_Company, Fiber_Brand, " +
+                        "Merchandise_Brand, Primary_Fiber, Primary_Fiber_Percentage, " +
+                        "Second_Fiber, Second_Fiber_Percentage, Third_Fiber, Third_Fiber_Percentage, " +
+                        "Percent_BCF, Percent_Spun, Pile_Line, Stain_Treatment, " +
+                        "Soil_Treatment, Dye_Method, Face_Weight, Yarn_Twist, " +
+                        "Match, Match_Length, Match_Width, Total_Weight, " +
+                        "Density, Gauge, Pile_Height, Stitches, Backing, " +
+                        "IAQ_Number, Is_FHA_Certified, FHA_Type, FHA_Class, " +
+                        "FHA_Lab, Durability_Rating, Flammability, " +
+                        "Static_AATCC134, NBS_Smoke_Density_ASTME662, Radiant_Panel_ASTME648, " +
+                        "Installation_Pattern, Commercial_Rating, Is_Green_Rated, " +
+                        "Green_Natural_Sustained, Green_Recyclable_Content, Green_Recycled_Content, " +
+                        "Size_Name, Manufacturer_Product_Color_ID, Mfg_Color_Name, " +
+                        "Manufacturer_Feeler, Mfg_Color_Number, Sample_Box, Sample_Box_Availability, " +
+                        "Manufacturer_SKU_Number, Merchandised_Product_Color_ID, Merch_Color_Start_Date, " +
+                        "Merch_Color_Name, Merch_Color_Number, Merchandised_SKU_Number, " +
+                        "CCASKUID, Art_Type, Plate_#, ADDNumber, Color_Sequence, Status, Change, Program, Output" +
+                        ") VALUES (" +
+                        "'" + d.Sample_ID + "', '" + d.Primary_Display + "', '" + d.Division_List + "', " +
+                        "'" + d.Supplier_Name + "', '" + d.Child_Supplier + "', '" + d.Taxonomy + "', " +
+                        "'" + d.Supplier_Product_Name + "', '" + d.Merchandised_Product_ID + "', '" + d.Merch_Prod_Start_Date + "', " +
+                        "'" + d.Division_Product_Name + "', '" + d.Division_Collection + "', '" + d.Division_Rating + "', " +
+                        "'" + d.Product_Type + "', '" + d.Product_Class + "', '" + d.Is_Web_Product + "', '" + d.Sample_Box_Enabled + "', " +
+                        "'" + d.Number_of_Colors + "', '" + d.Made_In + "', '" + d.Fiber_Company + "', '" + d.Fiber_Brand + "', " +
+                        "'" + d.Merchandise_Brand + "', '" + d.Primary_Fiber + "', '" + d.Primary_Fiber_Percentage + "', " +
+                        "'" + d.Second_Fiber + "', '" + d.Second_Fiber_Percentage + "', '" + d.Third_Fiber + "', '" + d.Third_Fiber_Percentage + "', " +
+                        "'" + d.Percent_BCF + "', '" + d.Percent_Spun + "', '" + d.Pile_Line + "', '" + d.Stain_Treatment + "', " +
+                        "'" + d.Soil_Treatment + "', '" + d.Dye_Method + "', '" + d.Face_Weight + "', '" + d.Yarn_Twist + "', " +
+                        "'" + d.Match + "', '" + d.Match_Length + "', '" + d.Match_Width + "', '" + d.Total_Weight + "', " +
+                        "'" + d.Density + "', '" + d.Gauge + "', '" + d.Pile_Height + "', '" + d.Stitches + "', '" + d.Backing + "', " +
+                        "'" + d.IAQ_Number + "', '" + d.Is_FHA_Certified + "', '" + d.FHA_Type + "', '" + d.FHA_Class + "', " +
+                        "'" + d.FHA_Lab + "', '" + d.Durability_Rating + "', '" + d.Flammability + "', " +
+                        "'" + d.Static_AATCC134 + "', '" + d.NBS_Smoke_Density_ASTME662 + "', '" + d.Radiant_Panel_ASTME648 + "', " +
+                        "'" + d.Installation_Pattern + "', '" + d.Commercial_Rating + "', '" + d.Is_Green_Rated + "', " +
+                        "'" + d.Green_Natural_Sustained + "', '" + d.Green_Recyclable_Content + "', '" + d.Green_Recycled_Content + "', " +
+                        "'" + d.Size_Name + "', '" + d.Manufacturer_Product_Color_ID + "', '" + d.Mfg_Color_Name + "', " +
+                        "'" + d.Manufacturer_Feeler + "', '" + d.Mfg_Color_Number + "', '" + d.Sample_Box + "', '" + d.Sample_Box_Availability + "', " +
+                        "'" + d.Manufacturer_SKU_Number + "', '" + d.Merchandised_Product_Color_ID + "', '" + d.Merch_Color_Start_Date + "', " +
+                        "'" + d.Merch_Color_Name + "', '" + d.Merch_Color_Number + "', '" + d.Merchandised_SKU_Number + "', " +
+                        "'" + d.CcaSkuId + "', '" + d.ArtType + "', '" + d.Plate_ID + "', '" + d.ADDNumber + "', '" + d.Color_Sequence + "', " +
+                        "'" + d.Status + "', '" + d.Change + "', '" + d.Program + "'" + "', '" + d.Output + "'" +
+                        ")";
+                    try
+                    {
+                        SqlConnect("CCA-SS");
+                        connection.Open();
+                        SqlCommand command;
+                        SqlDataReader dataReader;
+                        command = new SqlCommand(sql, connection);
+                        dataReader = command.ExecuteReader();
+                        dataReader.Close();
+                        command.Dispose();
+                        connection.Close();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                }
+                
+            }
+            foreach (LarModels.MktSpreadsheetItem mkt in mktSSI)
+            {
+                if (isSoftSurface)
+                {
+                    SqlConnect("CCA-SS");
                 }
                 else
                 {
-                    //"Roomscene = '" + d.Roomscene + "', " +
-                    //"Style_Name_and_Color_Combo = '" + d.Division_Product_Name.Replace("'", "''") + " " + d.Merch_Color_Name.Replace("'", "''") + "', " +
-                    //"Art_Type = '" + d.ArtType + "', " +                    
-                    if (resetInsite)
-                    {
-                        sql += "Status = 'Waiting for Approval', ";
-                        sql += "Change = ' ' ";
-                    }
-                    sql +="WHERE Sample_ID = '" + d.Sample_ID + "'";
+                    SqlConnect("CCA");
                 }
+                SqlCommand commandU;
+                SqlDataReader dataReaderU;
+                sql = "UPDATE dbo.Details SET Status='" + mkt.Status + "', Program='" + mkt.Program + "' WHERE Sample_ID='" + mkt.Sample_ID + "'";
 
                 try
                 {
-                    SqlConnect("CCA");
                     connection.Open();
-                    SqlCommand command;
-                    SqlDataReader dataReader;
-                    command = new SqlCommand(sql, connection);
-                    dataReader = command.ExecuteReader();
-                    dataReader.Close();
-                    command.Dispose();
+                    commandU = new SqlCommand(sql, connection);
+                    dataReaderU = commandU.ExecuteReader();
+                    dataReaderU.Close();
+                    commandU.Dispose();
                     connection.Close();
                 }
                 catch (Exception e)
@@ -872,15 +961,20 @@ namespace CCAAutomation.Lib
                 }
             }
 
-            SqlWebDBCleanup(larModels);
-
             foreach (LarModels.Labels l in larModels.LabelList)
             {
                 sql = "INSERT INTO dbo.Labels (Merchandised_Product_ID, Sample_ID, Division_Label_Type, Division_Label_Name) VALUES ('" + l.Merchandised_Product_ID + "', '" + l.Sample_ID + "', '" + l.Division_Label_Type + "', '" + l.Division_Label_Name + "')";
 
                 try
                 {
-                    SqlConnect("CCA");
+                    if (isSoftSurface)
+                    {
+                        SqlConnect("CCA-SS");
+                    }
+                    else
+                    {
+                        SqlConnect("CCA");
+                    }
                     connection.Open();
                     SqlCommand command;
                     SqlDataReader dataReader;
@@ -895,20 +989,44 @@ namespace CCAAutomation.Lib
             }
             foreach (LarModels.Sample s in larModels.SampleList)
             {
-                sql = "INSERT INTO dbo.Sample " +
-                        "(Sample_ID, Sample_Name, Sample_Size, " + "Sample_Type, " +
-                        "Sampled_Color_SKU, Shared_Card, Sampled_With_Merch_Product_ID, Quick_Ship, Binder, " +
-                        "Border, Character_Rating_by_Color, Feeler, MSRP, MSRP_Canada, " +
-                        "Our_Price, Our_Price_Canada, RRP_US, Sampling_Color_Description, Split_Board, " +
-                        "Trade_Up, Wood_Imaging, Sample_Note) " +
-                        "VALUES('" + s.Sample_ID + "', '" + s.Sample_Name.Replace("'", "''") + "', '" + s.Sample_Size + "', '" + s.Sample_Type + "', " +
-                        "'" + s.Sampled_Color_SKU + "', '" + s.Shared_Card + "', '" + s.Sampled_With_Merch_Product_ID + "', '" + s.Quick_Ship + "', '" + s.Binder + "', " +
-                        "'" + s.Border + "', '" + s.Character_Rating_by_Color + "', '" + s.Feeler.Replace("'", "''") + "', '" + s.MSRP + "', '" + s.MSRP_Canada + "', " +
-                        "'" + s.Our_Price + "', '" + s.Our_Price_Canada + "', '" + s.RRP_US + "', '" + s.Sampling_Color_Description + "', '" + s.Split_Board + "', " +
-                        "'" + s.Trade_Up + "', '" + s.Wood_Imaging + "', '" + s.Sample_Note + "')";
+                if (!isSoftSurface)
+                {
+                    sql = "INSERT INTO dbo.Sample " +
+                            "(Sample_ID, Sample_Name, Sample_Size, " + "Sample_Type, " +
+                            "Sampled_Color_SKU, Shared_Card, Sampled_With_Merch_Product_ID, Quick_Ship, Binder, " +
+                            "Border, Character_Rating_by_Color, Feeler, MSRP, MSRP_Canada, " +
+                            "Our_Price, Our_Price_Canada, RRP_US, Sampling_Color_Description, Split_Board, " +
+                            "Trade_Up, Wood_Imaging, Sample_Note) " +
+                            "VALUES('" + s.Sample_ID + "', '" + s.Sample_Name.Replace("'", "''") + "', '" + s.Sample_Size + "', '" + s.Sample_Type + "', " +
+                            "'" + s.Sampled_Color_SKU + "', '" + s.Shared_Card + "', '" + s.Sampled_With_Merch_Product_ID + "', '" + s.Quick_Ship + "', '" + s.Binder + "', " +
+                            "'" + s.Border + "', '" + s.Character_Rating_by_Color + "', '" + s.Feeler.Replace("'", "''") + "', '" + s.MSRP + "', '" + s.MSRP_Canada + "', " +
+                            "'" + s.Our_Price + "', '" + s.Our_Price_Canada + "', '" + s.RRP_US + "', '" + s.Sampling_Color_Description + "', '" + s.Split_Board + "', " +
+                            "'" + s.Trade_Up + "', '" + s.Wood_Imaging + "', '" + s.Sample_Note + "')";
+                }
+                else
+                {
+                    sql = "INSERT INTO dbo.Sample " +
+                            "(Sample_ID, Sample_Name, Sample_Size, " + "Sample_Type, " +
+                            "Sampled_Color_SKU, Shared_Card, Multiple_Color_Lines, Sampled_With_Merch_Product_ID, Quick_Ship, Binder, " +
+                            "Border, Character_Rating_by_Color, Feeler, MSRP, MSRP_Canada, " +
+                            "Our_Price, Our_Price_Canada, RRP_US, Sampling_Color_Description, Split_Board, " +
+                            "Trade_Up, Wood_Imaging, Sample_Note) " +
+                            "VALUES('" + s.Sample_ID + "', '" + s.Sample_Name.Replace("'", "''") + "', '" + s.Sample_Size + "', '" + s.Sample_Type + "', " +
+                            "'" + s.Sampled_Color_SKU + "', '" + s.Shared_Card + "', '" + s.Multiple_Color_Lines + "', '" + s.Sampled_With_Merch_Product_ID + "', '" + s.Quick_Ship + "', '" + s.Binder + "', " +
+                            "'" + s.Border + "', '" + s.Character_Rating_by_Color + "', '" + s.Feeler.Replace("'", "''") + "', '" + s.MSRP + "', '" + s.MSRP_Canada + "', " +
+                            "'" + s.Our_Price + "', '" + s.Our_Price_Canada + "', '" + s.RRP_US + "', '" + s.Sampling_Color_Description + "', '" + s.Split_Board + "', " +
+                            "'" + s.Trade_Up + "', '" + s.Wood_Imaging + "', '" + s.Sample_Note + "')";
+                }
                 try
                 {
-                    SqlConnect("CCA");
+                    if (isSoftSurface)
+                    {
+                        SqlConnect("CCA-SS");
+                    }
+                    else
+                    {
+                        SqlConnect("CCA");
+                    }
                     connection.Open();
                     SqlCommand command;
                     SqlDataReader dataReader;
@@ -930,7 +1048,14 @@ namespace CCAAutomation.Lib
 
                 try
                 {
-                    SqlConnect("CCA");
+                    if (isSoftSurface)
+                    {
+                        SqlConnect("CCA-SS");
+                    }
+                    else
+                    {
+                        SqlConnect("CCA");
+                    }
                     connection.Open();
                     SqlCommand command;
                     SqlDataReader dataReader;
@@ -945,16 +1070,91 @@ namespace CCAAutomation.Lib
             }
 
         }
-        private static void SqlWebDBCleanup(LarModels.LARXlsSheet larModels)
+        private static List<LarModels.MktSpreadsheetItem> SqlWebDBCleanup(LarModels.LARXlsSheet larModels, bool isSoftSurface)
         {
-            string sql = "";
+            List<LarModels.MktSpreadsheetItem> mktSpreadsheetItems = new();
+            if (isSoftSurface)
+            {
+                SqlConnect("CCA-SS");
+            }
+            else
+            {
+                SqlConnect("CCA");
+            }
+            SqlCommand commandS;
+            SqlDataReader dataReaderS;
+            string sql = "SELECT Sample_ID, Status, Program FROM dbo.Details";
+
+            try
+            {
+                connection.Open();
+                commandS = new SqlCommand(sql, connection);
+                dataReaderS = commandS.ExecuteReader();
+                while (dataReaderS.Read())
+                {
+                    LarModels.MktSpreadsheetItem mktSpreadsheetItem = new();
+
+                    mktSpreadsheetItem.Sample_ID = dataReaderS.GetString(dataReaderS.GetOrdinal("Sample_ID"));
+                    mktSpreadsheetItem.Program = dataReaderS.GetString(dataReaderS.GetOrdinal("Program"));
+                    mktSpreadsheetItem.Status = dataReaderS.GetString(dataReaderS.GetOrdinal("Status"));
+
+                    mktSpreadsheetItems.Add(mktSpreadsheetItem);
+                }
+                dataReaderS.Close();
+                commandS.Dispose();
+                connection.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            sql = "";
+            if (isSoftSurface)
+            {
+                foreach (LarModels.Details d in larModels.DetailsList.Distinct())
+                {
+                    sql = "DELETE FROM dbo.Labels WHERE Sample_ID ='" + d.Sample_ID + "'";
+
+                    try
+                    {
+                        if (isSoftSurface)
+                        {
+                            SqlConnect("CCA-SS");
+                        }
+                        else
+                        {
+                            SqlConnect("CCA");
+                        }
+                        connection.Open();
+                        SqlCommand command;
+                        SqlDataReader dataReader;
+                        command = new SqlCommand(sql, connection);
+                        dataReader = command.ExecuteReader();
+                        dataReader.Close();
+                        command.Dispose();
+                        connection.Close();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                }
+            }
             foreach (LarModels.Labels l in larModels.LabelList.Distinct())
             {
                 sql = "DELETE FROM dbo.Labels WHERE Sample_ID ='" + l.Sample_ID + "'";
 
                 try
                 {
-                    SqlConnect("CCA");
+                    if (isSoftSurface)
+                    {
+                        SqlConnect("CCA-SS");
+                    }
+                    else
+                    {
+                        SqlConnect("CCA");
+                    }
                     connection.Open();
                     SqlCommand command;
                     SqlDataReader dataReader;
@@ -975,7 +1175,14 @@ namespace CCAAutomation.Lib
 
                 try
                 {
-                    SqlConnect("CCA");
+                    if (isSoftSurface)
+                    {
+                        SqlConnect("CCA-SS");
+                    }
+                    else
+                    {
+                        SqlConnect("CCA");
+                    }
                     connection.Open();
                     SqlCommand command;
                     SqlDataReader dataReader;
@@ -996,7 +1203,14 @@ namespace CCAAutomation.Lib
 
                 try
                 {
-                    SqlConnect("CCA");
+                    if (isSoftSurface)
+                    {
+                        SqlConnect("CCA-SS");
+                    }
+                    else
+                    {
+                        SqlConnect("CCA");
+                    }
                     connection.Open();
                     SqlCommand command;
                     SqlDataReader dataReader;
@@ -1011,6 +1225,8 @@ namespace CCAAutomation.Lib
                     Console.WriteLine(e.Message);
                 }
             }
+
+            return mktSpreadsheetItems;
         }
         public static string SqlGetStatus(string x, string program, bool isSoftSurface)
         {

@@ -6,6 +6,7 @@ using static CCAAutomation.Lib.Lar;
 using static CCAAutomation.Lib.Execute;
 using System.Linq;
 using CCAAutomation.Lib;
+using System.IO;
 
 namespace CCAAutomation.App
 {
@@ -14,16 +15,68 @@ namespace CCAAutomation.App
         [STAThread]
         static void Main(string[] args)
         {            
-            bool webIntegration = false;     
+            bool webIntegration = false;
+            Console.WriteLine("Function?");
+            Console.WriteLine("\"c\" to compare xml files in two different directories.");
+            Console.WriteLine("Anything else or nothing to continue to Program");
+            string choice = Console.ReadLine();
+            if (choice.EqualsString(""))
+            {
+                if (!webIntegration)
+                {
+                    StandAloneApp();
+                }
+                else
+                {
+                    WebIntegrationApp();
+                }
+            }
+            else if (choice.EqualsString("c"))
+            {
+                CompareXMLFiles();
+            }
+        }
+
+        private static void CompareXMLFiles()
+        {
             
-            if (!webIntegration)
+            Console.WriteLine("New Folder Path?");
+            string newFolderPath = Console.ReadLine().Replace("\"", "");
+            Console.WriteLine("Old Folder Path?");
+            string oldFolderPath = Console.ReadLine().Replace("\"", "");
+
+            if (Directory.Exists(Path.Combine(newFolderPath, "Results")))
             {
-                StandAloneApp();
+                Directory.Delete(Path.Combine(newFolderPath, "Results"), true);
             }
-            else
+
+            string[] newFolderPathFiles = Directory.GetFiles(newFolderPath, "*.xml", SearchOption.AllDirectories);
+            foreach (string f in newFolderPathFiles)
             {
-                WebIntegrationApp();
+                using (StreamReader newFolderReader = new(f))
+                {
+                    if (File.Exists(Path.Combine(oldFolderPath, Path.GetFileName(f))))
+                    {
+                        using (StreamReader oldFolderReader = new(Path.Combine(oldFolderPath, Path.GetFileName(f))))
+                        {
+                            while (!newFolderReader.EndOfStream)
+                            {
+                                string newLine = newFolderReader.ReadLine();
+                                string oldLine = oldFolderReader.ReadLine();
+                                if (!newLine.Equals(oldLine))
+                                {
+                                    Directory.CreateDirectory(Path.Combine(newFolderPath, "Results"));
+                                    using (StreamWriter writer1 = new(Path.Combine(newFolderPath, "Results", Path.GetFileNameWithoutExtension(f) + ".txt"), append: true))
+                                    {
+                                        writer1.WriteLine(newLine);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
+            Console.ReadLine();
         }
 
         private static void WebIntegrationApp()

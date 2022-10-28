@@ -30,25 +30,13 @@
 		</Division>
 	</Divisions>
 	<InsiteCustomers>
-		<InsiteCustomer name="CCA Labels_Dixie_Auto">
-			<Element>dixie group</Element>		
-		</InsiteCustomer>
-		<InsiteCustomer name="CCA Mohawk_Auto">
+		<InsiteCustomer name="CCA_HS_AUTO">
+			<Element>dixie group</Element>
 			<Element>mohawk industries</Element>
-		</InsiteCustomer>
-		<InsiteCustomer name="CCA Shaw_Auto">
 			<Element>shaw industries</Element>
-		</InsiteCustomer>
-		<InsiteCustomer name="CCA Labels_Stanton_Auto">
 			<Element>stanton carpet corp.</Element>
-		</InsiteCustomer>
-		<InsiteCustomer name="CCA Mannington_Auto">
 			<Element>mannington</Element>
-		</InsiteCustomer>
-		<InsiteCustomer name="CCA Beaulieu_Auto">
 			<Element>beaulieu canada</Element>
-		</InsiteCustomer>
-		<InsiteCustomer name="CCA Nourison_Auto">
 			<Element>nourison</Element>
 		</InsiteCustomer>
 		<InsiteCustomer name="CCA_SS_Auto">
@@ -63,8 +51,7 @@
 			<Element>shaw industries - ss</Element>
 			<Element>stanton carpet corp. - ss</Element>
 			<Element>tarkett - ss</Element>
-		</InsiteCustomer>
-		
+		</InsiteCustomer>		
 	</InsiteCustomers>
 	<Templates>
 		<Template>
@@ -214,6 +201,9 @@
 		</Image>
 		<Image name="Profile - Painted Beveled.eps" priority="02" path="Characteristics:">
 			<Elements>Edge/End: Painted Beveled Profile</Elements>
+		</Image>
+		<Image name="Profile - Rolled.eps" priority="02" path="Characteristics:">
+			<Elements>Edge/End: Rolled Profile</Elements>
 		</Image>
 		<Image name="Appearance - Smooth.eps" priority="03" path="Characteristics:">
 			<Elements>Appearance: Smooth</Elements>
@@ -438,6 +428,11 @@
 			<Width name="7.09in.eps">
 				<Element>7.09</Element>
 				<Element>7.090</Element>
+			</Width>
+			<Width name="7.10in.eps">
+				<Element>7.1</Element>
+				<Element>7.10</Element>
+				<Element>7.100</Element>
 			</Width>
 			<Width name="7.48in.eps">
 				<Element>7.48</Element>

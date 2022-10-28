@@ -46,24 +46,54 @@ namespace CCAAutomation.Lib
             //Spec 2
             specs.Add(details.Pile_Line);
 
-            if (details.Match.Trim().ToLower().Equals("random"))
+            if (details.Match.Trim().ToLower().Equals("random") && !details.Match_Width.EqualsString(""))
             {
-                //Spec 3
-                specs.Add("Random");
-            }
-            else if (!details.Match.Trim().ToLower().Equals("none") && !details.Match.Trim().ToLower().Equals("null") && !details.Match.EqualsString(""))
-            { 
                 string width = details.Match_Width;
                 //decimal widthD = decimal.Parse(details.Width);
-                bool successW = decimal.TryParse(details.Width, out decimal widthD);
+                bool successW = decimal.TryParse(details.Match_Width, out decimal widthD);
                 if (successW)
                 {
                     if (width.EndsWith('0'))
                     {
-                        width = widthD.ToString("0.##");
+                        width = widthD.ToString("0.00");
                     }
                 }
                 width = width.Replace(".00", "") + "\" W<!--Match_Width-->";
+                specs.Add("Random x " + width);
+            }
+            else if (details.Match.Trim().ToLower().Equals("random") && !details.Match_Length.EqualsString(""))
+            {
+                string length = details.Match_Length;
+                //decimal lengthD = decimal.Parse(details.Length);
+                bool successL = decimal.TryParse(length, out decimal lengthD);
+                if (successL)
+                {
+                    if (length.EndsWith('0'))
+                    {
+                        length = lengthD.ToString("0.00");
+                    }
+                    length = length.ToLower().Replace(".00", "") + "\" L<!--Match_Length-->";
+                }
+                specs.Add("Random x " + length);
+            }
+            else if (details.Match.Trim().ToLower().Equals("random"))
+            {
+                //Spec 3
+                specs.Add("Random");
+            }            
+            else if (!details.Match.Trim().ToLower().Equals("none") && !details.Match.Trim().ToLower().Equals("null") && !details.Match.EqualsString(""))
+            { 
+                string width = details.Match_Width;
+                //decimal widthD = decimal.Parse(details.Width);
+                bool successW = decimal.TryParse(details.Match_Width, out decimal widthD);
+                if (successW)
+                {
+                    if (width.EndsWith('0'))
+                    {
+                        width = widthD.ToString("0.00");
+                    }
+                    width = width.Replace(".00", "") + "\" W<!--Match_Width-->";
+                }
 
 
                 string length = details.Match_Length;
@@ -73,7 +103,7 @@ namespace CCAAutomation.Lib
                 {
                     if (length.EndsWith('0'))
                     {
-                        length = lengthD.ToString("0.##");
+                        length = lengthD.ToString("0.00");
                     }
                     length = length.ToLower().Replace(".00", "") + "\" L<!--Match_Length-->";
                 }
@@ -279,6 +309,7 @@ namespace CCAAutomation.Lib
             {
                 colorList.Add(ConvertToTitleCase(c.Color));
             }
+            string styleName2 = "";
             string division = XmlRemapping(lARFinal[0].DetailsFinal.Division_List, "Divisions");
             TemplateModel settings = GetTemplateSettings("SS19.375x28.5BL", "Normal");
             string sharedFeature = lARFinal[0].SampleFinal.Shared_Card.ToLower().Trim();
@@ -286,6 +317,22 @@ namespace CCAAutomation.Lib
             {
                 settings = GetTemplateSettings("SS19.375x28.5BL", "Feature");
                 twoFeature = " wFeat";
+                if (lARFinal.Any(lf => lf.DetailsFinal.Face_Weight.Distinct().Count() > 1))
+                {
+                    var minvalue = lARFinal.Min(x => x.DetailsFinal.Face_Weight);
+                    var lf = lARFinal.Where(x => x.DetailsFinal.Face_Weight == minvalue).ToList();
+                    styleName2 = lf[0].DetailsFinal.Division_Product_Name;
+                }
+                else if (lARFinal.Any(lf => lf.SampleFinal.Sample_Name.Contains("/")))
+                {
+                    string[] splitStyleName = lARFinal[0].SampleFinal.Sample_Name.Split("/");
+                    styleName2 = splitStyleName.Last();
+                }
+                else
+                {
+                    error = true;
+                }
+
             }
             
             string mainPath = settings.WebShopPath;
@@ -381,9 +428,9 @@ namespace CCAAutomation.Lib
             if (skip)
             {
                 roomScene = "FPOwaitingonroom.tif" + "<!--Roomscene skipped-->";
-            }            
-
+            }
             string styleName = ConvertToTitleCase(lARFinal[0].SampleFinal.Sample_Name);
+            styleName2 = ConvertToTitleCase(styleName2);
             string feeler = ConvertToTitleCase(lARFinal[0].SampleFinal.Feeler);
             
             List<string> specList = GetSpecList(lARFinal[0].DetailsFinal, ccaSkuId, widthList);
@@ -430,7 +477,11 @@ namespace CCAAutomation.Lib
             }
             count = 1;
             xmlData.Add("			<text type=\"stylename\">" + styleName + "<!--SampleFinal.Sample_Name--></text>");
-            xmlData.Add("			<text type=\"stylename" + count + "\">" + styleName + "<!--SampleFinal.Sample_Name--></text>");
+            xmlData.Add("			<text type=\"stylename1\">" + styleName + "<!--SampleFinal.Sample_Name--></text>");
+            if(!styleName2.EqualsString(""))
+            {
+                xmlData.Add("			<text type=\"stylename2\">" + styleName2 + "</text>");
+            }
             if (lARFinal[0].SampleFinal.Shared_Card.ToLower().Trim().Equals("yes"))
             {
                 xmlData.Add("           <text type=\"topcolor1\">" + feeler + "<!--SampleFinal.Feeler--></text>");
@@ -536,7 +587,7 @@ namespace CCAAutomation.Lib
             }
             else if (error)
             {
-                Console.WriteLine("Color Sequence Missing or Incomplete");
+                Console.WriteLine("Color Sequence Missing or Incomplete or 2nd Style Name Problem");
             }
             else if (template.EqualsString(""))
             {

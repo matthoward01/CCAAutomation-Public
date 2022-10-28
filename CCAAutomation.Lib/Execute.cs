@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,16 +16,31 @@ namespace CCAAutomation.Lib
 
         public static List<string> Run(string[] files, bool goWorkShop, string plateId, string export, LarModels.LARXlsSheet LARXlsSheet)
         {
-            List<string> missingImagesRun = new List<string>();
+            List<string> missingImagesRun = new();
+            List<string> approvedPlateIdsList = new();
             lastPlate = "";
             ssList = new();
+            bool sqlPlaceHolder = false;
+
+            if (!File.Exists(Path.Combine(export, "Approved.txt")))
+            {
+                using StreamWriter approvedPlateIdsWriter = new(Path.Combine(export, "Approved.txt"));
+            }
+            using (StreamReader approvedPlateIdsReader = new(Path.Combine(export, "Approved.txt")))
+            {
+                while (!approvedPlateIdsReader.EndOfStream)
+                {
+                    approvedPlateIdsList.Add(approvedPlateIdsReader.ReadLine());
+                }
+            }
 
             if (plateId.Equals(""))
             {
                 List<LarModels.LARFinal> aRFinals = new List<LarModels.LARFinal>(Lar.GetLarFinal(LARXlsSheet, plateId));
                 foreach (LarModels.LARFinal lf in aRFinals)
                 {
-                    if (!SqlMethods.SqlApprovalCheck(lf.DetailsFinal.Plate_ID))
+                    //if (!SqlMethods.SqlApprovalCheck(lf.DetailsFinal.Plate_ID))
+                    if (!approvedPlateIdsList.Any(p => p.EqualsString(lf.DetailsFinal.Plate_ID)))
                     {
                         string key = GetKey(lf.DetailsFinal.ArtType);
                         if (lf == aRFinals.Last())

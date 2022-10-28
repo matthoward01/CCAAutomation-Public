@@ -212,5 +212,12 @@ namespace CCAAutomation.Lib
             public string Length { get; set; }
             public string Length_Measurement { get; set; }
         }
+
+        public class MktSpreadsheetItem
+        {
+            public string Sample_ID { get; set; }
+            public string Status { get; set; }
+            public string Program { get; set; }
+        }
     }
 }

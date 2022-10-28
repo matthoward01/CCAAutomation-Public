@@ -29,7 +29,7 @@
                 @if (show)
                 {
                     <p>
-                        <button class="btn-primary" @onclick="@(() => { UpdateSqlDB(type); })">Import Data</button>
+                        <button class="btn-primary" @onclick="@(() => { UpdateSqlDB(); })">Import Data</button>
                     </p>
                 }
             }
@@ -40,7 +40,7 @@
 
 @code {
 
-    string ADMINISTRATION_ROLE = "Administrators";
+        string ADMINISTRATION_ROLE = "Administrators";
     private string fileName;
     private LarModels.LARXlsSheet LARXlsSheet;
     private bool show = false;
@@ -48,6 +48,7 @@
     private bool resetStatus = false;
     private bool hardSurface = false;
     private bool softSurface = false;
+    private bool isSoftSurface = false;
     private string type = "";
 
     private void Ingest(string artType)
@@ -62,6 +63,7 @@
         {
             type = "HS";
             hardSurface = !hardSurface;
+            isSoftSurface = false;
             softSurface = false;
         }
         else
@@ -76,18 +78,20 @@
         if (!softSurface)
         {
             type = "SS";
+            isSoftSurface = true;
             softSurface = !softSurface;
         }
         else
         {
             type = "";
-            softSurface = !softSurface;
+            softSurface = !softSurface;            
         }
+        isSoftSurface = !isSoftSurface;
     }
 
-    private void UpdateSqlDB(string artType)
+    private void UpdateSqlDB()
     {
-        SqlMethods.SqlWebDBUpdate(LARXlsSheet, limited, artType, resetStatus);
+        SqlMethods.SqlWebDBUpdate(LARXlsSheet, limited, isSoftSurface, resetStatus);
         show = false;
     }
 
