@@ -16,7 +16,7 @@ namespace CCAAutomation.Lib
 
         private static void SqlConnect(string db)
         {
-            server = "xxxxxx;
+            server = "xxxxxx";
             database = db;
             uid = "xxxxxx";
             password = "xxxxxx";
@@ -27,9 +27,8 @@ namespace CCAAutomation.Lib
                 "User ID = " + uid + ";" +
                 "Password = " + password + ";";
             connection = new SqlConnection(connectionString);
-        }
-
-        internal static bool SqlApprovalCheck(string plate_ID)
+        }        
+        public static bool SqlApprovalCheck(string plate_ID)
         {
             bool approved = false;
 
@@ -159,7 +158,45 @@ namespace CCAAutomation.Lib
 
             return jobList;
         }
-        
+        public static int GetOutputStatus(string plateId, bool isSoftSurface)
+        {
+            int outputStatus = 0;
+            if (isSoftSurface)
+            {
+                SqlConnect("CCA-SS");
+            }
+            else
+            {
+                SqlConnect("CCA");
+            }
+
+            SqlCommand command;
+            SqlDataReader dataReader;
+
+            string sql = "SELECT DISTINCT Output FROM dbo.Details WHERE Plate_# = '" + plateId + "')";
+
+            try
+            {
+                connection.Open();
+                command = new SqlCommand(sql, connection);
+                dataReader = command.ExecuteReader();
+                while (dataReader.Read())
+                {
+                    outputStatus = dataReader.GetInt32(dataReader.GetOrdinal("Output"));
+                }
+
+                dataReader.Close();
+                command.Dispose();
+                connection.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            return outputStatus;
+        }
+
         public static List<string> SqlSelectSwatchColors(string sampleId, bool isSoftSurface)
         {
             List<string> colorList = new();
@@ -209,7 +246,7 @@ namespace CCAAutomation.Lib
         public static List<LarModels.WebTableItem> SqlSelectWebTableItem(bool isSoftSurface, int offset)
         {
             List<LarModels.WebTableItem> webTableItems = new();
-            string sql = "";
+            string sql;
 
             if (isSoftSurface)
             {
@@ -284,6 +321,7 @@ namespace CCAAutomation.Lib
 
             return webTableItems;
         }
+
         public static LarModels.WebTableItem SqlSelectWebTableItem(string plateId, bool isSoftSurface)
         {
             LarModels.WebTableItem webTableItem = new();
@@ -354,9 +392,10 @@ namespace CCAAutomation.Lib
 
             return webTableItem;
         }
+
         public static List<LarModels.Details> SqlSelectDetails(string plateId, bool isSoftSurface)
         {
-            List<LarModels.Details> detailsList = new List<LarModels.Details>();
+            List<LarModels.Details> detailsList = new();
 
             if (isSoftSurface)
             {
@@ -387,7 +426,7 @@ namespace CCAAutomation.Lib
                 dataReader = command.ExecuteReader();
                 while (dataReader.Read())
                 {
-                    LarModels.Details details = new LarModels.Details();
+                    LarModels.Details details = new();
 
                     details.Plate_ID = dataReader.GetString(dataReader.GetOrdinal("Plate_#")).Trim();
                     details.ArtType = dataReader.GetString(dataReader.GetOrdinal("Art_Type")).Trim();
@@ -505,6 +544,9 @@ namespace CCAAutomation.Lib
                         //details.Radiant_Panel_ASTME648 = dataReader.GetString(dataReader.GetOrdinal("Radiant_Panel_ASTME648")).Trim();
                         //details.Installation_Pattern = dataReader.GetString(dataReader.GetOrdinal("Installation_Pattern")).Trim();
                         details.Manufacturer_Feeler = dataReader.GetString(dataReader.GetOrdinal("Manufacturer_Feeler")).Trim();
+                        details.Color_Sequence = dataReader.GetString(dataReader.GetOrdinal("Color_Sequence")).Trim();
+                        details.ADDNumber = dataReader.GetString(dataReader.GetOrdinal("ADDNumber")).Trim();
+                        details.Roomscene = "";
                     }
 
                     detailsList.Add(details);
@@ -520,9 +562,10 @@ namespace CCAAutomation.Lib
 
             return detailsList;
         }
+
         public static List<LarModels.Labels> SqlSelectLabels(string sampleId, bool isSoftSurface)
         {
-            List<LarModels.Labels> labelsList = new List<LarModels.Labels>();
+            List<LarModels.Labels> labelsList = new();
 
             if (isSoftSurface)
             {
@@ -534,7 +577,7 @@ namespace CCAAutomation.Lib
             }
             SqlCommand command;
             SqlDataReader dataReader;
-            string sql = "SELECT DISTINCT(Division_Label_Name), Sample_ID FROM dbo.Labels WHERE (Division_Label_Type = 'WBUG' OR Division_Label_Type = 'LOGO' OR Division_Label_Type = 'ICON') AND Sample_ID = '" + sampleId + "'";
+            string sql = "SELECT DISTINCT(Division_Label_Name), Sample_ID, Division_Label_Type FROM dbo.Labels WHERE (Division_Label_Type = 'WBUG' OR Division_Label_Type = 'LOGO' OR Division_Label_Type = 'ICON') AND Sample_ID = '" + sampleId + "'";
 
             try
             {
@@ -543,12 +586,11 @@ namespace CCAAutomation.Lib
                 dataReader = command.ExecuteReader();
                 while (dataReader.Read())
                 {
-                    LarModels.Labels labels = new LarModels.Labels();
+                    LarModels.Labels labels = new();
 
                     labels.Division_Label_Name = dataReader.GetString(dataReader.GetOrdinal("Division_Label_Name"));
-                    labels.Division_Label_Type = "";
+                    labels.Division_Label_Type = dataReader.GetString(dataReader.GetOrdinal("Division_Label_Type"));
                     labels.Merchandised_Product_ID = "";
-                    //labels.Division_Label_Type = dataReader.GetString(dataReader.GetOrdinal("Division_Label_Type"));
                     //labels.Merchandised_Product_ID = dataReader.GetString(dataReader.GetOrdinal("Merchandised_Product_ID"));
                     labels.Sample_ID = dataReader.GetString(dataReader.GetOrdinal("Sample_ID"));
 
@@ -565,9 +607,10 @@ namespace CCAAutomation.Lib
 
             return labelsList;
         }
-        public static List<LarModels.Labels> SqlSelectLabels()
+
+        public static List<LarModels.Labels> SqlSelectLabels(string sampleId)
         {
-            List<LarModels.Labels> labelsList = new List<LarModels.Labels>();
+            List<LarModels.Labels> labelsList = new();
 
             SqlConnect("CCA");
             SqlCommand command;
@@ -581,7 +624,7 @@ namespace CCAAutomation.Lib
                 dataReader = command.ExecuteReader();
                 while (dataReader.Read())
                 {
-                    LarModels.Labels labels = new LarModels.Labels();
+                    LarModels.Labels labels = new();
 
                     labels.Division_Label_Name = dataReader.GetString(dataReader.GetOrdinal("Division_Label_Name"));
                     labels.Division_Label_Type = dataReader.GetString(dataReader.GetOrdinal("Division_Label_Type"));
@@ -601,15 +644,26 @@ namespace CCAAutomation.Lib
 
             return labelsList;
         }
-        public static List<LarModels.Sample> SqlSelectSample()
-        {
-            List<LarModels.Sample> sampleList = new List<LarModels.Sample>();
 
-            SqlConnect("CCA");
+        public static List<LarModels.Sample> SqlSelectSample(string sampleId, bool isSoftSurface)
+        {
+            List<LarModels.Sample> sampleList = new();
+
+            if (isSoftSurface)
+            {
+                SqlConnect("CCA-SS");
+            }
+            else
+            {
+                SqlConnect("CCA");
+            }
             SqlCommand command;
             SqlDataReader dataReader;
-            string sql = "SELECT Sample_ID, Sample_Name FROM dbo.Sample";
-
+            string sql = "SELECT Sample_ID, Sample_Name, Feeler, Shared_Card FROM dbo.Sample WHERE Sample_ID = '" + sampleId + "'";
+            if (isSoftSurface)
+            {
+                sql = "SELECT Sample_ID, Sample_Name, Feeler, Sample_Type, Shared_Card, Multiple_Color_Lines FROM dbo.Sample WHERE Sample_ID = '" + sampleId + "'";
+            }
             try
             {
                 connection.Open();
@@ -617,10 +671,17 @@ namespace CCAAutomation.Lib
                 dataReader = command.ExecuteReader();
                 while (dataReader.Read())
                 {
-                    LarModels.Sample sample = new LarModels.Sample();
+                    LarModels.Sample sample = new();
 
                     sample.Sample_ID = dataReader.GetString(dataReader.GetOrdinal("Sample_ID"));
                     sample.Sample_Name = dataReader.GetString(dataReader.GetOrdinal("Sample_Name"));
+                    sample.Feeler = dataReader.GetString(dataReader.GetOrdinal("Feeler"));
+                    sample.Shared_Card = dataReader.GetString(dataReader.GetOrdinal("Shared_Card"));
+                    if (isSoftSurface)
+                    {
+                        sample.Multiple_Color_Lines = dataReader.GetString(dataReader.GetOrdinal("Multiple_Color_Lines"));
+                        sample.Sample_Type = dataReader.GetString(dataReader.GetOrdinal("Sample_Type"));
+                    }
 
                     sampleList.Add(sample);
                 }
@@ -630,11 +691,12 @@ namespace CCAAutomation.Lib
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Console.WriteLine(e.Message);                
             }
 
             return sampleList;
         }
+
         public static string SqlUpdateStatus(string plateId, string theStatus, bool isSoftSurface)
         {
             if (isSoftSurface)
@@ -670,6 +732,7 @@ namespace CCAAutomation.Lib
             return theStatus;
 
         }
+
         public static string SqlUpdateChange(string plateId, string theChange, bool isSoftSurface)
         {
             if (isSoftSurface)
@@ -731,11 +794,12 @@ namespace CCAAutomation.Lib
 
             return run;
         }
+
         public static void SqlWebDBUpdate(LarModels.LARXlsSheet larModels, bool limited, bool isSoftSurface, bool resetInsite)
         {
             List<LarModels.MktSpreadsheetItem> mktSSI = SqlWebDBCleanup(larModels, isSoftSurface);
 
-            string sql = "";
+            string sql;
             if (!isSoftSurface)
             {
                 foreach (LarModels.Details d in larModels.DetailsList)
@@ -1070,6 +1134,7 @@ namespace CCAAutomation.Lib
             }
 
         }
+
         private static List<LarModels.MktSpreadsheetItem> SqlWebDBCleanup(LarModels.LARXlsSheet larModels, bool isSoftSurface)
         {
             List<LarModels.MktSpreadsheetItem> mktSpreadsheetItems = new();
@@ -1109,7 +1174,6 @@ namespace CCAAutomation.Lib
                 Console.WriteLine(e.Message);
             }
 
-            sql = "";
             if (isSoftSurface)
             {
                 foreach (LarModels.Details d in larModels.DetailsList.Distinct())
@@ -1228,6 +1292,7 @@ namespace CCAAutomation.Lib
 
             return mktSpreadsheetItems;
         }
+
         public static string SqlGetStatus(string x, string program, bool isSoftSurface)
         {
             string sql = "";
@@ -1255,6 +1320,18 @@ namespace CCAAutomation.Lib
             if (x.ToLower().Equals("rejectedbl"))
             {
                 sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type from dbo.Details where (Status='Rejected' and Art_Type Like '%BL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("approvedpend"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type from dbo.Details where (Status = 'Approved Pending' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("approvedpendfl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type from dbo.Details where (Status='Approved Pending' and Art_Type Like '%FL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("approvedpendbl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type from dbo.Details where (Status='Approved Pending' and Art_Type Like '%BL%' and Program = '" + program + "')) t";
             }
             if (x.ToLower().Equals("approved"))
             {
@@ -1317,9 +1394,10 @@ namespace CCAAutomation.Lib
             }
             return count.ToString();
         }
+
         public static List<string> SqlGetPrograms(bool isSoftSurface)
         {
-            List<string> programList = new List<string>();
+            List<string> programList = new();
             
             string sql = "Select Distinct Program from dbo.Details";
 

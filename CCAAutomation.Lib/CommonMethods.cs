@@ -77,7 +77,7 @@ namespace CCAAutomation.Lib
         public static List<string> GetHeaderColumns(ISheet sheet)
         {
             int count = 0;
-            List<string> headers = new List<string>();
+            List<string> headers = new();
             while (!IsCellBlank(sheet, 0, count))
             {
                 headers.Add(GetCell(sheet, 0, count));
@@ -259,8 +259,8 @@ namespace CCAAutomation.Lib
                     {
                         approvedRoomscenes = ApprovedRoomscenes();
                         var result = CopyRoomscene(approvedRoomscenes, skip, filePath, alias);
-                        skip = result.Item1;
-                        approvedRoomscenes = result.Item2;
+                        skip = result.Skip;
+                        approvedRoomscenes = result.UpdatedFiles;
                     }
                     else
                     {
@@ -278,17 +278,17 @@ namespace CCAAutomation.Lib
                     count++;
                 }
                 string responseString = Console.ReadLine();
-                Int32.TryParse(responseString, out int response);
+                int.TryParse(responseString, out int response);
                 if (!responseString.Trim().Equals(""))
                 {
                     if (response < count)
                     {
-                        FileInfo appovedRoomInfo = new FileInfo(files[response]);
-                        FileInfo webShopRoomInfo = new FileInfo(Path.Combine(copyPath, Path.GetFileName(files[response])));
+                        FileInfo appovedRoomInfo = new(files[response]);
+                        FileInfo webShopRoomInfo = new(Path.Combine(copyPath, Path.GetFileName(files[response])));
                         if (!webShopRoomInfo.Length.Equals(appovedRoomInfo.Length))
                         {
                             File.Copy(files[response], Path.Combine(copyPath, Path.GetFileName(files[response])), true);
-                            using (StreamWriter sw = new StreamWriter(Path.Combine(alias, Path.GetFileName(files[response]))))
+                            using (StreamWriter sw = new(Path.Combine(alias, Path.GetFileName(files[response]))))
                             {
                                 sw.WriteLine("Automated Alias");
                                 Console.WriteLine("Alias Created");
@@ -308,14 +308,14 @@ namespace CCAAutomation.Lib
             }
             else
             {
-                FileInfo appovedRoomInfo = new FileInfo(files[0]);
-                FileInfo webShopRoomInfo = new FileInfo(Path.Combine(copyPath, Path.GetFileName(files[0])));
+                FileInfo appovedRoomInfo = new(files[0]);
+                FileInfo webShopRoomInfo = new(Path.Combine(copyPath, Path.GetFileName(files[0])));
                 if (webShopRoomInfo.Exists)
                 {
                     if (!webShopRoomInfo.Length.Equals(appovedRoomInfo.Length))
                     {
                         File.Copy(files[0], Path.Combine(copyPath, Path.GetFileName(files[0])), true);
-                        using (StreamWriter sw = new StreamWriter(Path.Combine(alias, Path.GetFileName(files[0]))))
+                        using (StreamWriter sw = new(Path.Combine(alias, Path.GetFileName(files[0]))))
                         {
                             sw.WriteLine("Automated Alias");
                             Console.WriteLine("Alias Created");
@@ -330,7 +330,7 @@ namespace CCAAutomation.Lib
                 else
                 {
                     File.Copy(files[0], Path.Combine(copyPath, Path.GetFileName(files[0])), true);
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(alias, Path.GetFileName(files[0]))))
+                    using (StreamWriter sw = new(Path.Combine(alias, Path.GetFileName(files[0]))))
                     {
                         sw.WriteLine("Automated Alias");
                         Console.WriteLine("Alias Created");
@@ -341,7 +341,7 @@ namespace CCAAutomation.Lib
 
             if (doAliasOnly)
             {
-                using (StreamWriter sw = new StreamWriter(Path.Combine(alias, roomsceneName)))
+                using (StreamWriter sw = new(Path.Combine(alias, roomsceneName)))
                 {
                     sw.WriteLine("Automated Alias");
                 }
@@ -351,7 +351,7 @@ namespace CCAAutomation.Lib
             return (skip, approvedRoomscenes);
         }
         
-        public static (bool, string[]) CopyRoomscene(string[] files, bool skip, string filePath, string alias)
+        public static (bool Skip, string[] UpdatedFiles) CopyRoomscene(string[] files, bool skip, string filePath, string alias)
         {
             bool doAliasOnly = false;
             string fileToCheck = "";
@@ -417,36 +417,57 @@ namespace CCAAutomation.Lib
             return files;
         }
 
+        public static void SyncRoomsceneDoubleCheck(List<LarModels.Details> detailsList, string outputPath)
+        {
+            Settings.MainSettings mainSettings = Settings.GetMainSettings();
+
+            foreach (LarModels.Details d in detailsList)
+            {
+                string[] files = Directory.GetFiles(OsXPathConversion(mainSettings.SyncFolder), d.Merchandised_Product_Color_ID + "*", SearchOption.AllDirectories);
+                if (files.Any())
+                {
+                    using (StreamWriter streamWriter = new(Path.Combine(outputPath, "Possible Roomscene Matches.txt"), append: true))
+                    {
+                        int lineId = detailsList.IndexOf(x => x.Manufacturer_Feeler.EqualsString("yes"));
+                        foreach (string f in files)
+                        {
+                            streamWriter.WriteLine(detailsList[lineId].Plate_ID + "|" + detailsList[lineId].Sample_ID + "|" + detailsList[lineId].Merchandised_Product_Color_ID + "|" + Path.GetFileName(f));
+                        }
+                    }
+                }
+            }            
+        }
+
         /// <summary>
         /// Copy and Move Roomscene from Syncplicity to approved roomscenes.
         /// </summary>
         /// <param name="merchProdColorId">The Merchandised_Product_Color_ID to search for on Syncplicity.</param>
         /// <returns></returns>
-        public static (string, string[]) GetSyncedRoomscenes(string[] approvedRoomscenesFiles, string merchProdColorId, string roomsceneName)
+        public static (string Roomscene, string[] UpdatedFiles) GetSyncedRoomscenes(string[] approvedRoomscenesFiles, string merchProdColorId, string roomsceneName)
         {
-            Settings.MainSettings mainSettings = Settings.getMainSettings();
+            Settings.MainSettings mainSettings = Settings.GetMainSettings();
 
             try
             {
                 if (!merchProdColorId.EqualsString(""))
                 {
-                    string[] files = Directory.GetFiles(osXPathConversion(mainSettings.SyncFolder), merchProdColorId + "*", SearchOption.AllDirectories);
+                    string[] files = Directory.GetFiles(OsXPathConversion(mainSettings.SyncFolder), merchProdColorId + "*", SearchOption.AllDirectories);
 
-                    if (!files.Count().Equals(0))
+                    if (!files.Length.Equals(0))
                     {
                         foreach (string f in files)
                         {
-                            FileInfo file = new FileInfo(f);
+                            FileInfo file = new(f);
                             if (file.Exists)
                             {
                                 string filename = file.Name;
                                 Console.WriteLine("Copying New Roomscene from Syncplicity");
                                 Directory.CreateDirectory(mainSettings.ApprovedRoomScenes);
-                                file.CopyTo(Path.Combine(osXPathConversion(mainSettings.ApprovedRoomScenes), file.Name), true);
+                                file.CopyTo(Path.Combine(OsXPathConversion(mainSettings.ApprovedRoomScenes), file.Name), true);
 
                                 Console.WriteLine("Moving New Roomscene to Processed folder on Syncplicity");
                                 //Directory.CreateDirectory(Path.Combine(osXPathConversion(mainSettings.SyncFolderProcessed)));
-                                file.MoveTo(Path.Combine(osXPathConversion(mainSettings.SyncFolderProcessed), file.Name), true);
+                                file.MoveTo(Path.Combine(OsXPathConversion(mainSettings.SyncFolderProcessed), file.Name), true);
 
                                 roomsceneName = Path.GetFileName(file.FullName);
                                 approvedRoomscenesFiles = ApprovedRoomscenes();
@@ -503,7 +524,7 @@ namespace CCAAutomation.Lib
         /// <param name="template">The template name to be used in the job alias.</param>
         public static List<string> InsiteXMLSnippet(string surface, string type, string supplier, string division, string styleName, string colorName, string template)
         {
-            List<string> xmlData = new List<string>();
+            List<string> xmlData = new();
             if (type.ToLower().Trim().Equals("fl"))
             {
                 xmlData.Add("       <InsiteGroup>" + XmlMethods.XmlRemapping(supplier.ToLower() + surface, "InsiteCustomers") + "_FL" + "</InsiteGroup>");
@@ -542,7 +563,7 @@ namespace CCAAutomation.Lib
         /// <param name="template">The template name to be used in the job alias.</param>
         public static void CreateInsiteXML(string type, string preJobTemplateName, string preJobPath, string supplier, string division, string export, string jobName, string styleName, string colorName, string template)
         {
-            List<string> xmlData = new List<string>();
+            List<string> xmlData = new();
 
             xmlData.Add("<jobs>");
             xmlData.Add("	<job>");
@@ -580,7 +601,7 @@ namespace CCAAutomation.Lib
             {
                 export = Path.Combine(export, type);
                 Directory.CreateDirectory(export);
-                using (StreamWriter xmlFile = new StreamWriter(Path.Combine(export, jobName + ".xml")))
+                using (StreamWriter xmlFile = new(Path.Combine(export, jobName + ".xml")))
                 {
                     foreach (string s in xmlData)
                     {
@@ -612,7 +633,7 @@ namespace CCAAutomation.Lib
             return 0;
         }
 
-        public static string osXPathConversion(string path)
+        public static string OsXPathConversion(string path)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {

@@ -35,6 +35,7 @@ namespace CCAAutomation.Lib
             public string SyncFolderProcessed { get; set; }
             public string ApprovedRoomScenes { get; set; }
             public string WebShopRoomScenes { get; set; }
+            public bool UseSql { get; set; }
         }   
 
 		public class RunSheet
@@ -42,10 +43,10 @@ namespace CCAAutomation.Lib
             public string Plate_ID { get; set; }
         }
 
-        public static MainSettings getMainSettings()
+        public static MainSettings GetMainSettings()
         {
-            MainSettings mainSettings = new MainSettings();
-            XmlDocument doc = new XmlDocument();
+            MainSettings mainSettings = new();
+            XmlDocument doc = new();
             string xmlPath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Config.xml");
             doc.Load(xmlPath);
             XmlNode mainSettingNode = doc.DocumentElement.SelectSingleNode("MainSettings");
@@ -63,8 +64,8 @@ namespace CCAAutomation.Lib
 
         public static TemplateModel GetTemplateSettings(string passedString, string type)
         {
-            TemplateModel template = new TemplateModel();
-            XmlDocument doc = new XmlDocument();
+            TemplateModel template = new();
+            XmlDocument doc = new();
             string xmlPath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Config.xml");
             doc.Load(xmlPath);
             XmlNode templatesNode = doc.DocumentElement.SelectSingleNode("Templates");
@@ -97,8 +98,8 @@ namespace CCAAutomation.Lib
 
         public static Swatches.SwatchesModel GetSwatchLayout(string passedString, string template)
         {
-            Swatches.SwatchesModel swatches = new Swatches.SwatchesModel();
-            XmlDocument doc = new XmlDocument();
+            Swatches.SwatchesModel swatches = new();
+            XmlDocument doc = new();
             string xmlPath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Config.xml");
             doc.Load(xmlPath);
             XmlNode swatchesNode = doc.DocumentElement.SelectSingleNode("Swatches");
@@ -126,12 +127,12 @@ namespace CCAAutomation.Lib
 
         public static List<RunSheet> GetRunFiles(string fileName)
         {
-            List<RunSheet> runSheetList = new List<RunSheet>();
+            List<RunSheet> runSheetList = new();
 
             IWorkbook wb = new XSSFWorkbook(fileName);
             ISheet sheetDetails = wb.GetSheetAt(0);
 
-            List<string> RunSheetHeaderList = new List<string>(CommonMethods.GetHeaderColumns(sheetDetails));
+            List<string> RunSheetHeaderList = new(CommonMethods.GetHeaderColumns(sheetDetails));
             for (int i = 1; i < CommonMethods.GetRowCount(sheetDetails); i++)
             {
                 runSheetList.Add(GetRunFile(sheetDetails, RunSheetHeaderList, i));
@@ -142,7 +143,7 @@ namespace CCAAutomation.Lib
 
         public static RunSheet GetRunFile(ISheet sheet, List<string> runSheetHeaderList, int i)
         {
-            RunSheet runSheet = new RunSheet();
+            RunSheet runSheet = new();
             runSheet.Plate_ID = CommonMethods.GetCell(sheet, i, runSheetHeaderList.IndexOf("Plate_ID"));
             return runSheet;
         }

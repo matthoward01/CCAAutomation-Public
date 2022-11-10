@@ -11,6 +11,8 @@
 <p>
     <label>Approvals Only:</label>
     <input type="checkbox" class="form-check-inline" @bind-value="showApprovals" @bind-value:event="onchange" name="showApprovals" />
+    <label>Approvals Pending Only:</label>
+    <input type="checkbox" class="form-check-inline" @bind-value="showApprovalsPending" @bind-value:event="onchange" name="showApprovalsPending" />
     <label>Changes Only:</label>
     <input type="checkbox" class="form-check-inline" @bind-value="showChanges" @bind-value:event="onchange" name="showChanges" />
     <label>Questions Only:</label>
@@ -44,12 +46,14 @@
                 (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
                  (showApprovals && wti.Status.ToLower().Trim().Equals("approved") &&
                 (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+                 (showApprovalsPending && wti.Status.ToLower().Trim().Equals("approved pending") &&
+                (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
                  (showQuestions && wti.Status.ToLower().Trim().Equals("questions") &&
                 (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
                  (showChanges && !wti.Change.ToLower().Trim().Equals("") &&
                 (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
                  ((wti.SearchTags.ToLower().Contains(search.ToLower()) ||
-                wti.Status.ToLower().Contains(search.ToLower())) && !showChanges && !showApprovals && !showRejections && !showQuestions))
+                wti.Status.ToLower().Contains(search.ToLower())) && !showChanges && !showApprovals && !showApprovalsPending && !showRejections && !showQuestions))
             {
             <tr class="@TableClass(wti.Status)">
                 <AuthorizeView>
@@ -160,11 +164,12 @@
                         <td>
                             <table width="100%">
                                 <tr height="20px">
-                                    <td width="20px" class="table-success" @onclick='(() => SetStatus(wti.Plate_ID, "Approved"))'></td>
-                                    <td width="20px" class="table-danger" @onclick='(() => SetStatus(wti.Plate_ID, "Rejected"))'></td>
-                                    <td width="20px" class="table-warning" @onclick='(() => SetStatus(wti.Plate_ID, "Waiting for Approval"))'></td>
-                                    <td width="20px" class="table-primary" @onclick='(() => SetStatus(wti.Plate_ID, "Questions"))'></td>
-                                    <td width="20px" class="table-light" @onclick='(() => SetStatus(wti.Plate_ID, "Not Done"))'></td>
+                                    <td width="16px" class="table-success" @onclick='(() => SetStatus(wti.Plate_ID, "Approved"))'></td>
+                                    <td width="16px" class="table-info" @onclick='(() => SetStatus(wti.Plate_ID, "Approved Pending"))'></td>
+                                    <td width="16px" class="table-danger" @onclick='(() => SetStatus(wti.Plate_ID, "Rejected"))'></td>
+                                    <td width="16px" class="table-warning" @onclick='(() => SetStatus(wti.Plate_ID, "Waiting for Approval"))'></td>
+                                    <td width="16px" class="table-primary" @onclick='(() => SetStatus(wti.Plate_ID, "Questions"))'></td>
+                                    <td width="16px" class="table-light" @onclick='(() => SetStatus(wti.Plate_ID, "Not Done"))'></td>
                                 </tr>
                             </table>
                         </td>
@@ -183,6 +188,7 @@
     private string search = "";
     private bool showChanges = false;
     private bool showApprovals = false;
+    private bool showApprovalsPending = false;
     private bool showQuestions = false;
     private bool showRejections = false;
     private bool plateSortAsc = false;
@@ -233,7 +239,7 @@
         if (index != -1)
         {
             webTableItems[index].Status = SqlMethods.SqlUpdateStatus(id, thisStatus, true);
-            if (thisStatus.Equals("Approved"))
+            if (thisStatus.Equals("Approved") || thisStatus.Equals("Approved Pending"))
             {
                 webTableItems[index].Change = "";
             }
@@ -264,6 +270,10 @@
         {
             tbClass = "table-success";
         }
+        if (id.ToLower().Equals("approved pending"))
+        {
+            tbClass = "table-info";
+        }
         if (id.ToLower().Equals("questions"))
         {
             tbClass = "table-primary";
@@ -277,6 +287,7 @@
         if (index != -1)
         {
             webTableItems[index].Output = SqlMethods.SqlSetToRun(id, true, run);
+            CheckRunStatus();
         }
     }
 
@@ -292,6 +303,24 @@
             webTableItems.Sort((x, y) => y.Plate_ID.CompareTo(x.Plate_ID));
             plateSortAsc = false;
         }
+    }
+    private async void CheckRunStatus()
+    {
+        while (webTableItems.Any(w => w.Output != 0))
+        {
+            List<string> outputJobs = SqlMethods.GetRunJobs(true);
+            foreach (string s in outputJobs)
+            {
+                int index = webTableItems.IndexOf(i => i.Plate_ID.EqualsString(s));
+                await CheckRunStatusAsync(index);
+            }
+        }
+    }
+
+    private async Task CheckRunStatusAsync(int index)
+    {
+        webTableItems[index].Output = SqlMethods.GetOutputStatus(webTableItems[index].Plate_ID, true);
+        await Task.Yield();
     }
 
     private void SortTemplates()

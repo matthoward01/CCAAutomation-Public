@@ -28,7 +28,7 @@ namespace CCAAutomation.Lib
 
         public static List<string> SwatchXML(string feeler, List<string> colorList, string swatchArea, string template)
         {
-            if ((!Check_Prime(colorList.Count()).Equals(0) && !colorList.Count().Equals(3)) || (colorList.Count().Equals(33)))
+            if ((!Check_Prime(colorList.Count).Equals(0) && !colorList.Count.Equals(3)) || (colorList.Count).Equals(33))
             {
                 if (colorList.Contains(feeler))
                 {
@@ -42,9 +42,9 @@ namespace CCAAutomation.Lib
                     Console.ReadLine();
                 }
             }
-            SwatchesModel swatchSettings = new SwatchesModel();
+            SwatchesModel swatchSettings = new();
             swatchSettings = Settings.GetSwatchLayout(colorList.Distinct().Count().ToString(), template);
-            List<string> swatchXMLList = new List<string>();
+            List<string> swatchXMLList = new();
 
             swatchXMLList.Add("<swatches frametype=\"" + swatchSettings.FrameType + "\" swatchweight=\"" + swatchSettings.SwatchWeight +
                 "\" swatchrows=\"" + swatchSettings.SwatchRows + "\" swatchcols=\"" + swatchSettings.SwatchCols +
@@ -57,7 +57,7 @@ namespace CCAAutomation.Lib
             }
             swatchXMLList.Add("</swatches>");
 
-            swatchSettings = new SwatchesModel();
+            swatchSettings = new();
             return swatchXMLList;
         }
         

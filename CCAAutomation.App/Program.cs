@@ -7,6 +7,7 @@ using static CCAAutomation.Lib.Execute;
 using System.Linq;
 using CCAAutomation.Lib;
 using System.IO;
+using System.Threading;
 
 namespace CCAAutomation.App
 {
@@ -14,7 +15,13 @@ namespace CCAAutomation.App
     {
         [STAThread]
         static void Main(string[] args)
-        {            
+        {
+            
+            StartupChoices();
+        }
+
+        private static void StartupChoices()
+        {
             bool webIntegration = false;
             Console.WriteLine("Function?");
             Console.WriteLine("\"c\" to compare xml files in two different directories.");
@@ -76,27 +83,56 @@ namespace CCAAutomation.App
                     }
                 }
             }
-            Console.ReadLine();
+            StartupChoices();
         }
 
         private static void WebIntegrationApp()
         {            
             try
-            {                
+            {
                 bool go = true;
+                List<string> missingImagesProc = new();
+
+                string export = "\\\\Mac\\Home\\Desktop\\CCA Test\\SQL Testing\\";
+
+                bool goWorkshop = false;
+                
+                string[] files = ApprovedRoomscenes();
+
                 while (go)
                 {
                     List<string> runJobListHS = new(SqlMethods.GetRunJobs(false));
                     List<string> runJobListSS = new(SqlMethods.GetRunJobs(true));
                     foreach (string j in runJobListHS)
                     {
-                        //LARFinal lf = new(SqlMethods.SqlGetLarFinal(false, j));
+                        LARXlsSheet LARXlsSheet = GetLar(false, j);
+                        missingImagesProc.AddRange(Run(files, goWorkshop, j, export, LARXlsSheet));
+                        var uniqueMissing = missingImagesProc.Distinct();
+                        foreach (string s in uniqueMissing)
+                        {
+                            Console.WriteLine(s);
+                        }
+                        SqlMethods.SqlSetToRun(j, false, 0);
+                        missingImagesProc = new();
                     }
+                    foreach (string j in runJobListSS)
+                    {
+                        LARXlsSheet LARXlsSheet = GetLar(true, j);
+                        missingImagesProc.AddRange(Run(files, goWorkshop, j, export, LARXlsSheet));
+                        var uniqueMissing = missingImagesProc.Distinct();
+                        foreach (string s in uniqueMissing)
+                        {
+                            Console.WriteLine(s);
+                        }
+                        SqlMethods.SqlSetToRun(j, true, 0);
+                        missingImagesProc = new();
+                    }
+                    Thread.Sleep(10000);
                 }
             }
             catch (Exception e)
             {
-
+                Console.WriteLine(e.Message);
             }
         }
 
@@ -104,7 +140,7 @@ namespace CCAAutomation.App
         {
             string fileName = "";
             bool go = true;
-            List<string> missingImagesProc = new List<string>();
+            List<string> missingImagesProc = new();
 
             Console.WriteLine("What XLS File?");
             fileName = Console.ReadLine();
@@ -128,6 +164,14 @@ namespace CCAAutomation.App
                     Console.WriteLine("Roomscene Cache Rebuilt...");
                     Console.WriteLine("What Plate Id?");
                     plateId = Console.ReadLine();
+                    if (plateId.EqualsString("restart"))
+                    {
+                        StartupChoices();
+                    }
+                }
+                else if (plateId.EqualsString("restart"))
+                {
+                    StartupChoices();
                 }
                 missingImagesProc.AddRange(Run(files, goWorkshop, plateId, export, LARXlsSheet));
                 var uniqueMissing = missingImagesProc.Distinct();
@@ -138,7 +182,7 @@ namespace CCAAutomation.App
                 missingImagesProc = new();
             }
 
-            Console.ReadLine();
+            StartupChoices();
         }
     }
 }

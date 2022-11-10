@@ -18,18 +18,18 @@ namespace CCAAutomation.Lib
         /// <returns>Returns a LAR Sheet for Hardsurface</returns>
         public static LARXlsSheet GetLar(string fileName)
         {
-            LARXlsSheet larXlsSheet = new LARXlsSheet();            
+            LARXlsSheet larXlsSheet = new();            
 
             IWorkbook wb = new XSSFWorkbook(fileName);
             ISheet sheetDetails = wb.GetSheetAt(0);
             ISheet sheetSample = wb.GetSheetAt(1);
             ISheet sheetLabels = wb.GetSheetAt(2);
-            ISheet sheetWarranties = wb.GetSheetAt(3);
+            //ISheet sheetWarranties = wb.GetSheetAt(3);
 
-            List<string> detailsHeaderList = new List<string>(GetHeaderColumns(sheetDetails));
-            List<string> sampleHeaderList = new List<string>(GetHeaderColumns(sheetSample));
-            List<string> labelsHeaderList = new List<string>(GetHeaderColumns(sheetLabels));
-            List<string> warrantiesHeaderList = new List<string>(GetHeaderColumns(sheetWarranties));
+            List<string> detailsHeaderList = new(GetHeaderColumns(sheetDetails));
+            List<string> sampleHeaderList = new(GetHeaderColumns(sheetSample));
+            List<string> labelsHeaderList = new(GetHeaderColumns(sheetLabels));
+            //List<string> warrantiesHeaderList = new(GetHeaderColumns(sheetWarranties));
 
             for (int i = 1; i < GetRowCount(sheetDetails); i++)
             {
@@ -43,11 +43,10 @@ namespace CCAAutomation.Lib
             {
                 larXlsSheet.LabelList.Add(GetLabels(sheetLabels, labelsHeaderList, i));
             }
-            for (int i = 1; i < GetRowCount(sheetWarranties); i++)
+            /*for (int i = 1; i < GetRowCount(sheetWarranties); i++)
             {
                 larXlsSheet.WarrantiesList.Add(GetWarranties(sheetWarranties, warrantiesHeaderList, i));
-            }
-
+            }*/
             
             return larXlsSheet;
         }
@@ -57,13 +56,13 @@ namespace CCAAutomation.Lib
         /// </summary>
         /// <param name="fileName">The file and path to the xls file</param>
         /// <returns>Returns a LAR Sheet for Hardsurface</returns>
-        public static LARXlsSheet GetLar(bool isSoftSurface)
+        public static LARXlsSheet GetLar(bool isSoftSurface, string plateId)
         {
-            LARXlsSheet larXlsSheet = new LARXlsSheet();
+            LARXlsSheet larXlsSheet = new();
 
-            larXlsSheet.DetailsList = SqlMethods.SqlSelectDetails("", isSoftSurface);
-            larXlsSheet.LabelList = SqlMethods.SqlSelectLabels();
-            larXlsSheet.SampleList = SqlMethods.SqlSelectSample();
+            larXlsSheet.DetailsList = SqlMethods.SqlSelectDetails(plateId, isSoftSurface);
+            larXlsSheet.LabelList = SqlMethods.SqlSelectLabels(larXlsSheet.DetailsList[0].Sample_ID, isSoftSurface);
+            larXlsSheet.SampleList = SqlMethods.SqlSelectSample(larXlsSheet.DetailsList[0].Sample_ID, isSoftSurface);
 
             return larXlsSheet;
         }
@@ -76,7 +75,7 @@ namespace CCAAutomation.Lib
         /// <returns>Returns the details of the details tab of a Hardsurface spreadsheet.</returns>
         public static Details GetDetails(ISheet sheet, List<string> detailHeaderList, int i)
         {
-            Details details = new Details();
+            Details details = new();
             details.Plate_ID = GetCell(sheet, i, detailHeaderList.IndexOf("Plate_#"));
             details.ArtType = GetCell(sheet, i, detailHeaderList.IndexOf("Art_Type"));
             details.ADDNumber = GetCell(sheet, i, detailHeaderList.IndexOf("ADDNumber"));
@@ -118,7 +117,6 @@ namespace CCAAutomation.Lib
             details.Width = GetCell(sheet, i, detailHeaderList.IndexOf("Width"));
             details.Width_Measurement = GetCell(sheet, i, detailHeaderList.IndexOf("Width_Measurement"));
             details.Color_Sequence = GetCell(sheet, i, detailHeaderList.IndexOf("Color_Sequence"));
-
             details.Backing = GetCell(sheet, i, detailHeaderList.IndexOf("Backing"));
             details.Child_Supplier = GetCell(sheet, i, detailHeaderList.IndexOf("Child_Supplier"));
             details.Commercial_Rating = GetCell(sheet, i, detailHeaderList.IndexOf("Commercial_Rating"));
@@ -190,7 +188,7 @@ namespace CCAAutomation.Lib
         }
         public static Sample GetSample(ISheet sheet, List<string> sampleHeaderList, int i)
         {
-            Sample sample = new Sample();
+            Sample sample = new();
             sample.Feeler = GetCell(sheet, i, sampleHeaderList.IndexOf("Feeler"));
             sample.Multiple_Color_Lines = GetCell(sheet, i, sampleHeaderList.IndexOf("Multiple_Color_Lines"));
             sample.Sample_ID = GetCell(sheet, i, sampleHeaderList.IndexOf("Sample_ID"));
@@ -220,7 +218,7 @@ namespace CCAAutomation.Lib
         }
         public static Labels GetLabels(ISheet sheet, List<string> labelsHeaderList, int i)
         {
-            Labels labels = new Labels();
+            Labels labels = new();
             labels.Division_Label_Name = GetCell(sheet, i, labelsHeaderList.IndexOf("Division_Label_Name"));
             labels.Division_Label_Type = GetCell(sheet, i, labelsHeaderList.IndexOf("Division_Label_Type"));
             labels.Merchandised_Product_ID = GetCell(sheet, i, labelsHeaderList.IndexOf("Merchandised_Product_ID"));
@@ -230,7 +228,7 @@ namespace CCAAutomation.Lib
         }
         public static Warranties GetWarranties(ISheet sheet, List<string> warrantiesHeaderList, int i)
         {
-            Warranties warranties = new Warranties();
+            Warranties warranties = new();
             warranties.Duration = GetCell(sheet, i, warrantiesHeaderList.IndexOf("Duration"));
             warranties.Merchandised_Product_ID = GetCell(sheet, i, warrantiesHeaderList.IndexOf("Merchandised_Product_ID"));
             warranties.Product_Warranty_Type_Code = GetCell(sheet, i, warrantiesHeaderList.IndexOf("Product_Warranty_Type_Code"));
@@ -242,8 +240,8 @@ namespace CCAAutomation.Lib
         }
         public static List<LARFinal> GetLarFinal(LARXlsSheet larXlsSheet, string plateId)
         {
-            LARFinal lARFinal = new LARFinal();
-            List<LARFinal> lARFinalList = new List<LARFinal>();
+            LARFinal lARFinal = new();
+            List<LARFinal> lARFinalList = new();
             foreach (Details d in larXlsSheet.DetailsList)
             {
                 if (d.Plate_ID.Equals(plateId))
@@ -268,13 +266,13 @@ namespace CCAAutomation.Lib
                         }
                     }
                     //lARFinal.LabelsFinal = sortIcons(lARFinal.LabelsFinal);
-                    foreach (Warranties w in larXlsSheet.WarrantiesList)
+                    /*foreach (Warranties w in larXlsSheet.WarrantiesList)
                     {
                         if (d.Sample_ID.Equals(w.Sample_ID))
                         {
                             lARFinal.WarrantiesFinal.Add(w);
                         }
-                    }
+                    }*/
                     lARFinal = GetMerchandisedProductColorIds(lARFinal, larXlsSheet);
                     lARFinalList.Add(lARFinal);
                     lARFinal = new LARFinal();
@@ -301,13 +299,13 @@ namespace CCAAutomation.Lib
                         }
                     }
                     //lARFinal.LabelsFinal = sortIcons(lARFinal.LabelsFinal);
-                    foreach (Warranties w in larXlsSheet.WarrantiesList)
+                    /*foreach (Warranties w in larXlsSheet.WarrantiesList)
                     {
                         if (d.Sample_ID.Equals(w.Sample_ID))
                         {
                             lARFinal.WarrantiesFinal.Add(w);
                         }
-                    }
+                    }*/
                     lARFinal = GetMerchandisedProductColorIds(lARFinal, larXlsSheet);
                     lARFinalList.Add(lARFinal);
                     lARFinal = new LARFinal();

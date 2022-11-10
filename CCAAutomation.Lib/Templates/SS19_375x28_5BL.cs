@@ -13,22 +13,19 @@ namespace CCAAutomation.Lib
     {
         private static List<Labels> GetImages(List<Labels> inLabels)
         {
-            List<Labels> workingList = new List<Labels>(inLabels);
-            Labels sortLabels = new Labels();
-            List<Labels> newWorkingList = new List<Labels>();
+            List<Labels> workingList = new(inLabels);
+            Labels sortLabels = new();
+            List<Labels> newWorkingList = new();
 
             foreach (Labels l in workingList)
             {
-                //if (l.Division_Label_Name.Contains(":"))
-                //{
-                    sortLabels.Division_Label_Name = XmlIconPath(l.Division_Label_Name, "Images") + XmlRemapping(l.Division_Label_Name, "Images");
-                    sortLabels.Division_Label_Type = l.Division_Label_Type;
-                    sortLabels.Merchandised_Product_ID = l.Merchandised_Product_ID;
-                    sortLabels.Priority = XmlIconOrder(l.Division_Label_Name, "Images");
-                    sortLabels.Sample_ID = l.Sample_ID;
-                    newWorkingList.Add(sortLabels);
-                    sortLabels = new Labels();
-               //}
+                sortLabels.Division_Label_Name = XmlIconPath(l.Division_Label_Name, "Images") + XmlRemapping(l.Division_Label_Name, "Images");
+                sortLabels.Division_Label_Type = l.Division_Label_Type;
+                sortLabels.Merchandised_Product_ID = l.Merchandised_Product_ID;
+                sortLabels.Priority = XmlIconOrder(l.Division_Label_Name, "Images");
+                sortLabels.Sample_ID = l.Sample_ID;
+                newWorkingList.Add(sortLabels);
+                sortLabels = new Labels();
             }
 
             workingList = new List<Labels>();
@@ -38,8 +35,8 @@ namespace CCAAutomation.Lib
         }
 
         private static List<string> GetSpecList(Details details, List<string> ccaSkuId, List<string> widthList)
-        {
-            List<string> specs = new List<string>();
+        {            
+            List<string> specs = new();
             //Spec 1
             specs.Add(details.Primary_Display);
 
@@ -49,7 +46,6 @@ namespace CCAAutomation.Lib
             if (details.Match.Trim().ToLower().Equals("random") && !details.Match_Width.EqualsString(""))
             {
                 string width = details.Match_Width;
-                //decimal widthD = decimal.Parse(details.Width);
                 bool successW = decimal.TryParse(details.Match_Width, out decimal widthD);
                 if (successW)
                 {
@@ -59,12 +55,11 @@ namespace CCAAutomation.Lib
                     }
                 }
                 width = width.Replace(".00", "") + "\" W<!--Match_Width-->";
-                specs.Add("Random x " + width);
+                specs.Add(width + " x Random");
             }
             else if (details.Match.Trim().ToLower().Equals("random") && !details.Match_Length.EqualsString(""))
             {
                 string length = details.Match_Length;
-                //decimal lengthD = decimal.Parse(details.Length);
                 bool successL = decimal.TryParse(length, out decimal lengthD);
                 if (successL)
                 {
@@ -84,7 +79,6 @@ namespace CCAAutomation.Lib
             else if (!details.Match.Trim().ToLower().Equals("none") && !details.Match.Trim().ToLower().Equals("null") && !details.Match.EqualsString(""))
             { 
                 string width = details.Match_Width;
-                //decimal widthD = decimal.Parse(details.Width);
                 bool successW = decimal.TryParse(details.Match_Width, out decimal widthD);
                 if (successW)
                 {
@@ -97,7 +91,6 @@ namespace CCAAutomation.Lib
 
 
                 string length = details.Match_Length;
-                //decimal lengthD = decimal.Parse(details.Length);
                 bool successL = decimal.TryParse(length, out decimal lengthD);
                 if (successL)
                 {
@@ -130,11 +123,11 @@ namespace CCAAutomation.Lib
 
             //Spec 4
             string[] widthSize = widthList.Distinct().ToArray();
-            if (widthSize.Count().Equals(1))
+            if (widthSize.Length.Equals(1))
             {
                 specs.Add(widthSize[0]);
             }
-            if (widthSize.Count().Equals(2))
+            if (widthSize.Length.Equals(2))
             {
                 specs.Add(widthSize[0] + " & " + widthSize[1]);
             }
@@ -151,28 +144,39 @@ namespace CCAAutomation.Lib
             return specs;
         }        
 
-        public static (List<string>, string[]) CreateXMLSS19_375x28_5BL(string[] files, bool skip, bool goWorkShop, List<LARFinal> lARFinal, string plateId, string export)
+        public static (List<string> missingItems, string[] updatedFiles) CreateXMLSS19_375x28_5BL(string[] files, bool skip, bool goWorkShop, List<LARFinal> lARFinal, string plateId, string export)
         {
+            List<Details> details = new();            
             //goWorkShop = true;
-            List<string> missingImages = new List<string>();
-            List<string> colorList = new List<string>();
-            List<string> ccaSkuId = new List<string>();
+            List<string> missingImages = new();
+            List<string> colorList = new();
+            List<string> ccaSkuId = new();
             List<string> widthList = new();
             List<int> featurePositionList = new();
-            List<Swatches.SwatchColors> swatchColors = new List<Swatches.SwatchColors>();
+            List<Swatches.SwatchColors> swatchColors = new();
             List<CCASkuIdModel> ccaSkuIdList = new();
             CCASkuIdModel cCASkuIdModel = new();
-            bool error = false;
+            bool seqError = false;
+            bool secondStyleError = false;
             string twoFeature = "";
-
             int featurePosition = 0;
 
             foreach (LARFinal lf in lARFinal)
             {
-                Swatches.SwatchColors colors = new Swatches.SwatchColors();
-                colors.Color = lf.DetailsFinal.Merch_Color_Name;                
-                colors.ColorSequence = lf.DetailsFinal.Color_Sequence.PadLeft(2,'0');
-                swatchColors.Add(colors);
+                details.Add(lf.DetailsFinal);
+                Swatches.SwatchColors colors = new();
+                if (!lf.DetailsFinal.Color_Sequence.EqualsString("0") && int.TryParse(lf.DetailsFinal.Color_Sequence, out int result))
+                {
+                    colors.Color = lf.DetailsFinal.Merch_Color_Name;
+                    colors.ColorSequence = lf.DetailsFinal.Color_Sequence.PadLeft(2, '0');
+                    swatchColors.Add(colors);
+                }
+                else if (lf.DetailsFinal.Color_Sequence.EqualsString(""))
+                {
+                    colors.Color = lf.DetailsFinal.Merch_Color_Name;
+                    colors.ColorSequence = lf.DetailsFinal.Color_Sequence.PadLeft(2, '0');
+                    swatchColors.Add(colors);
+                }
 
                 if (lf.SampleFinal.Sample_Name.Contains("/") && lf.SampleFinal.Shared_Card.Trim().ToLower().Equals("yes"))
                 {
@@ -189,11 +193,12 @@ namespace CCAAutomation.Lib
                 featurePosition++;
                 if (lf.DetailsFinal.Color_Sequence.EqualsString(""))
                 {
-                    error = true;
+                    seqError = true;
                 }
                 widthList.Add(lf.DetailsFinal.Size_Name);
-            }
+            }            
             widthList.Sort();
+            
             foreach (LARFinal lf in lARFinal)
             {
                 if (lf.SampleFinal.Sample_Name.Contains("/") && lf.SampleFinal.Shared_Card.Trim().ToLower().Equals("yes"))
@@ -203,7 +208,7 @@ namespace CCAAutomation.Lib
                     {
                         if (lf.DetailsFinal.Merch_Color_Name.Trim().ToLower().Equals(lf.SampleFinal.Feeler.Trim().ToLower()))
                         {
-                            if (widthList.Distinct().Count() < (1))
+                            if (!widthList.Distinct().Any())
                             {
                                 cCASkuIdModel.Position = "01";
                                 cCASkuIdModel.CCASkuId = lf.DetailsFinal.CcaSkuId;
@@ -225,7 +230,7 @@ namespace CCAAutomation.Lib
                     {
                         if (lf.DetailsFinal.Merch_Color_Name.Trim().ToLower().Equals(lf.SampleFinal.Feeler.Trim().ToLower()))
                         {
-                            if (widthList.Distinct().Count() < (1))
+                            if (!widthList.Distinct().Any())
                             {
                                 cCASkuIdModel.Position = "02";
                                 cCASkuIdModel.CCASkuId = lf.DetailsFinal.CcaSkuId;
@@ -250,7 +255,7 @@ namespace CCAAutomation.Lib
                     {
                         if (lf.DetailsFinal.Merch_Color_Name.Trim().ToLower().Equals(lf.SampleFinal.Feeler.Trim().ToLower()))
                         {
-                            if (widthList.Distinct().Count() < (1))
+                            if (!widthList.Distinct().Any())
                             {
                                 cCASkuIdModel.Position = "01";
                                 cCASkuIdModel.CCASkuId = lf.DetailsFinal.CcaSkuId;
@@ -272,7 +277,7 @@ namespace CCAAutomation.Lib
                     {
                         if (lf.DetailsFinal.Merch_Color_Name.Trim().ToLower().Equals(lf.SampleFinal.Feeler.Trim().ToLower()))
                         {
-                            if (widthList.Distinct().Count() < (1))
+                            if (!widthList.Distinct().Any())
                             {
                                 cCASkuIdModel.Position = "02";
                                 cCASkuIdModel.CCASkuId = lf.DetailsFinal.CcaSkuId;
@@ -309,10 +314,9 @@ namespace CCAAutomation.Lib
             {
                 colorList.Add(ConvertToTitleCase(c.Color));
             }
-            string styleName2 = "";
             string division = XmlRemapping(lARFinal[0].DetailsFinal.Division_List, "Divisions");
             TemplateModel settings = GetTemplateSettings("SS19.375x28.5BL", "Normal");
-            string sharedFeature = lARFinal[0].SampleFinal.Shared_Card.ToLower().Trim();
+            /*string sharedFeature = lARFinal[0].SampleFinal.Shared_Card.ToLower().Trim();
             if (sharedFeature.Equals("yes"))
             {
                 settings = GetTemplateSettings("SS19.375x28.5BL", "Feature");
@@ -330,10 +334,10 @@ namespace CCAAutomation.Lib
                 }
                 else
                 {
-                    error = true;
+                    secondStyleError = true;
                 }
 
-            }
+            }*/
             
             string mainPath = settings.WebShopPath;
             string template = settings.WebShopPath + settings.Name;
@@ -365,16 +369,16 @@ namespace CCAAutomation.Lib
             foreach (string s in lARFinal[0].SampleFinal.Merchandised_Product_Color_ID_C1)
             {
                 var result = GetSyncedRoomscenes(files, s, roomScene);
-                roomScene = result.Item1;
-                files = result.Item2;
+                roomScene = result.Roomscene;
+                files = result.UpdatedFiles;
             }
             if (roomScene.Contains("FPOwaitingonroom"))
             {
                 foreach (string s in lARFinal[0].SampleFinal.Merchandised_Product_Color_ID_FA)
                 {
                     var result = GetSyncedRoomscenes(files, s, roomScene);
-                    roomScene = result.Item1;
-                    files = result.Item2;
+                    roomScene = result.Roomscene;
+                    files = result.UpdatedFiles;
                 }
             }
             foreach (string s in files)
@@ -421,20 +425,18 @@ namespace CCAAutomation.Lib
                     }
                 }
             }
-            //else
-            //{
-            //    Console.WriteLine("Error getting roomscene. Feature position exceeds color count.");
-            //}
             if (skip)
             {
                 roomScene = "FPOwaitingonroom.tif" + "<!--Roomscene skipped-->";
             }
             string styleName = ConvertToTitleCase(lARFinal[0].SampleFinal.Sample_Name);
-            styleName2 = ConvertToTitleCase(styleName2);
+            string styleName2 = ConvertToTitleCase(lARFinal[0].SampleFinal.Split_Board);
+
+            //styleName2 = ConvertToTitleCase(styleName2);
             string feeler = ConvertToTitleCase(lARFinal[0].SampleFinal.Feeler);
             
             List<string> specList = GetSpecList(lARFinal[0].DetailsFinal, ccaSkuId, widthList);
-            List<string> xmlData = new List<string>();
+            List<string> xmlData = new();
 
             xmlData.Add("<jobs>");
             xmlData.Add("	<job>");
@@ -442,14 +444,6 @@ namespace CCAAutomation.Lib
             xmlData.Add("		<output jobname=\"" + jobName + "\">Webshop:InputPDF</output>");
             xmlData.Add("		<snippets>");
             xmlData.Add("           <snippet page=\"1\">" + CheckForMissing(snippetPath + snippetWarranties, missingImages) + "</snippet>");
-            /*if (division.Trim().ToLower().Equals("fa"))
-            {
-                xmlData.Add("           <snippet page=\"1\">" + CheckForMissing(snippetPath + "FlooringAmerica.idms", missingImages) + "</snippet>");
-            }
-            else if(division.Trim().ToLower().Equals("c1"))
-            {
-                xmlData.Add("           <snippet page=\"1\">" + CheckForMissing(snippetPath + "CarpetOne.idms", missingImages) + "</snippet>");
-            }*/
             if (division.Trim().ToLower().Equals("fa") && lARFinal[0].SampleFinal.Shared_Card.Trim().ToLower().Equals("yes"))
             {
                 xmlData.Add("           <snippet page=\"1\">" + CheckForMissing(snippetPath + "FlooringAmerica w Feat.idms", missingImages) + "</snippet>");
@@ -478,12 +472,9 @@ namespace CCAAutomation.Lib
             count = 1;
             xmlData.Add("			<text type=\"stylename\">" + styleName + "<!--SampleFinal.Sample_Name--></text>");
             xmlData.Add("			<text type=\"stylename1\">" + styleName + "<!--SampleFinal.Sample_Name--></text>");
-            if(!styleName2.EqualsString(""))
-            {
-                xmlData.Add("			<text type=\"stylename2\">" + styleName2 + "</text>");
-            }
             if (lARFinal[0].SampleFinal.Shared_Card.ToLower().Trim().Equals("yes"))
             {
+                xmlData.Add("			<text type=\"stylename2\">" + styleName2 + "</text>");
                 xmlData.Add("           <text type=\"topcolor1\">" + feeler + "<!--SampleFinal.Feeler--></text>");
                 xmlData.Add("           <text type=\"topcolor2\">" + feeler + "<!--SampleFinal.Feeler--></text>");
             }
@@ -500,8 +491,8 @@ namespace CCAAutomation.Lib
                 if (!skip)
                 {                    
                     var result = CopyRoomscene(files, skip, roomScenePath + roomScene, settings.WebShopPath + settings.RoomscenePath);
-                    skip = result.Item1;
-                    files = result.Item2;
+                    skip = result.Skip;
+                    files = result.UpdatedFiles;
                 }
             }
             catch (Exception e)
@@ -514,7 +505,7 @@ namespace CCAAutomation.Lib
             xmlData.Add("			</roomscenes>");
             xmlData.Add("			<images>");
 
-            List<string> usedIconList = new List<string>();  
+            List<string> usedIconList = new();  
 
             foreach (Labels i in GetImages(lARFinal[0].LabelsFinal))
             {
@@ -559,13 +550,13 @@ namespace CCAAutomation.Lib
             xmlData.Add("	</job>");
             xmlData.Add("</jobs>");
 
-            if ((!template.Equals("")) && (!error) && (!roomScene.Contains("FPOwaitingonroom")) && !lARFinal[0].DetailsFinal.ADDNumber.EqualsString(""))
+            if ((!template.Equals("")) && (!seqError) && (!roomScene.Contains("FPOwaitingonroom")) && !lARFinal[0].DetailsFinal.ADDNumber.EqualsString(""))
             {
                 if (goWorkShop)
                 {
                     ExportXML(jobName, xmlData, export, "WorkShop XML");
                     goWorkShop = false;
-                    using (StreamWriter textFile = new StreamWriter(Path.Combine(export, "Roomscene Matchups.txt"), append:true))
+                    using (StreamWriter textFile = new(Path.Combine(export, "Roomscene Matchups.txt"), append:true))
                     {
                         textFile.WriteLine(jobName + "|" + styleName + "|" + "Yes" + "|" + lARFinal[0].DetailsFinal.Supplier_Name + "|" + roomScene);
                     }
@@ -574,20 +565,23 @@ namespace CCAAutomation.Lib
                 {
                     ExportXML(jobName, xmlData, export, "WebShop XML");
                     CreateXMLSS19_375x28_5BL(files, skip, true, lARFinal, plateId, export);
-                    Console.WriteLine("--------------------------------------------");
                 }
             }
-            else if (error && !roomScene.Contains("FPOwaitingonroom"))
+            else if (secondStyleError && seqError && !roomScene.Contains("FPOwaitingonroom"))
             {
-                Console.WriteLine("Color Sequence Missing or Incomplete, but we have Roomscene");
-                using (StreamWriter textFile = new StreamWriter(Path.Combine(export, "Roomscenes no Sequence.txt"), append:true))
+                Console.WriteLine("Color Sequence Missing, 2nd Style Problem, or Incomplete, but we have Roomscene");
+                using (StreamWriter textFile = new(Path.Combine(export, "Roomscenes no Sequence.txt"), append:true))
                 {
                     textFile.WriteLine(jobName + "|" + styleName + "|" + "No" + "|" + lARFinal[0].DetailsFinal.Supplier_Name + "|" + roomScene);
                 }
             }
-            else if (error)
+            else if (seqError)
             {
-                Console.WriteLine("Color Sequence Missing or Incomplete or 2nd Style Name Problem");
+                Console.WriteLine("Color Sequence Missing.");
+            }
+            else if (secondStyleError)
+            {
+                Console.WriteLine("2nd Style Problem.");
             }
             else if (template.EqualsString(""))
             {
@@ -596,6 +590,8 @@ namespace CCAAutomation.Lib
             else if (roomScene.Contains("FPOwaitingonroom"))
             {
                 Console.WriteLine("Roomscene Missing.");
+                SyncRoomsceneDoubleCheck(details, export);
+                details = new();
             }
             else if (lARFinal[0].DetailsFinal.ADDNumber.EqualsString(""))
             {

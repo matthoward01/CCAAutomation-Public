@@ -12,7 +12,7 @@ namespace CCAAutomation.Lib
     {
         private static List<string> GetCharacteristics(LARFinal lARFinal)
         {
-            List<string> characteristicsList = new List<string>();
+            List<string> characteristicsList = new();
 
             //1 Width
             string width = lARFinal.DetailsFinal.Size_Name;
@@ -67,15 +67,15 @@ namespace CCAAutomation.Lib
             {
                 characteristicsList.Add("!blank.eps");
             }
-            lARFinal = new LARFinal();
+            lARFinal = new();
             return characteristicsList;
         }
 
         private static List<Labels> GetImages(List<Labels> inLabels)
         {
-            List<Labels> workingList = new List<Labels>(inLabels);
-            Labels sortLabels = new Labels();
-            List<Labels> newWorkingList = new List<Labels>();
+            List<Labels> workingList = new(inLabels);
+            Labels sortLabels = new();
+            List<Labels> newWorkingList = new();
 
             foreach (Labels l in workingList)
             {
@@ -104,9 +104,9 @@ namespace CCAAutomation.Lib
         /// <returns>Returns the sorted label model.</returns>
         private static List<Labels> GetInlines(List<Labels> inLabels)
         {
-            List<Labels> workingList = new List<Labels>(inLabels);
-            Labels sortLabels = new Labels();
-            List<Labels> newWorkingList = new List<Labels>();
+            List<Labels> workingList = new(inLabels);
+            Labels sortLabels = new();
+            List<Labels> newWorkingList = new();
 
             foreach (Labels l in workingList)
             {
@@ -129,7 +129,7 @@ namespace CCAAutomation.Lib
 
         private static List<string> GetInstallation(LARFinal lARFinal)
         {
-            List<string> installationList = new List<string>();
+            List<string> installationList = new();
             //lARFinal.LabelsFinal = GetImages(lARFinal.LabelsFinal);
             foreach (Labels i in GetImages(lARFinal.LabelsFinal))
             {
@@ -143,13 +143,13 @@ namespace CCAAutomation.Lib
             {
                 installationList.Add("!blank.eps");
             }
-            lARFinal = new LARFinal();
+            lARFinal = new();
             return installationList;
         }
 
         private static List<string> GetSpecList(Details details)
         {
-            List<string> specs = new List<string>();
+            List<string> specs = new();
             specs.Add(ConvertToTitleCase(details.Merch_Color_Name) + "<!--Merch_Color_Name-->");
             string width = details.Size_Name;
             if (details.Width.Trim().Equals("") &&
@@ -199,7 +199,7 @@ namespace CCAAutomation.Lib
                 {
                     if (length.EndsWith('0'))
                     {
-                        length = lengthD.ToString("0.##");
+                        length = lengthD.ToString("0.00");
                     }
                 }
                 specs.Add(length.ToLower().Replace(".00", "") + "\"<!--Length-->");
@@ -247,7 +247,7 @@ namespace CCAAutomation.Lib
 
         private static List<string> GetTrims(LARFinal lARFinal)
         {
-            List<string> trimList = new List<string>();
+            List<string> trimList = new();
             //lARFinal.LabelsFinal = GetImages(lARFinal.LabelsFinal);
             foreach (Labels t in GetImages(lARFinal.LabelsFinal))
             {
@@ -261,14 +261,14 @@ namespace CCAAutomation.Lib
             {
                 trimList.Add("!blank.eps");
             }
-            lARFinal = new LARFinal();
+            lARFinal = new();
             return trimList;
         }
 
         public static List<string> CreateXMLHS18x24BL(string[] files, bool skip, bool goWorkShop, LARFinal lARFinal, string plateId, string export)
         {
             //goWorkShop = true;
-            List<string> missingImages = new List<string>();
+            List<string> missingImages = new();
             string division = XmlRemapping(lARFinal.DetailsFinal.Division_List, "Divisions");
             TemplateModel settings = GetTemplateSettings(division, "BL");
             string mainPath = settings.WebShopPath;
@@ -362,7 +362,7 @@ namespace CCAAutomation.Lib
             }
 
             List<string> specList = GetSpecList(lARFinal.DetailsFinal);
-            List<string> xmlData = new List<string>();
+            List<string> xmlData = new();
 
             xmlData.Add("<jobs>");
             xmlData.Add("	<job>");
@@ -465,11 +465,9 @@ namespace CCAAutomation.Lib
                     ExportXML(jobName, xmlData, export, "WorkShop XML");
                     //CreateInsiteXML("BL", settings.PreJobTemplateName, settings.PreJobPath, lARFinal.DetailsFinal.Supplier_Name, lARFinal.DetailsFinal.Division_List, export, jobName, styleName, specList[0], Path.GetFileNameWithoutExtension(template.Replace(":", "\\")));
                     goWorkShop = false;
-                    //Console.WriteLine("--------------------------------------------");
                 }
                 else
                 {
-                    //Console.WriteLine("--------------------------------------------");
                     ExportXML(jobName, xmlData, export, "WebShop XML");
                     CreateXMLHS18x24BL(files, skip, true, lARFinal, plateId, export);
                 }

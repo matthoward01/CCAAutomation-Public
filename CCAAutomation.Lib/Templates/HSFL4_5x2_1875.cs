@@ -18,9 +18,9 @@ namespace CCAAutomation.Lib
         /// <returns>Returns the sorted label model.</returns>
         private static List<Labels> GetInlines(List<Labels> inLabels)
         {
-            List<Labels> workingList = new List<Labels>(inLabels);
-            Labels sortLabels = new Labels();
-            List<Labels> newWorkingList = new List<Labels>();
+            List<Labels> workingList = new(inLabels);
+            Labels sortLabels = new();
+            List<Labels> newWorkingList = new();
 
             foreach (Labels l in workingList)
             {
@@ -35,10 +35,10 @@ namespace CCAAutomation.Lib
                     {
                         newWorkingList.Add(sortLabels);
                     }
-                    sortLabels = new Labels();
+                    sortLabels = new();
                 }
             }
-            workingList = new List<Labels>();
+            workingList = new();
             newWorkingList.Sort((x, y) => x.Priority.CompareTo(y.Priority));
 
             return newWorkingList;
@@ -46,7 +46,7 @@ namespace CCAAutomation.Lib
 
         private static List<string> GetSpecList(Details details)
         {
-            List<string> specs = new List<string>();
+            List<string> specs = new();
             
             /*if (details.Width.Trim().Equals("") && details.Width_Measurement.ToLower().Equals("random"))
             {
@@ -101,7 +101,7 @@ namespace CCAAutomation.Lib
         public static List<string> CreateXMLHS4_5x2_1875(bool goWorkShop, LARFinal lARFinal, string plateId, string export)
         {
             //goWorkShop = true;
-            List<string> missingImages = new List<string>();
+            List<string> missingImages = new();
             TemplateModel settings = GetTemplateSettings(XmlRemapping(lARFinal.DetailsFinal.Division_List, "Divisions"), "FL");
             string mainPath = settings.WebShopPath;
             string template = settings.WebShopPath + settings.Name;
@@ -120,7 +120,7 @@ namespace CCAAutomation.Lib
             string snippetWarranties = "rating:" + XmlRemapping(lARFinal.DetailsFinal.Division_Rating.ToLower(), "Ratings") + " " + category + ".idms" + "<!--Division_Rating-->";
             string styleName = ConvertToTitleCase(lARFinal.SampleFinal.Sample_Name.Trim());
             List<string> specList = GetSpecList(lARFinal.DetailsFinal);
-            List<string> xmlData = new List<string>();
+            List<string> xmlData = new();
 
             xmlData.Add("<jobs>");
             xmlData.Add("	<job>");
@@ -177,11 +177,9 @@ namespace CCAAutomation.Lib
                     ExportXML(jobName, xmlData, export, "WorkShop XML");
                     //CreateInsiteXML("FL", settings.PreJobTemplateName, settings.PreJobPath, lARFinal.DetailsFinal.Supplier_Name, lARFinal.DetailsFinal.Division_List, export, jobName, styleName, ConvertToTitleCase(lARFinal.DetailsFinal.Merch_Color_Name), Path.GetFileNameWithoutExtension(template.Replace(":", "\\")));
                     goWorkShop = false;
-                    //Console.WriteLine("--------------------------------------------");
                 }
                 else
                 {
-                    //Console.WriteLine("--------------------------------------------");
                     ExportXML(jobName, xmlData, export, "WebShop XML");
                     CreateXMLHS4_5x2_1875(true, lARFinal, plateId, export);
                 }

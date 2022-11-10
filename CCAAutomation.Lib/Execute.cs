@@ -11,7 +11,8 @@ namespace CCAAutomation.Lib
     public class Execute
     {
         static string lastPlate = "";
-        static List<LarModels.LARFinal> ssList = new List<LarModels.LARFinal>();
+        static List<LarModels.LARFinal> ssList = new();
+        static List<LarModels.LARFinal> runList = new();
         string[] files = CommonMethods.ApprovedRoomscenes();
 
         public static List<string> Run(string[] files, bool goWorkShop, string plateId, string export, LarModels.LARXlsSheet LARXlsSheet)
@@ -20,7 +21,7 @@ namespace CCAAutomation.Lib
             List<string> approvedPlateIdsList = new();
             lastPlate = "";
             ssList = new();
-            bool sqlPlaceHolder = false;
+            runList = new();
 
             if (!File.Exists(Path.Combine(export, "Approved.txt")))
             {
@@ -36,24 +37,36 @@ namespace CCAAutomation.Lib
 
             if (plateId.Equals(""))
             {
-                List<LarModels.LARFinal> aRFinals = new List<LarModels.LARFinal>(Lar.GetLarFinal(LARXlsSheet, plateId));
+                List<LarModels.LARFinal> aRFinals = new (Lar.GetLarFinal(LARXlsSheet, plateId));
+                List<string> plateList = new();
                 foreach (LarModels.LARFinal lf in aRFinals)
                 {
                     //if (!SqlMethods.SqlApprovalCheck(lf.DetailsFinal.Plate_ID))
                     if (!approvedPlateIdsList.Any(p => p.EqualsString(lf.DetailsFinal.Plate_ID)))
                     {
-                        string key = GetKey(lf.DetailsFinal.ArtType);
+                        /*string key = GetKey(lf.DetailsFinal.ArtType);
                         if (lf == aRFinals.Last())
                         {
                             lastPlate = "end";
                         }
-                        files = GoSwitch(files, goWorkShop, export, plateId, missingImagesRun, lf, key);
+                        files = GoSwitch(files, goWorkShop, export, plateId, missingImagesRun, lf, key);*/
+                        plateList.Add(lf.DetailsFinal.Plate_ID);
+                    }
+                }
+                foreach (string p in plateList.Distinct())
+                {
+                    runList = aRFinals.Where(l => (l.DetailsFinal.Plate_ID.EqualsString(p) && ((l.DetailsFinal.Division_List.ToLower().Trim().Contains("c1")) || (l.DetailsFinal.Division_List.ToLower().Trim().Contains("fa"))))).ToList();
+                    if (!runList.Count.Equals(0))
+                    {
+                        string key = GetKey(runList[0].DetailsFinal.ArtType);
+                        files = GoSwitch(files, goWorkShop, export, plateId, missingImagesRun, key);
                     }
                 }
             }
             else
             {
-                List<LarModels.LARFinal> aRFinals = new List<LarModels.LARFinal>(Lar.GetLarFinal(LARXlsSheet, plateId));
+                List<string> plateList = new();
+                List<LarModels.LARFinal> aRFinals = new(Lar.GetLarFinal(LARXlsSheet, plateId));
                 if (aRFinals.Count == 0)
                 {
                     Console.WriteLine("---------------------------------------");
@@ -62,19 +75,80 @@ namespace CCAAutomation.Lib
                 }
                 foreach (LarModels.LARFinal lf in aRFinals)
                 {
-                    if (lf == aRFinals.Last())
+                    /*if (lf == aRFinals.Last())
                     {
                         lastPlate = "end";
                     }
                     string key = GetKey(lf.DetailsFinal.ArtType);
-                    files = GoSwitch(files, goWorkShop, export, plateId, missingImagesRun, lf, key);
+                    files = GoSwitch(files, goWorkShop, export, plateId, missingImagesRun, key, lf);*/
+                    plateList.Add(lf.DetailsFinal.Plate_ID);
+                }
+                foreach (string p in plateList.Distinct())
+                {
+                    runList = aRFinals.Where(l => (l.DetailsFinal.Plate_ID.EqualsString(p) && ((l.DetailsFinal.Division_List.ToLower().Trim().Contains("c1")) || (l.DetailsFinal.Division_List.ToLower().Trim().Contains("fa"))))).ToList();
+                    if (!runList.Count.Equals(0))
+                    {
+                        string key = GetKey(runList[0].DetailsFinal.ArtType);
+                        files = GoSwitch(files, goWorkShop, export, plateId, missingImagesRun, key);
+                    }
                 }
             }
 
             return missingImagesRun;
         }
 
-        private static string[] GoSwitch(string[] files, bool goWorkShop, string export, string plateId, List<string> missingImagesRun, LarModels.LARFinal lf, string key)
+        private static string[] GoSwitch(string[] files, bool goWorkShop, string export, string plateId, List<string> missingImagesRun, string key)
+        {
+            switch (key)
+            {
+                case "HS18x24BL":
+                    Console.WriteLine("--------------------------------------------");
+                    Console.WriteLine("Plate #: " + runList[0].DetailsFinal.Plate_ID);
+                    if (runList.Count.Equals(1))
+                    {
+                        missingImagesRun.AddRange(HSBL18x24.CreateXMLHS18x24BL(files, false, goWorkShop, runList[0], plateId, export));
+                    }
+                    else
+                    {
+                        Console.WriteLine("Duplicate Plate Numbers which is not possible for HS atm.");
+                    }
+                    Console.WriteLine("--------------------------------------------");
+                    break;
+                case "HS4.5x2.1875FL":
+                    Console.WriteLine("--------------------------------------------");
+                    Console.WriteLine("Plate #: " + runList[0].DetailsFinal.Plate_ID);
+                    if (runList.Count.Equals(1))
+                    {
+                        missingImagesRun.AddRange(HSFL4_5x2_1875.CreateXMLHS4_5x2_1875(goWorkShop, runList[0], plateId, export));
+                    }
+                    else
+                    {
+                        Console.WriteLine("Duplicate Plate Numbers which is not possible for HS atm.");
+                    }
+                    Console.WriteLine("--------------------------------------------");
+                    break;
+                case "SS19.375x28.5BL":
+                    if (runList[0].SampleFinal.Sample_Type.Trim().ToLower().Equals("hanger"))
+                    {                        
+                        Console.WriteLine("--------------------------------------------");
+                        Console.WriteLine("Plate #: " + runList[0].DetailsFinal.Plate_ID);
+
+                        var result = SS19_375x28_5BL.CreateXMLSS19_375x28_5BL(files, false, goWorkShop, runList, plateId, export);
+                        missingImagesRun.AddRange(result.missingItems);
+                        files = result.updatedFiles;
+
+                        Console.WriteLine("--------------------------------------------");
+                    }
+                    runList = new();
+                    break;
+                default:
+                    Console.WriteLine("Template does not Exist.");
+                    break;
+            }
+            return files;
+        }
+
+        private static string[] GoSwitchOld(string[] files, bool goWorkShop, string export, string plateId, List<string> missingImagesRun, string key, LarModels.LARFinal lf = null)
         {            
             switch (key)
             {
@@ -108,9 +182,18 @@ namespace CCAAutomation.Lib
                             lastPlate = lf.DetailsFinal.Plate_ID;
 
                             Console.WriteLine("--------------------------------------------");
-                            var result = SS19_375x28_5BL.CreateXMLSS19_375x28_5BL(files, false, goWorkShop, ssList, plateId, export);
-                            missingImagesRun.AddRange(result.Item1);
-                            files = result.Item2;
+                            Console.WriteLine("Plate #: " + lf.DetailsFinal.Plate_ID);
+                            if (ssList.Count != 0)
+                            { 
+                                var result = SS19_375x28_5BL.CreateXMLSS19_375x28_5BL(files, false, goWorkShop, ssList, plateId, export);
+                                missingImagesRun.AddRange(result.missingItems);
+                                files = result.updatedFiles;
+                            }
+                            else
+                            {
+                                Console.WriteLine("List Empty for Plate #: " + lf.DetailsFinal.Plate_ID);
+                                Console.WriteLine("Could there be something wrong with the divisions? As in Only CN or FC.");
+                            }
                             Console.WriteLine("--------------------------------------------");
 
                             ssList = new List<LarModels.LARFinal>();
@@ -139,7 +222,7 @@ namespace CCAAutomation.Lib
             {
                 template = "HS4.5x2.1875FL";
             }
-            if (artType.Trim().ToLower().Equals("ss19.375x28.5bl"))
+            if (artType.Trim().ToLower().Equals("ss19.375x28.5bl") || artType.Trim().ToLower().Equals("ss19.625x28.5bl"))
             {
                 template = "SS19.375x28.5BL";
             }
