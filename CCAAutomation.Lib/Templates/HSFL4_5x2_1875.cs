@@ -5,11 +5,103 @@ using static CCAAutomation.Lib.XmlMethods;
 using static CCAAutomation.Lib.Settings;
 using System;
 using System.IO;
+using System.Linq;
 
 namespace CCAAutomation.Lib
 {
     public class HSFL4_5x2_1875
     {
+        public static List<string> CreateXMLHS4_5x2_1875(LARFinal lARFinal, string export)
+        {
+            //goWorkShop = true;
+            List<string> missingImages = new();
+            TemplateModel settings = GetTemplateSettings(XmlRemapping(lARFinal.DetailsFinal.Division_List, "Divisions"), "FL");
+            string mainPath = settings.WebShopPath;
+            string template = settings.WebShopPath + settings.Name;
+            string jobName = lARFinal.DetailsFinal.Plate_ID_FL;
+            if (jobName.Equals(""))
+            {
+                jobName = lARFinal.DetailsFinal.Sample_ID;
+            }
+            string userEmail = settings.UserEmail;
+            string snippetPath = mainPath + settings.SnippetPath;
+            string imagesPath = mainPath + settings.ImagesPath;
+            string category = XmlRemapping(lARFinal.DetailsFinal.Taxonomy.ToLower(), "Categories");
+            string snippetCategory = "category:" + category + ".idms" + "<!--Taxonomy-->";
+            string snippetWarranties = "rating:" + XmlRemapping(lARFinal.DetailsFinal.Division_Rating.ToLower(), "Ratings") + " " + category + ".idms" + "<!--Division_Rating-->";
+            string styleName = ConvertToTitleCase(lARFinal.SampleFinal.Sample_Name.Trim());
+
+            List<string> specList = GetSpecList(lARFinal.DetailsFinal);
+            List<string> xmlData = new();
+
+            xmlData.Add("<jobs>");
+            xmlData.Add("	<job>");
+            xmlData.Add("		<template useremail=\"" + userEmail + "\">" + CheckForMissing(jobName, template, missingImages) + "</template>");
+            xmlData.Add("		<output jobname=\"" + jobName + "\">Webshop:InputPDF</output>");
+            xmlData.Add("		<snippets>");
+            xmlData.Add("           <snippet page=\"1\">" + CheckForMissing(jobName, snippetPath + snippetCategory, missingImages) + "</snippet>");
+            xmlData.Add("           <snippet page=\"1\">" + CheckForMissing(jobName, snippetPath + snippetWarranties, missingImages) + "</snippet>");
+            xmlData.Add("		</snippets>");
+            xmlData.Add("		<texts>");
+            xmlData.Add("			<text type=\"spec\">" + SpecLine(specList) + "</text>");
+            int count = 1;
+            foreach (string s in specList)
+            {
+                xmlData.Add("           <text type=\"spec" + count + "\">" + s + "</text>");
+                count++;
+            }
+            count = 1;
+            xmlData.Add("			<text type=\"stylename\">" + styleName + "<!--Division_Product_Name--></text>");
+            xmlData.Add("			<text type=\"stylename" + count + "\">" + styleName + "<!--Division_Product_Name--></text>");
+            xmlData.Add("           <text type=\"topcolor" + count + "\">" + ConvertToTitleCase(lARFinal.DetailsFinal.Merch_Color_Name) + "<!--Merch_Color_Name--></text>");
+            xmlData.Add("		</texts>");
+            xmlData.Add("		<graphics>");
+            xmlData.Add("			<inlines>");
+            if (!lARFinal.LabelsFinal.Count.Equals(0))
+            {
+                foreach (Labels l in GetInlines(lARFinal.LabelsFinal))
+                {
+                    if (l.Division_Label_Type.ToLower().Trim().Equals("icon"))
+                    {
+                        xmlData.Add("				<inline>" + CheckForMissing(jobName, imagesPath + l.Division_Label_Name, missingImages) + "</inline>" + "<!--Division_Label_Name of Labels Sheet-->");
+                    }
+                }
+            }
+            xmlData.Add("			</inlines>");
+            xmlData.Add("		</graphics>");
+            xmlData.Add("		<JobName>" + jobName + "</JobName>");
+            xmlData.Add("		<JobTemplate>" + settings.PreJobTemplateName + "</JobTemplate>");
+            xmlData.Add("		<JobGroup>" + settings.PreJobPath + "</JobGroup>");
+            xmlData.Add("		<inputfiles>");
+            xmlData.Add("			<string>\\\\MAG1PVSF7\\WebShop\\InputPDF\\" + jobName + ".pdf</string>");
+            xmlData.Add("		</inputfiles>");
+            xmlData.Add("		<indd>");
+            xmlData.Add("			<string>\\\\MAG1PVSF7\\WebShop\\InputPDF\\" + jobName + ".indd</string>");
+            xmlData.Add("		</indd>");
+            xmlData.AddRange(InsiteXMLSnippet("", "FL", lARFinal.DetailsFinal.Supplier_Name, lARFinal.DetailsFinal.Division_List, styleName, ConvertToTitleCase(lARFinal.DetailsFinal.Merch_Color_Name), Path.GetFileNameWithoutExtension(template.Replace(":", "\\"))));
+            xmlData.Add("	</job>");
+            xmlData.Add("</jobs>");
+
+            List<string> approvedPlateIdsList = new();
+            if (!File.Exists(Path.Combine(export, "Approved.txt")))
+            {
+                using StreamWriter approvedPlateIdsWriter = new(Path.Combine(export, "Approved.txt"));
+            }
+            using (StreamReader approvedPlateIdsReader = new(Path.Combine(export, "Approved.txt")))
+            {
+                while (!approvedPlateIdsReader.EndOfStream)
+                {
+                    approvedPlateIdsList.Add(approvedPlateIdsReader.ReadLine());
+                }
+            }
+            if ((!template.Equals("")) && !approvedPlateIdsList.Any(p => p.EqualsString(jobName)))
+            {
+                ExportXML(jobName, xmlData, export, "WorkShop XML");
+                ExportXML(jobName, xmlData, export, "WebShop XML");
+            }
+
+            return missingImages;
+        }
 
         /// <summary>
         /// Sort the Icons
@@ -89,6 +181,19 @@ namespace CCAAutomation.Lib
                     details.Size_Name = "Multi" + " x " + splitSizeName[1].Trim();
                 }
             }
+            if (details.Length_Measurement.EqualsString("random"))
+            {
+                if (details.Size_Name.ToLower().Contains("x"))
+                {
+                    string[] splitSizeName = details.Size_Name.Split('x');
+
+                    details.Size_Name = splitSizeName[0].Trim() + " x " + "Random";
+                }
+                else
+                {
+                    details.Size_Name = details.Size_Name + " x " + "Random";
+                }
+            }
 
             //string width = details.Size_Name;
             specs.Add(details.Size_Name.Replace("x", " x ").Replace("X", "x").Replace(",", ", ").Replace("  ", " ") + "<!--Size_Name-->");
@@ -96,97 +201,6 @@ namespace CCAAutomation.Lib
             specs.Add(details.CcaSkuId + "<!--CCASKUID-->");
 
             return specs;
-        }
-
-        public static List<string> CreateXMLHS4_5x2_1875(bool goWorkShop, LARFinal lARFinal, string plateId, string export)
-        {
-            //goWorkShop = true;
-            List<string> missingImages = new();
-            TemplateModel settings = GetTemplateSettings(XmlRemapping(lARFinal.DetailsFinal.Division_List, "Divisions"), "FL");
-            string mainPath = settings.WebShopPath;
-            string template = settings.WebShopPath + settings.Name;
-            string jobName = lARFinal.DetailsFinal.Plate_ID;
-            if (jobName.Equals(""))
-            {
-                jobName = lARFinal.DetailsFinal.Sample_ID;
-            }
-            string userEmail = settings.UserEmail;
-            string snippetPath = mainPath + settings.SnippetPath;
-
-            string imagesPath = mainPath + settings.ImagesPath;
-            string category = XmlRemapping(lARFinal.DetailsFinal.Taxonomy.ToLower(), "Categories");
-            string snippetCategory = "category:" + category + ".idms" + "<!--Taxonomy-->";
-
-            string snippetWarranties = "rating:" + XmlRemapping(lARFinal.DetailsFinal.Division_Rating.ToLower(), "Ratings") + " " + category + ".idms" + "<!--Division_Rating-->";
-            string styleName = ConvertToTitleCase(lARFinal.SampleFinal.Sample_Name.Trim());
-            List<string> specList = GetSpecList(lARFinal.DetailsFinal);
-            List<string> xmlData = new();
-
-            xmlData.Add("<jobs>");
-            xmlData.Add("	<job>");
-            xmlData.Add("		<template useremail=\"" + userEmail + "\">" + CheckForMissing(template, missingImages) + "</template>");
-            xmlData.Add("		<output jobname=\"" + jobName + "\">Webshop:InputPDF</output>");
-            xmlData.Add("		<snippets>");
-            xmlData.Add("           <snippet page=\"1\">" + CheckForMissing(snippetPath + snippetCategory, missingImages) + "</snippet>");
-            xmlData.Add("           <snippet page=\"1\">" + CheckForMissing(snippetPath + snippetWarranties, missingImages) + "</snippet>");
-            xmlData.Add("		</snippets>");
-            xmlData.Add("		<texts>");
-            xmlData.Add("			<text type=\"spec\">" + SpecLine(specList) + "</text>");
-            int count = 1;
-            foreach (string s in specList)
-            {
-                xmlData.Add("           <text type=\"spec" + count + "\">" + s + "</text>");
-                count++;
-            }
-            count = 1;
-            xmlData.Add("			<text type=\"stylename\">" + styleName + "<!--Division_Product_Name--></text>");
-            xmlData.Add("			<text type=\"stylename" + count + "\">" + styleName + "<!--Division_Product_Name--></text>");
-            xmlData.Add("           <text type=\"topcolor" + count + "\">" + ConvertToTitleCase(lARFinal.DetailsFinal.Merch_Color_Name) + "<!--Merch_Color_Name--></text>");
-            xmlData.Add("		</texts>");
-            xmlData.Add("		<graphics>");
-            xmlData.Add("			<inlines>");
-            if (!lARFinal.LabelsFinal.Count.Equals(0))
-            {
-                foreach (Labels l in GetInlines(lARFinal.LabelsFinal))
-                {
-                    if (l.Division_Label_Type.ToLower().Trim().Equals("icon"))
-                    {
-                        xmlData.Add("				<inline>" + CheckForMissing(imagesPath + l.Division_Label_Name, missingImages) + "</inline>" + "<!--Division_Label_Name of Labels Sheet-->");
-                    }
-                }
-            }
-            xmlData.Add("			</inlines>");
-            xmlData.Add("		</graphics>");
-            xmlData.Add("		<JobName>" + jobName + "</JobName>");
-            xmlData.Add("		<JobTemplate>" + settings.PreJobTemplateName + "</JobTemplate>");
-            xmlData.Add("		<JobGroup>" + settings.PreJobPath + "</JobGroup>");
-            xmlData.Add("		<inputfiles>");
-            xmlData.Add("			<string>\\\\MAG1PVSF7\\WebShop\\InputPDF\\" + jobName + ".pdf</string>");
-            xmlData.Add("		</inputfiles>");
-            xmlData.Add("		<indd>");
-            xmlData.Add("			<string>\\\\MAG1PVSF7\\WebShop\\InputPDF\\" + jobName + ".indd</string>");
-            xmlData.Add("		</indd>");
-            xmlData.AddRange(InsiteXMLSnippet("", "FL", lARFinal.DetailsFinal.Supplier_Name, lARFinal.DetailsFinal.Division_List, styleName, ConvertToTitleCase(lARFinal.DetailsFinal.Merch_Color_Name), Path.GetFileNameWithoutExtension(template.Replace(":", "\\"))));
-            xmlData.Add("	</job>");
-            xmlData.Add("</jobs>");
-
-            if (!template.Equals(""))
-            {
-                if (goWorkShop)
-                {
-                    ExportXML(jobName, xmlData, export, "WorkShop XML");
-                    //CreateInsiteXML("FL", settings.PreJobTemplateName, settings.PreJobPath, lARFinal.DetailsFinal.Supplier_Name, lARFinal.DetailsFinal.Division_List, export, jobName, styleName, ConvertToTitleCase(lARFinal.DetailsFinal.Merch_Color_Name), Path.GetFileNameWithoutExtension(template.Replace(":", "\\")));
-                    goWorkShop = false;
-                }
-                else
-                {
-                    ExportXML(jobName, xmlData, export, "WebShop XML");
-                    CreateXMLHS4_5x2_1875(true, lARFinal, plateId, export);
-                }
-
-            }
-
-            return missingImages;
-        }
+        }       
     }
 }

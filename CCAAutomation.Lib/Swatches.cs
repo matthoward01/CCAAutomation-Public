@@ -26,9 +26,10 @@ namespace CCAAutomation.Lib
             public string ColorSequence { get; set; }
         }
 
-        public static List<string> SwatchXML(string feeler, List<string> colorList, string swatchArea, string template)
+        public static List<string> SwatchXML(string feeler, List<string> colorList, string swatchArea, string template, out bool seqError, out int colorCount)
         {
-            if ((!Check_Prime(colorList.Count).Equals(0) && !colorList.Count.Equals(3)) || (colorList.Count).Equals(33))
+            seqError = false;
+            if (!Check_Prime(colorList.Distinct().Count()).Equals(0) && !colorList.Count.Equals(3) && !colorList.Count.Equals(5))
             {
                 if (colorList.Contains(feeler))
                 {
@@ -43,13 +44,22 @@ namespace CCAAutomation.Lib
                 }
             }
             SwatchesModel swatchSettings = new();
-            swatchSettings = Settings.GetSwatchLayout(colorList.Distinct().Count().ToString(), template);
+            colorCount = colorList.Distinct().Count();
+            swatchSettings = Settings.GetSwatchLayout(colorCount.ToString(), template);
             List<string> swatchXMLList = new();
-
-            swatchXMLList.Add("<swatches frametype=\"" + swatchSettings.FrameType + "\" swatchweight=\"" + swatchSettings.SwatchWeight +
-                "\" swatchrows=\"" + swatchSettings.SwatchRows + "\" swatchcols=\"" + swatchSettings.SwatchCols +
-                "\" swatchsizewidth=\"" + swatchSettings.SwatchSizeWidth + "\" swatchsizeheight=\"" + swatchSettings.SwatchSizeHeight +
-                "\" swatcharea=\"" + swatchArea + "\">");
+            if (swatchSettings.SwatchCols.EqualsString(""))
+            {
+                Console.WriteLine("Something wrong with color count...");
+                seqError = true;
+                //Console.ReadLine();
+            }
+            else
+            {
+                swatchXMLList.Add("<swatches frametype=\"" + swatchSettings.FrameType + "\" swatchweight=\"" + swatchSettings.SwatchWeight +
+                    "\" swatchrows=\"" + swatchSettings.SwatchRows + "\" swatchcols=\"" + swatchSettings.SwatchCols +
+                    "\" swatchsizewidth=\"" + swatchSettings.SwatchSizeWidth + "\" swatchsizeheight=\"" + swatchSettings.SwatchSizeHeight +
+                    "\" swatcharea=\"" + swatchArea + "\">");
+            }
 
             foreach (string s in colorList.Distinct())
             {

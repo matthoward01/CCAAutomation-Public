@@ -15,38 +15,93 @@ namespace CCAAutomation.App
     {
         [STAThread]
         static void Main(string[] args)
-        {
-            
-            StartupChoices();
+        {            
+            StartupChoices(args);
         }
 
-        private static void StartupChoices()
+        private static void StartupChoices(string[] args = null)
         {
             bool webIntegration = false;
+            Console.WriteLine("---------------------------------");
+            Console.WriteLine("/////////////////////////////////");
+            Console.WriteLine("Must be connected to Webshop, Resources, and CCA_Approved_Roomscenes or you will get errors.");
+            Console.WriteLine("/////////////////////////////////");
+            Console.WriteLine("---------------------------------");
             Console.WriteLine("Function?");
             Console.WriteLine("\"c\" to compare xml files in two different directories.");
+            Console.WriteLine("\"s\" to make shaw versions for approval.");
+            Console.WriteLine("\"i\" to update the database.");
             Console.WriteLine("Anything else or nothing to continue to Program");
-            string choice = Console.ReadLine();
+            string choice = Console.ReadLine().Trim().ToLower();
             if (choice.EqualsString(""))
             {
                 if (!webIntegration)
                 {
-                    StandAloneApp();
+                    StandAloneApp(false);
                 }
                 else
                 {
-                    WebIntegrationApp();
+                    WebIntegrationApp(false);
                 }
             }
-            else if (choice.EqualsString("c"))
+            else if (choice.EqualsString("s"))
+            {
+                if (!webIntegration)
+                {
+                    StandAloneApp(true);
+                }
+                else
+                {
+                    WebIntegrationApp(true);
+                }
+            }
+            else if (choice.EqualsString("c") || args.Contains("-c"))
             {
                 CompareXMLFiles();
+            }
+            else if (choice.EqualsString("i") || args.Contains("-i"))
+            {
+                ImportData();
+            }
+        }
+
+        private static void ImportData()
+        {
+            bool isSoftSurface = false;
+            Console.WriteLine("For Soft Surface type \"s\" | For Hard Surface type \"h\"");
+            string type = Console.ReadLine();
+            if (type.EqualsString("s"))
+            {
+                isSoftSurface = true;
+            }
+            else if (type.EqualsString("h"))
+            {
+                isSoftSurface = false;
+            }
+            else
+            {
+                Console.WriteLine("Please choose \"s\" or \"h\"");
+                ImportData();
+            }
+            Console.WriteLine("New File Name?");
+            string newFileName = Console.ReadLine().Replace("\"", "");
+            if (File.Exists(newFileName))
+            {
+                LARXlsSheet lARXlsSheet = GetLar(newFileName);
+                Console.WriteLine("Proceed with the database update? Please type \"yes\"");
+                if (Console.ReadLine().EqualsString("yes"))
+                {
+                    SqlMethods.SqlWebDBUpdate(lARXlsSheet, isSoftSurface);
+                }
+                else
+                {
+                    StartupChoices();
+                }
             }
         }
 
         private static void CompareXMLFiles()
-        {
-            
+        {            
             Console.WriteLine("New Folder Path?");
             string newFolderPath = Console.ReadLine().Replace("\"", "");
             Console.WriteLine("Old Folder Path?");
@@ -86,7 +141,7 @@ namespace CCAAutomation.App
             StartupChoices();
         }
 
-        private static void WebIntegrationApp()
+        private static void WebIntegrationApp(bool isShaw)
         {            
             try
             {
@@ -94,9 +149,7 @@ namespace CCAAutomation.App
                 List<string> missingImagesProc = new();
 
                 string export = "\\\\Mac\\Home\\Desktop\\CCA Test\\SQL Testing\\";
-
-                bool goWorkshop = false;
-                
+                                
                 string[] files = ApprovedRoomscenes();
 
                 while (go)
@@ -106,7 +159,7 @@ namespace CCAAutomation.App
                     foreach (string j in runJobListHS)
                     {
                         LARXlsSheet LARXlsSheet = GetLar(false, j);
-                        missingImagesProc.AddRange(Run(files, goWorkshop, j, export, LARXlsSheet));
+                        missingImagesProc.AddRange(Run(isShaw, files, j, export, LARXlsSheet));
                         var uniqueMissing = missingImagesProc.Distinct();
                         foreach (string s in uniqueMissing)
                         {
@@ -118,7 +171,7 @@ namespace CCAAutomation.App
                     foreach (string j in runJobListSS)
                     {
                         LARXlsSheet LARXlsSheet = GetLar(true, j);
-                        missingImagesProc.AddRange(Run(files, goWorkshop, j, export, LARXlsSheet));
+                        missingImagesProc.AddRange(Run(isShaw, files, j, export, LARXlsSheet));
                         var uniqueMissing = missingImagesProc.Distinct();
                         foreach (string s in uniqueMissing)
                         {
@@ -136,7 +189,7 @@ namespace CCAAutomation.App
             }
         }
 
-        private static void StandAloneApp()
+        private static void StandAloneApp(bool isShaw)
         {
             string fileName = "";
             bool go = true;
@@ -150,17 +203,18 @@ namespace CCAAutomation.App
             string export = Console.ReadLine();
             export = export.Replace("\"", "");
 
-            bool goWorkshop = false;
             LARXlsSheet LARXlsSheet = GetLar(fileName);
             string[] files = ApprovedRoomscenes();
 
             while (go)
             {
                 Console.WriteLine("What Plate Id?");
+                Console.WriteLine("To force a plate through use /f");
+                Console.WriteLine("To run a shaw plate use /s");
                 string plateId = Console.ReadLine();
                 if (plateId.EqualsString("rebuild"))
                 {
-                    ApprovedRoomscenes();
+                    files = ApprovedRoomscenes();
                     Console.WriteLine("Roomscene Cache Rebuilt...");
                     Console.WriteLine("What Plate Id?");
                     plateId = Console.ReadLine();
@@ -173,7 +227,7 @@ namespace CCAAutomation.App
                 {
                     StartupChoices();
                 }
-                missingImagesProc.AddRange(Run(files, goWorkshop, plateId, export, LARXlsSheet));
+                missingImagesProc.AddRange(Run(isShaw, files, plateId, export, LARXlsSheet));
                 var uniqueMissing = missingImagesProc.Distinct();
                 foreach (string s in uniqueMissing)
                 {

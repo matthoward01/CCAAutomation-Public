@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using static CCAAutomation.Lib.LarModels;
 using static CCAAutomation.Lib.CommonMethods;
+using System.Diagnostics;
 
 namespace CCAAutomation.Lib
 {
@@ -21,33 +22,87 @@ namespace CCAAutomation.Lib
             LARXlsSheet larXlsSheet = new();            
 
             IWorkbook wb = new XSSFWorkbook(fileName);
-            ISheet sheetDetails = wb.GetSheetAt(0);
-            ISheet sheetSample = wb.GetSheetAt(1);
-            ISheet sheetLabels = wb.GetSheetAt(2);
+
+            ISheet sheetDetails = wb.GetSheet("Details");
+            ISheet sheetSample = wb.GetSheet("Sample");
+            ISheet sheetLabels = wb.GetSheet("Labels");            
+
+            //ISheet sheetDetails = wb.GetSheetAt(0);
+            //ISheet sheetSample = wb.GetSheetAt(1);
+            //ISheet sheetLabels = wb.GetSheetAt(2);
             //ISheet sheetWarranties = wb.GetSheetAt(3);
 
             List<string> detailsHeaderList = new(GetHeaderColumns(sheetDetails));
             List<string> sampleHeaderList = new(GetHeaderColumns(sheetSample));
             List<string> labelsHeaderList = new(GetHeaderColumns(sheetLabels));
             //List<string> warrantiesHeaderList = new(GetHeaderColumns(sheetWarranties));
-
-            for (int i = 1; i < GetRowCount(sheetDetails); i++)
+            int countDetails = GetRowCount(sheetDetails);
+            int countSample = GetRowCount(sheetSample);
+            int countLabels = GetRowCount(sheetLabels);
+            Console.WriteLine("-------------------------------------------");
+            var timer = new Stopwatch();
+            for (int i = 1; i < countDetails; i++)
             {
+                timer.Start();
                 larXlsSheet.DetailsList.Add(GetDetails(sheetDetails, detailsHeaderList, i));
+                decimal progress = (i / (decimal)countDetails) * 100;
+                timer.Stop();
+                TimeSpan ts = timer.Elapsed;
+                double timeLeft = (ts.TotalSeconds * countDetails) - (ts.TotalSeconds * i);
+                string value = "s";
+                if (timeLeft > 60)
+                {
+                    timeLeft = timeLeft / 60;
+                    value = "m";
+                }
+                Console.Write("\rReading Details Sheet {0}% | {1:0.000}{2}", (int)Math.Round(progress), timeLeft, value);
+                timer = new();
             }
-            for (int i = 1; i < GetRowCount(sheetSample); i++)
+            Console.Write("\rReading Details Sheet 100% | 0.000s\n");
+            Console.WriteLine("-------------------------------------------");
+            for (int i = 1; i < countSample; i++)
             {
+                timer.Start();
                 larXlsSheet.SampleList.Add(GetSample(sheetSample, sampleHeaderList, i));
+                decimal progress = (i / (decimal)countSample) * 100;
+                timer.Stop();
+                TimeSpan ts = timer.Elapsed;
+                double timeLeft = (ts.TotalSeconds * countDetails) - (ts.TotalSeconds * i);
+                string value = "s";
+                if (timeLeft > 60)
+                {
+                    timeLeft = timeLeft / 60;
+                    value = "m";
+                }
+                Console.Write("\rReading Sample Sheet {0}% | {1:0.000}{2}", (int)Math.Round(progress), timeLeft, value);
+                timer = new();
             }
-            for (int i = 1; i < GetRowCount(sheetLabels); i++)
+            Console.Write("\rReading Sample Sheet 100% | 0.000s\n");
+            Console.WriteLine("-------------------------------------------");
+            for (int i = 1; i < countLabels; i++)
             {
+                timer.Start();
                 larXlsSheet.LabelList.Add(GetLabels(sheetLabels, labelsHeaderList, i));
+                decimal progress = (i / (decimal)countLabels) * 100;
+                timer.Stop();
+                TimeSpan ts = timer.Elapsed;
+                double timeLeft = (ts.TotalSeconds * countDetails) - (ts.TotalSeconds * i);
+                string value = "s";
+                if (timeLeft > 60)
+                {
+                    timeLeft = timeLeft / 60;
+                    value = "m";
+                }
+                Console.Write("\rReading Labels Sheet {0}% | {1:0.000}{2}", (int)Math.Round(progress), timeLeft, value);
+                timer = new();
             }
+            Console.Write("\rReading Labels Sheet 100% | 0.000s\n");
+            Console.WriteLine("-------------------------------------------");
             /*for (int i = 1; i < GetRowCount(sheetWarranties); i++)
             {
                 larXlsSheet.WarrantiesList.Add(GetWarranties(sheetWarranties, warrantiesHeaderList, i));
             }*/
-            
+
             return larXlsSheet;
         }
 
@@ -77,10 +132,41 @@ namespace CCAAutomation.Lib
         {
             Details details = new();
             details.Plate_ID = GetCell(sheet, i, detailHeaderList.IndexOf("Plate_#"));
+            details.Plate_ID_BL = GetCell(sheet, i, detailHeaderList.IndexOf("Back Label Plate #"));
+            details.Plate_ID_FL = GetCell(sheet, i, detailHeaderList.IndexOf("Face Label Plate #"));
+            if (details.Plate_ID_BL.EqualsString(""))
+            {
+                details.Plate_ID_BL = GetCell(sheet, i, detailHeaderList.IndexOf("Blanket Label Plate #"));
+            }
+            if (details.Plate_ID.EqualsString(""))
+            {
+                details.Plate_ID = details.Plate_ID_BL;
+            }
+            if (details.Plate_ID_FL.EqualsString(""))
+            {
+                details.Plate_ID_FL = GetCell(sheet, i, detailHeaderList.IndexOf("Face Plate Plate #"));
+            }
             details.ArtType = GetCell(sheet, i, detailHeaderList.IndexOf("Art_Type"));
+            details.ArtType_BL = GetCell(sheet, i, detailHeaderList.IndexOf("Art Type - BL"));
+            details.ArtType_FL = GetCell(sheet, i, detailHeaderList.IndexOf("Art Type - FL"));
+            if (details.ArtType_BL.EqualsString(""))
+            {
+                details.ArtType_BL = GetCell(sheet, i, detailHeaderList.IndexOf("Art_Type - BL"));
+            }
+            if (details.ArtType.EqualsString(""))
+            {
+                details.ArtType = details.ArtType_BL;
+            }
+            if (details.ArtType_FL.EqualsString(""))
+            {
+                details.ArtType_FL = GetCell(sheet, i, detailHeaderList.IndexOf("Art Type - FP"));
+            }
             details.ADDNumber = GetCell(sheet, i, detailHeaderList.IndexOf("ADDNumber"));
+            details.Layout = GetCell(sheet, i, detailHeaderList.IndexOf("Layout"));
             details.Appearance = GetCell(sheet, i, detailHeaderList.IndexOf("Appearance"));
             details.Barcode = GetCell(sheet, i, detailHeaderList.IndexOf("Barcode"));
+            details.Program = GetCell(sheet, i, detailHeaderList.IndexOf("Program"));
+            details.Change = GetCell(sheet, i, detailHeaderList.IndexOf("Change"));
             details.CcaSkuId = GetCell(sheet, i, detailHeaderList.IndexOf("CCASKUID"));
             details.Division_List = GetCell(sheet, i, detailHeaderList.IndexOf("Division_List"));
             details.Division_Product_Name = GetCell(sheet, i, detailHeaderList.IndexOf("Division_Product_Name"));
@@ -179,6 +265,7 @@ namespace CCAAutomation.Lib
             details.Stitches = GetCell(sheet, i, detailHeaderList.IndexOf("Stitches"));
             details.Supplementary_SKUs = GetCell(sheet, i, detailHeaderList.IndexOf("Supplementary_SKUs"));
             details.Supplier_Product_Name = GetCell(sheet, i, detailHeaderList.IndexOf("Supplier_Product_Name"));
+            details.Total_Weight = GetCell(sheet, i, detailHeaderList.IndexOf("Total_Weight"));
             details.Third_Fiber = GetCell(sheet, i, detailHeaderList.IndexOf("Third_Fiber"));
             details.Third_Fiber_Percentage = GetCell(sheet, i, detailHeaderList.IndexOf("Third_Fiber_Percentage"));
             details.Web_Product_Name = GetCell(sheet, i, detailHeaderList.IndexOf("Web_Product_Name"));

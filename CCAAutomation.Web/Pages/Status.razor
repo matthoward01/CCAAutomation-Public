@@ -16,40 +16,40 @@
                 <h5>Approval Status of <b><u>@p</u></b></h5>
                 <p>
                     <ul>
-                        @if (!@GetStatus("notdone", p, false).Equals("0"))
+                        @if (!@GetStatus("notdonefl", p, false).Equals("0") || !@GetStatus("notdonebl", p, false).Equals("0"))
                         {
                             <li>
-                                Not Done: <b><u>@GetStatus("notdone", p, false)</u></b>
+                                Not Done: <b><u>@(Int32.Parse(GetStatus("notdonefl", p, false)) + Int32.Parse(GetStatus("notdonebl", p, false)))</u></b>
                                 <ul>
                                     <li>Front Labels: <b><u>@GetStatus("notdonefl", p, false)</u></b></li>
                                     <li>Back Labels: <b><u>@GetStatus("notdonebl", p, false)</u></b></li>
                                 </ul>
                             </li>
                         }
-                        @if (!@GetStatus("waiting", p, false).Equals("0"))
+                        @if (!@GetStatus("waitingfl", p, false).Equals("0") || !@GetStatus("waitingbl", p, false).Equals("0"))
                         {
                             <li>
-                                Waiting for Approval: <b><u>@GetStatus("waiting", p, false)</u></b>
+                                Waiting for Approval: <b><u>@(Int32.Parse(GetStatus("waitingfl", p, false)) + Int32.Parse(GetStatus("waitingbl", p, false)))</u></b>
                                 <ul>
                                     <li>Front Labels: <b><u>@GetStatus("waitingfl", p, false)</u></b></li>
                                     <li>Back Labels: <b><u>@GetStatus("waitingbl", p, false)</u></b></li>
                                 </ul>
                             </li>
                         }
-                        @if (!@GetStatus("questions", p, false).Equals("0"))
+                        @if (!@GetStatus("questionsfl", p, false).Equals("0") || !@GetStatus("questionsbl", p, false).Equals("0"))
                         {
                             <li>
-                                Questions: <b><u>@GetStatus("questions", p, false)</u></b>
+                                Questions: <b><u>@(Int32.Parse(GetStatus("questionsfl", p, false)) + Int32.Parse(GetStatus("questionsbl", p, false)))</u></b>
                                 <ul>
                                     <li>Front Labels: <b><u>@GetStatus("questionsfl", p, false)</u></b></li>
                                     <li>Back Labels: <b><u>@GetStatus("questionsbl", p, false)</u></b></li>
                                 </ul>
                             </li>
                         }
-                        @if (!@GetStatus("rejected", p, false).Equals("0"))
+                        @if (!@GetStatus("rejectedfl", p, false).Equals("0") || !@GetStatus("rejectedbl", p, false).Equals("0"))
                         {
                             <li>
-                                Rejected: <b><u>@GetStatus("rejected", p, false)</u></b>
+                                Rejected: <b><u>@(Int32.Parse(GetStatus("rejectedfl", p, false)) + Int32.Parse(GetStatus("rejectedbl", p, false)))</u></b>
                                 <ul>
                                     <li>Front Labels: <b><u>@GetStatus("rejectedfl", p, false)</u></b></li>
                                     <li>Back Labels: <b><u>@GetStatus("rejectedbl", p, false)</u></b></li>
@@ -57,27 +57,27 @@
                             </li>
                         }
                         <li>
-                            Approved, Pending Match: <b><u>@GetStatus("approvedpend", p, false)</u></b>
+                            Approved, Pending Match: <b><u>@(Int32.Parse(GetStatus("approvedpendfl", p, false)) + Int32.Parse(GetStatus("approvedpendbl", p, false)))</u></b>
                             <ul>
                                 <li>Front Labels: <b><u>@GetStatus("approvedpendfl", p, false)</u></b></li>
                                 <li>Back Labels: <b><u>@GetStatus("approvedpendbl", p, false)</u></b></li>
                             </ul>
                         </li>
                         <li>
-                            Approved: <b><u>@GetStatus("approved", p, false)</u></b>
+                            Approved: <b><u>@(Int32.Parse(GetStatus("approvedfl", p, false)) + Int32.Parse(GetStatus("approvedbl", p, false)))</u></b>
                             <ul>
                                 <li>Front Labels: <b><u>@GetStatus("approvedfl", p, false)</u></b></li>
                                 <li>Back Labels: <b><u>@GetStatus("approvedbl", p, false)</u></b></li>
                             </ul>
                         </li>
                         <li>
-                            Total: <b><u>@(Int32.Parse(GetStatus("notdone", p, false)) + Int32.Parse(GetStatus("waiting", p, false)) + Int32.Parse(GetStatus("questions", p, false)) + Int32.Parse(GetStatus("rejected", p, false)) + Int32.Parse(GetStatus("approvedpend", p, false)) + Int32.Parse(GetStatus("approved", p, false)))</u></b>
+                            Total:<b><u>@(Int32.Parse(GetStatus("totalfl", p, false)) + Int32.Parse(GetStatus("totalbl", p, false)))</u></b>
                             <ul>
-                                <li>Front Labels: <b><u>@(Int32.Parse(GetStatus("notdonefl", p, false)) + Int32.Parse(GetStatus("waitingfl", p, false)) + Int32.Parse(GetStatus("questionsfl", p, false)) + Int32.Parse(GetStatus("rejectedfl", p, false)) + Int32.Parse(GetStatus("approvedpendfl", p, false)) + Int32.Parse(GetStatus("approvedfl", p, false)))</u></b></li>
-                                <li>Back Labels: <b><u>@(Int32.Parse(GetStatus("notdonebl", p, false)) + Int32.Parse(GetStatus("waitingbl", p, false)) + Int32.Parse(GetStatus("questionsbl", p, false)) + Int32.Parse(GetStatus("rejectedbl", p, false)) + Int32.Parse(GetStatus("approvedpendbl", p, false)) + Int32.Parse(GetStatus("approvedbl", p, false)))</u></b></li>
+                                <li>Front Labels: <b><u>@(Int32.Parse(GetStatus("totalfl", p, false)))</u></b></li>
+                                <li>Back Labels: <b><u>@(Int32.Parse(GetStatus("totalbl", p, false)))</u></b></li>
                             </ul>
                         </li>
-                    </ul>
+                        </ul>
                 </p>
             }
         </td>
@@ -87,40 +87,40 @@
                 <h5>Approval Status of <b><u>@p</u></b></h5>
                 <p>
                     <ul>
-                        @if (!@GetStatus("notdone", p, true).Equals("0"))
+                        @if (!@GetStatus("notdonefl", p, true).Equals("0") || !@GetStatus("notdonebl", p, true).Equals("0"))
                         {
                             <li>
-                                Not Done: <b><u>@GetStatus("notdone", p, true)</u></b>
+                                Not Done: <b><u>@(Int32.Parse(GetStatus("notdonefl", p, true)) + Int32.Parse(GetStatus("notdonebl", p, true)))</u></b>
                                 <ul>
                                     <li>Front Labels: <b><u>@GetStatus("notdonefl", p, true)</u></b></li>
                                     <li>Back Labels: <b><u>@GetStatus("notdonebl", p, true)</u></b></li>
                                 </ul>
                             </li>
                         }
-                        @if (!@GetStatus("waiting", p, true).Equals("0"))
+                        @if (!@GetStatus("waitingfl", p, true).Equals("0") || !@GetStatus("waitingbl", p, true).Equals("0"))
                         {
                             <li>
-                                Waiting for Approval: <b><u>@GetStatus("waiting", p, true)</u></b>
+                                Waiting for Approval: <b><u>@(Int32.Parse(GetStatus("waitingfl", p, true)) + Int32.Parse(GetStatus("waitingbl", p, true)))</u></b>
                                 <ul>
                                     <li>Front Labels: <b><u>@GetStatus("waitingfl", p, true)</u></b></li>
                                     <li>Back Labels: <b><u>@GetStatus("waitingbl", p, true)</u></b></li>
                                 </ul>
                             </li>
                         }
-                        @if (!@GetStatus("questions", p, true).Equals("0"))
+                        @if (!@GetStatus("questionsfl", p, true).Equals("0") || !@GetStatus("questionsbl", p, true).Equals("0"))
                         {
                             <li>
-                                Questions: <b><u>@GetStatus("questions", p, true)</u></b>
+                                Questions: <b><u>@(Int32.Parse(GetStatus("questionsfl", p, true)) + Int32.Parse(GetStatus("questionsbl", p, true)))</u></b>
                                 <ul>
                                     <li>Front Labels: <b><u>@GetStatus("questionsfl", p, true)</u></b></li>
                                     <li>Back Labels: <b><u>@GetStatus("questionsbl", p, true)</u></b></li>
                                 </ul>
                             </li>
                         }
-                        @if (!@GetStatus("rejected", p, true).Equals("0"))
+                        @if (!@GetStatus("rejectedfl", p, true).Equals("0") || !@GetStatus("rejectedbl", p, true).Equals("0"))
                         {
                             <li>
-                                Rejected: <b><u>@GetStatus("rejected", p, true)</u></b>
+                                Rejected: <b><u>@(Int32.Parse(GetStatus("rejectedfl", p, true)) + Int32.Parse(GetStatus("rejectedbl", p, true)))</u></b>
                                 <ul>
                                     <li>Front Labels: <b><u>@GetStatus("rejectedfl", p, true)</u></b></li>
                                     <li>Back Labels: <b><u>@GetStatus("rejectedbl", p, true)</u></b></li>
@@ -128,24 +128,24 @@
                             </li>
                         }
                         <li>
-                            Approved, Pending Match: <b><u>@GetStatus("approvedpend", p, true)</u></b>
+                            Approved, Pending Match: <b><u>@(Int32.Parse(GetStatus("approvedpendfl", p, true)) + Int32.Parse(GetStatus("approvedpendbl", p, true)))</u></b>
                             <ul>
                                 <li>Front Labels: <b><u>@GetStatus("approvedpendfl", p, true)</u></b></li>
                                 <li>Back Labels: <b><u>@GetStatus("approvedpendbl", p, true)</u></b></li>
                             </ul>
                         </li>
                         <li>
-                            Approved: <b><u>@GetStatus("approved", p, true)</u></b>
+                            Approved: <b><u>@(Int32.Parse(GetStatus("approvedfl", p, true)) + Int32.Parse(GetStatus("approvedbl", p, true)))</u></b>
                             <ul>
                                 <li>Front Labels: <b><u>@GetStatus("approvedfl", p, true)</u></b></li>
                                 <li>Back Labels: <b><u>@GetStatus("approvedbl", p, true)</u></b></li>
                             </ul>
                         </li>
                         <li>
-                            Total: <b><u>@(Int32.Parse(GetStatus("notdone", p, true)) + Int32.Parse(GetStatus("waiting", p, true)) + Int32.Parse(GetStatus("questions", p, true)) + Int32.Parse(GetStatus("rejected", p, true)) + Int32.Parse(GetStatus("approvedpend", p, true)) + Int32.Parse(GetStatus("approved", p, true)))</u></b>
+                            Total:<b><u>@(Int32.Parse(GetStatus("totalfl", p, true)) + Int32.Parse(GetStatus("totalbl", p, true)))</u></b>
                             <ul>
-                                <li>Front Labels: <b><u>@(Int32.Parse(GetStatus("notdonefl", p, true)) + Int32.Parse(GetStatus("waitingfl", p, true)) + Int32.Parse(GetStatus("questionsfl", p, true)) + Int32.Parse(GetStatus("rejectedfl", p, true)) + Int32.Parse(GetStatus("approvedpendfl", p, true)) + Int32.Parse(GetStatus("approvedfl", p, true)))</u></b></li>
-                                <li>Back Labels: <b><u>@(Int32.Parse(GetStatus("notdonebl", p, true)) + Int32.Parse(GetStatus("waitingbl", p, true)) + Int32.Parse(GetStatus("questionsbl", p, true)) + Int32.Parse(GetStatus("rejectedbl", p, true)) + Int32.Parse(GetStatus("approvedpendbl", p, true)) + Int32.Parse(GetStatus("approvedbl", p, true)))</u></b></li>
+                                <li>Front Labels: <b><u>@(Int32.Parse(GetStatus("totalfl", p, true)))</u></b></li>
+                                <li>Back Labels: <b><u>@(Int32.Parse(GetStatus("totalbl", p, true)))</u></b></li>
                             </ul>
                         </li>
                     </ul>

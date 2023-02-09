@@ -117,6 +117,9 @@
                             </AuthorizeView>
                             <tr @onclick="() => wti.EditChange = !wti.EditChange">
                                 <td colspan="2">
+                                    <b>Sample ID: </b> @wti.Sample_ID<br />
+                                    <b>Customer: </b> @wti.Customer<br />
+
                                     @if (!wti.Shared_Card.EqualsString(""))
                                     {
                                         <p><b>Shared Card: </b>Yes</p>

@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace CCAAutomation.Lib
@@ -153,7 +154,7 @@ namespace CCAAutomation.Lib
         /// Keep Roman Numerals UpperCase
         /// </summary>
         /// <param name="passedString">The string to check for Roman Numerals.</param>
-        /// <returns></returns>
+        /// <returns>Returns string with fixed Roman Numerals.</returns>
         public static string RomanNumeralHandling(string passedString)
         {
             string pattern = @"\bIi\b";
@@ -178,7 +179,7 @@ namespace CCAAutomation.Lib
         ///     Removes the XML Comments for Export
         /// </summary>
         /// <param name="passedString">XML string to have comments removed from</param>
-        /// <returns></returns>
+        /// <returns>Returns a string without a comment.</returns>
         public static string RemoveComment(string passedString)
         {
             passedString = Regex.Replace(passedString, "<!--.*?-->", String.Empty, RegexOptions.Singleline);
@@ -189,7 +190,7 @@ namespace CCAAutomation.Lib
         /// Make a Spec Line for WebShop XML from a spec list
         /// </summary>
         /// <param name="specList">The spec list to be made into a spec line.</param>
-        /// <returns></returns>
+        /// <returns>Returns spec line for XML.</returns>
         public static string SpecLine(List<string> specList)
         {
             string newSpecLine = "";
@@ -210,6 +211,11 @@ namespace CCAAutomation.Lib
             return newSpecLine;
         }
 
+        /// <summary>
+        /// Used to download a roomscene from a webaddress
+        /// </summary>
+        /// <param name="webAddress">The web address to download from.</param>
+        /// <param name="fileName">The name of the file to be downloaded.</param>
         public static void DownloadRoomScene(string webAddress, string fileName)
         {
             string httpType = "https";
@@ -218,13 +224,13 @@ namespace CCAAutomation.Lib
             Uri URL = webAddress.StartsWith(httpType, StringComparison.OrdinalIgnoreCase) ? new Uri(webAddress) : new Uri(httpType + webAddress);
             try
             {                
-                HttpWebRequest request = (HttpWebRequest)System.Net.WebRequest.Create(URL);
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
                 request.Method = "HEAD";
                 request.KeepAlive = false;
                 request.UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36";
                 using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
-                //HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                    //HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
                     string disposition = response.Headers["Content-Disposition"];
                     fileName = disposition.Substring(disposition.IndexOf("filename=") + 10).Replace("\"", "");
@@ -243,7 +249,18 @@ namespace CCAAutomation.Lib
             
         }
 
-        private static (bool, string[]) FindRoomscene(string[] approvedRoomscenes, bool skip, string roomsceneName, string searchPath, string copyPath, string alias, bool doAliasOnly, string filePath, string originalAlias)
+        /// <summary>
+        /// Find Roomscenes
+        /// </summary>
+        /// <param name="approvedRoomscenes">List of approved Roomscenes.</param>
+        /// <param name="skip">Bool should copy be skipped.</param>
+        /// <param name="roomsceneName">Name of the roomscene.</param>
+        /// <param name="copyPath">Path to copy to.</param>
+        /// <param name="alias">Path to copy alias to.</param>
+        /// <param name="doAliasOnly">Bool should only the alias be copied.</param>
+        /// <param name="filePath">File path to copy.</param>
+        /// <returns>Returns if the copy was skipped and an updated list of approved roomscene files.</</returns>
+        private static (bool Skip, string[] UpdatedFiles) FindRoomscene(string[] approvedRoomscenes, bool skip, string roomsceneName, string copyPath, string alias, bool doAliasOnly, string filePath)
         {
             //string[] files = Directory.GetFiles(searchPath, roomsceneName, SearchOption.AllDirectories);
             string[] files = Array.FindAll(approvedRoomscenes, x => x.Contains(roomsceneName, StringComparison.OrdinalIgnoreCase));
@@ -351,6 +368,14 @@ namespace CCAAutomation.Lib
             return (skip, approvedRoomscenes);
         }
         
+        /// <summary>
+        /// Copied roomscene to all relevent locations.
+        /// </summary>
+        /// <param name="files">List of approved roomscene files.</param>
+        /// <param name="skip">Bool to say whether to skip copy or not.</param>
+        /// <param name="filePath">The path of the file to copy.</param>
+        /// <param name="alias">The path to copy the alias to.</param>
+        /// <returns>Returns if the copy was skipped and an updated list of approved roomscene files.</returns>
         public static (bool Skip, string[] UpdatedFiles) CopyRoomscene(string[] files, bool skip, string filePath, string alias)
         {
             bool doAliasOnly = false;
@@ -364,7 +389,6 @@ namespace CCAAutomation.Lib
             {
                 aliasPath = "\\\\MAG1PVSF7\\" + alias.Replace(":", "\\");
             }
-            string searchPath = "\\\\MAG1PVSF4\\" + "Resources\\Approved Roomscenes\\";
             string copyPath = "\\\\MAG1PVSF7\\" + "WebShop\\Webshop Roomscenes\\";
             
                 
@@ -375,7 +399,6 @@ namespace CCAAutomation.Lib
                 {
                     fileToCheck = "/Volumes/" + RemoveComment(filePath.Replace(":", "/"));
                 }
-                searchPath = "/Volumes/" + "Resources/Approved Roomscenes/";
                 copyPath = "/Volumes/" + "WebShop/Webshop Roomscenes/";
                 if (!alias.StartsWith("/Volumes/"))
                 {
@@ -386,30 +409,35 @@ namespace CCAAutomation.Lib
             if (fileToCheck.ToLower().Contains("roomscene"))
             {
                 Console.WriteLine("Attempting to find " + Path.GetFileName(fileToCheck) + " under Approved Roomscenes...");
-                var result = FindRoomscene(files, skip, Path.GetFileName(fileToCheck), searchPath, copyPath, aliasPath, doAliasOnly, filePath, alias);
-                skip = result.Item1;
-                files = result.Item2;
+                var result = FindRoomscene(files, skip, Path.GetFileName(fileToCheck), copyPath, aliasPath, doAliasOnly, filePath);
+                skip = result.Skip;
+                files = result.UpdatedFiles;
                 //skip = FindRoomscene(files, skip, Path.GetFileName(fileToCheck), searchPath, copyPath, aliasPath, doAliasOnly, filePath, alias);
             }
 
             if (!File.Exists(Path.Combine(aliasPath, Path.GetFileName(fileToCheck))))
             {
                 doAliasOnly = true;
-                var result = FindRoomscene(files, skip, Path.GetFileName(fileToCheck), searchPath, copyPath, aliasPath, doAliasOnly, filePath, alias);
-                skip = result.Item1;
-                files = result.Item2;
+                var result = FindRoomscene(files, skip, Path.GetFileName(fileToCheck), copyPath, aliasPath, doAliasOnly, filePath);
+                skip = result.Skip;
+                files = result.UpdatedFiles;
             }
 
             return (skip, files);
         }
 
+        /// <summary>
+        /// Creates a list of all files in the approved roomscenes folder.
+        /// </summary>
+        /// <returns>Returns the list of all files in the approved roomscenes folder.</returns>
         public static string[] ApprovedRoomscenes()
         {
-            string searchPath = "\\\\MAG1PVSF4\\" + "Resources\\Approved Roomscenes\\";
+            Settings.MainSettings mainSettings = Settings.GetMainSettings();
+            string searchPath = mainSettings.ApprovedRoomScenes;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                searchPath = "/Volumes/" + "Resources/Approved Roomscenes/";
+                searchPath = OsXPathConversion(searchPath);
             }
 
             string[] files = Directory.GetFiles(searchPath, "*",SearchOption.AllDirectories);
@@ -417,6 +445,11 @@ namespace CCAAutomation.Lib
             return files;
         }
 
+        /// <summary>
+        /// Finds a possible roomscene match when one is not available.
+        /// </summary>
+        /// <param name="detailsList">Lar Details Tab.</param>
+        /// <param name="outputPath">Export path for Reports.</param>
         public static void SyncRoomsceneDoubleCheck(List<LarModels.Details> detailsList, string outputPath)
         {
             Settings.MainSettings mainSettings = Settings.GetMainSettings();
@@ -442,7 +475,7 @@ namespace CCAAutomation.Lib
         /// Copy and Move Roomscene from Syncplicity to approved roomscenes.
         /// </summary>
         /// <param name="merchProdColorId">The Merchandised_Product_Color_ID to search for on Syncplicity.</param>
-        /// <returns></returns>
+        /// <returns>Returns the roomscene and a list of Approved Roomscene Files.</returns>
         public static (string Roomscene, string[] UpdatedFiles) GetSyncedRoomscenes(string[] approvedRoomscenesFiles, string merchProdColorId, string roomsceneName)
         {
             Settings.MainSettings mainSettings = Settings.GetMainSettings();
@@ -491,8 +524,8 @@ namespace CCAAutomation.Lib
         ///     Checks for Missing Images and reports it the Console.
         /// </summary>
         /// <param name="filePath">The file path to be checked.</param>
-        /// <returns></returns>
-        public static string CheckForMissing(string filePath, List<string> missingImages)
+        /// <returns>Returns the file path after checking if it exists.</returns>
+        public static string CheckForMissing(string plateId, string filePath, List<string> missingImages)
         {
             string fileToCheck = "\\\\MAG1PVSF7\\" + RemoveComment(filePath.Replace(":", "\\"));
 
@@ -506,7 +539,7 @@ namespace CCAAutomation.Lib
             {
                 //Console.WriteLine("The following file is missing: ");
                 //Console.WriteLine(fileToCheck);
-                missingImages.Add(fileToCheck);
+                missingImages.Add(plateId + "|" + fileToCheck);
             }
 
             return filePath;
@@ -525,23 +558,31 @@ namespace CCAAutomation.Lib
         public static List<string> InsiteXMLSnippet(string surface, string type, string supplier, string division, string styleName, string colorName, string template)
         {
             List<string> xmlData = new();
-            if (type.ToLower().Trim().Equals("fl"))
+            if (division.ToLower().Contains("c1"))
+            {
+                division = "C1";
+            }
+            if (division.ToLower().Contains("fa"))
+            {
+                division = "FA";
+            }
+            /*if (type.ToLower().Trim().Equals("fl"))
             {
                 xmlData.Add("       <InsiteGroup>" + XmlMethods.XmlRemapping(supplier.ToLower() + surface, "InsiteCustomers") + "_FL" + "</InsiteGroup>");
             }
             else
-            {
+            {*/
                 xmlData.Add("       <InsiteGroup>" + XmlMethods.XmlRemapping(supplier.ToLower() + surface, "InsiteCustomers") + "</InsiteGroup>");
-            }
+            //}
             xmlData.Add("       <alias>");
             xmlData.Add("           <jobaliass>");
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                xmlData.Add("               <jobalias>" + styleName + " - " + RemoveComment(colorName) + " - " + template.Substring(template.LastIndexOf("\\"), (template.Length - template.LastIndexOf("\\"))).Replace("\\", "") + " - " + type + "</jobalias>");
+                xmlData.Add("               <jobalias>" + styleName + " - " + RemoveComment(colorName) + " - " + template.Substring(template.LastIndexOf("\\"), (template.Length - template.LastIndexOf("\\"))).Replace("\\", "") + " - " + division + " - " + type + "</jobalias>");
             }
             else
             {
-                xmlData.Add("               <jobalias>" + styleName + " - " + RemoveComment(colorName) + " - " + Path.GetFileNameWithoutExtension(template) + "</jobalias>");
+                xmlData.Add("               <jobalias>" + styleName + " - " + RemoveComment(colorName) + " - " + Path.GetFileNameWithoutExtension(template) + " - " + division + " - " + type + "</jobalias>");
             }
             xmlData.Add("           </jobaliass>");
             xmlData.Add("       </alias>");
@@ -616,6 +657,12 @@ namespace CCAAutomation.Lib
                 Console.WriteLine(e.Message);
             }
         }
+
+        /// <summary>
+        /// Returns if a number is a prime number or not.
+        /// </summary>
+        /// <param name="number">The number to check.</param>
+        /// <returns>If return is 0 then number is NOT prime and if return is 1 then number is prime.</returns>
         public static int Check_Prime(int number)
         {
             int i;
@@ -633,6 +680,11 @@ namespace CCAAutomation.Lib
             return 0;
         }
 
+        /// <summary>
+        /// Convert path to work for OSX
+        /// </summary>
+        /// <param name="path">The path to convert</param>
+        /// <returns>Returns an OSX Path.</returns>
         public static string OsXPathConversion(string path)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -641,34 +693,14 @@ namespace CCAAutomation.Lib
             }
 
             return path;
-        }
+        }        
 
-        public static LarModels.LARFinal GetMerchandisedProductColorIds(LarModels.LARFinal lf)
-        {
-            string merchandisedProductColorID = "";
-
-            if (lf.DetailsFinal.Sample_ID.EqualsString(lf.SampleFinal.Sample_ID))
-            {
-                if (lf.SampleFinal.Feeler.EqualsString(lf.DetailsFinal.Merch_Color_Name) && lf.DetailsFinal.Sample_ID.EqualsString(lf.SampleFinal.Sample_ID))
-                {
-                    merchandisedProductColorID = lf.DetailsFinal.Merchandised_Product_Color_ID;
-                }
-                if (lf.DetailsFinal.Merchandised_Product_Color_ID.EqualsString(merchandisedProductColorID) && lf.DetailsFinal.Sample_ID.EqualsString(lf.SampleFinal.Sample_ID))
-                {
-                    if (lf.DetailsFinal.Division_List.Trim().ToLower().Contains("fa") && !lf.DetailsFinal.Division_List.EqualsString("fc"))
-                    {
-                        lf.SampleFinal.Merchandised_Product_Color_ID_FA.Add(lf.DetailsFinal.Merchandised_Product_Color_ID);
-                    }
-                    if (lf.DetailsFinal.Division_List.Trim().ToLower().Contains("c1") && !lf.DetailsFinal.Division_List.EqualsString("cn"))
-                    {
-                        lf.SampleFinal.Merchandised_Product_Color_ID_C1.Add(lf.DetailsFinal.Merchandised_Product_Color_ID);
-                    }
-                }
-            }
-
-            return lf;
-        }
-
+        /// <summary>
+        /// Gets all Possible merchandised Product Color Ids for a style
+        /// </summary>
+        /// <param name="lf">The lar for a single style.</param>
+        /// <param name="ls">The full Lar.</param>
+        /// <returns>Returns the lar for a single style with the possible merchandised product color id's added.</returns>
         public static LarModels.LARFinal GetMerchandisedProductColorIds(LarModels.LARFinal lf, LarModels.LARXlsSheet ls)
         {
             string manufacturerProductColorID = "";
@@ -686,9 +718,9 @@ namespace CCAAutomation.Lib
                     }
                 }
             }*/
-            if (ls.DetailsList.Any(d => d.Sample_ID.Equals(lf.DetailsFinal.Sample_ID)))
+            if (lf.SampleFinal.Sample_ID.EqualsString(lf.DetailsFinal.Sample_ID))
             {
-                if (ls.SampleList.Any(s => (s.Feeler.EqualsString(lf.DetailsFinal.Merch_Color_Name) && s.Sample_ID.EqualsString(lf.DetailsFinal.Sample_ID))))
+                if ((lf.SampleFinal.Feeler.EqualsString(lf.DetailsFinal.Merch_Color_Name) && lf.DetailsFinal.Manufacturer_Feeler.EqualsString("yes")) || !lf.DetailsFinal.Taxonomy.EqualsString("broadloom"))
                 {
                     manufacturerProductColorID = lf.DetailsFinal.Manufacturer_Product_Color_ID;
                 }
@@ -725,7 +757,132 @@ namespace CCAAutomation.Lib
 
             return lf;
         }
-    }
+        public static void CheckRoomSceneCrop(string roomscene)
+        {
+            if (File.Exists(roomscene))
+            {
+                //System.Drawing.Image img = System.Drawing.Image.FromFile(roomscene);
+                using (FileStream stream = new FileStream(roomscene, FileMode.Open, FileAccess.Read))
+                {
+                    using (System.Drawing.Image tif = System.Drawing.Image.FromStream(stream, false, false))
+                    {
+                        float width = tif.PhysicalDimension.Width;
+                        float height = tif.PhysicalDimension.Height;
+                        float hresolution = tif.HorizontalResolution;
+                        float vresolution = tif.VerticalResolution;
+                        Console.WriteLine("Width: " + tif.Width + ", Height: " + tif.Height);
+
+                    }
+                }
+            }
+        }
+        public static string ConvertDecimalToFraction(decimal value)
+        {
+            // get the whole value of the fraction
+            decimal mWhole = Math.Truncate(value);
+
+            // get the fractional value
+            decimal mFraction = value - mWhole;
+
+            // initialize a numerator and denomintar
+            uint mNumerator = 0;
+            uint mDenomenator = 1;
+
+            // ensure that there is actual a fraction
+            if (mFraction > 0m)
+            {
+                // convert the value to a string so that you can count the number of decimal places there are
+                string strFraction = mFraction.ToString().Remove(0, 2);
+
+                // store teh number of decimal places
+                uint intFractLength = (uint)strFraction.Length;
+
+                // set the numerator to have the proper amount of zeros
+                mNumerator = (uint)Math.Pow(10, intFractLength);
+
+                // parse the fraction value to an integer that equals [fraction value] * 10^[number of decimal places]
+                uint.TryParse(strFraction, out mDenomenator);
+
+                // get the greatest common divisor for both numbers
+                uint gcd = GreatestCommonDivisor(mDenomenator, mNumerator);
+
+                // divide the numerator and the denominator by the gratest common divisor
+                mNumerator = mNumerator / gcd;
+                mDenomenator = mDenomenator / gcd;
+            }
+
+            // create a string builder
+            StringBuilder mBuilder = new StringBuilder();
+
+            // add the whole number if it's greater than 0
+            if (mWhole > 0m)
+            {
+                mBuilder.Append(mWhole);
+            }
+
+            // add the fraction if it's greater than 0m
+            if (mFraction > 0m)
+            {
+                if (mBuilder.Length > 0)
+                {
+                    mBuilder.Append(" ");
+                }
+
+                mBuilder.Append(mDenomenator);
+                mBuilder.Append("/");
+                mBuilder.Append(mNumerator);
+            }
+
+            return mBuilder.ToString();
+        }
+
+        public static decimal Convert(string value)
+        {
+            return 0m;
+        }
+
+        private static uint GreatestCommonDivisor(uint valA, uint valB)
+        {
+            // return 0 if both values are 0 (no GSD)
+            if (valA == 0 &&
+                valB == 0)
+            {
+                return 0;
+            }
+            // return value b if only a == 0
+            else if (valA == 0 &&
+                    valB != 0)
+            {
+                return valB;
+            }
+            // return value a if only b == 0
+            else if (valA != 0 && valB == 0)
+            {
+                return valA;
+            }
+            // actually find the GSD
+            else
+            {
+                uint first = valA;
+                uint second = valB;
+
+                while (first != second)
+                {
+                    if (first > second)
+                    {
+                        first = first - second;
+                    }
+                    else
+                    {
+                        second = second - first;
+                    }
+                }
+
+                return first;
+            }
+
+        }
+    }    
 }
 public static class Extensions
 {

@@ -19,10 +19,7 @@
             @if ((hardSurface && !softSurface) || (!hardSurface && softSurface))
             {
                 <p>
-                    <label>Limited Update (Update Using Original LAR):</label>
-                    <input type="checkbox" class="form-check-inline" @bind-value="limited" @bind-value:event="onchange" name="limited" />
-                    <label>Reset Insite and Change Status:</label>
-                    <input type="checkbox" class="form-check-inline" @bind-value="resetStatus" @bind-value:event="onchange" name="resetStatus" />
+                    @isSoftSurface | @type
                     <input class="form-text" @bind="fileName" size="150" name="fileName" type="text" placeholder="Xls File w/Path" />
                 </p>
                 <button class="btn-primary" @onclick="@(() => { Ingest(type); })">Click</button>
@@ -40,12 +37,10 @@
 
 @code {
 
-        string ADMINISTRATION_ROLE = "Administrators";
+    string ADMINISTRATION_ROLE = "Administrators";
     private string fileName;
     private LarModels.LARXlsSheet LARXlsSheet;
     private bool show = false;
-    private bool limited = false;
-    private bool resetStatus = false;
     private bool hardSurface = false;
     private bool softSurface = false;
     private bool isSoftSurface = false;
@@ -64,7 +59,6 @@
             type = "HS";
             hardSurface = !hardSurface;
             isSoftSurface = false;
-            softSurface = false;
         }
         else
         {
@@ -84,14 +78,14 @@
         else
         {
             type = "";
-            softSurface = !softSurface;            
+            softSurface = !softSurface;
         }
-        isSoftSurface = !isSoftSurface;
+        //isSoftSurface = !isSoftSurface;
     }
 
     private void UpdateSqlDB()
     {
-        SqlMethods.SqlWebDBUpdate(LARXlsSheet, limited, isSoftSurface, resetStatus);
+        SqlMethods.SqlWebDBUpdate(LARXlsSheet, isSoftSurface);
         show = false;
     }
 

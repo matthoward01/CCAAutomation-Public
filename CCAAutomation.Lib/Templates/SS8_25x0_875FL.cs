@@ -50,9 +50,8 @@ namespace CCAAutomation.Lib
             return specs;
         }        
 
-        public static (List<string>, string[]) CreateXMLSS8_25x0_875FL(string[] files, bool skip, bool goWorkShop, List<LARFinal> lARFinal, string plateId, string export)
+        public static List<string> CreateXMLSS8_25x0_875FL(List<LARFinal> lARFinal, string export)
         {
-            //goWorkShop = true;
             List<string> missingImages = new();
             List<string> colorList = new();
             List<string> ccaSkuId = new();
@@ -166,11 +165,11 @@ namespace CCAAutomation.Lib
                 colorList.Add(ConvertToTitleCase(c.Color));
             }
             string division = XmlRemapping(lARFinal[0].DetailsFinal.Division_List, "Divisions");
-            TemplateModel settings = GetTemplateSettings("SS8_25x0_875FL", "Normal");            
+            TemplateModel settings = GetTemplateSettings("SS8.25x0.875FL", "Normal");            
             
             string mainPath = settings.WebShopPath;
             string template = settings.WebShopPath + settings.Name;
-            string jobName = lARFinal[0].DetailsFinal.Plate_ID;
+            string jobName = lARFinal[0].DetailsFinal.Plate_ID_FL;
             if (jobName.Equals(""))
             {
                 jobName = lARFinal[0].DetailsFinal.Sample_ID;
@@ -178,11 +177,6 @@ namespace CCAAutomation.Lib
             string userEmail = settings.UserEmail;
             string snippetPath = mainPath + settings.SnippetPath;
             string imagesPath = mainPath + settings.ImagesPath;
-            string roomScenePath = mainPath + settings.RoomscenePath;
-            if (goWorkShop)
-            {
-                roomScenePath = "WebShop:webshop roomscenes:";
-            }
             string warranty = "need warranty";
             //string snippetWarranties = XmlRemapping(lARFinal[0].DetailsFinal.Division_Rating.ToLower(), "Ratings") + ".idms" + "<!--Division_Rating-->";
             foreach (Labels l in lARFinal[0].LabelsFinal.Distinct())
@@ -202,10 +196,18 @@ namespace CCAAutomation.Lib
 
             xmlData.Add("<jobs>");
             xmlData.Add("	<job>");
-            xmlData.Add("		<template useremail=\"" + userEmail + "\">" + CheckForMissing(template, missingImages) + "</template>");
+            xmlData.Add("		<template useremail=\"" + userEmail + "\">" + CheckForMissing(jobName, template, missingImages) + "</template>");
             xmlData.Add("		<output jobname=\"" + jobName + "\">Webshop:InputPDF</output>");
             xmlData.Add("		<snippets>");
-            xmlData.Add("           <snippet page=\"1\">" + CheckForMissing(snippetPath + snippetWarranties, missingImages) + "</snippet>");
+            xmlData.Add("           <snippet page=\"1\">" + CheckForMissing(jobName, snippetPath + snippetWarranties, missingImages) + "</snippet>");
+            if (division.Trim().ToLower().Equals("fa"))
+            {
+                xmlData.Add("           <snippet page=\"1\">" + CheckForMissing(jobName, snippetPath + "FlooringAmerica.idms", missingImages) + "</snippet>");
+            }
+            else if (division.Trim().ToLower().Equals("c1"))
+            {
+                xmlData.Add("           <snippet page=\"1\">" + CheckForMissing(jobName, snippetPath + "CarpetOne.idms", missingImages) + "</snippet>");
+            }
             xmlData.Add("		</snippets>");
             xmlData.Add("		<texts>");
             xmlData.Add("			<text type=\"spec\">" + SpecLine(specList) + "</text>");
@@ -220,36 +222,25 @@ namespace CCAAutomation.Lib
             xmlData.Add("			<text type=\"stylename1\">" + styleName + "<!--SampleFinal.Sample_Name--></text>");
             xmlData.Add("           <text type=\"topcolor1\">" + feeler + "<!--SampleFinal.Feeler--></text>");
             xmlData.Add("		</texts>");
-            xmlData.Add("		<graphics>");            
-            xmlData.Add("			<images>");
-
-            List<string> usedIconList = new();  
+            xmlData.Add("		<graphics>");
+            xmlData.Add("			<inlines>");
+            List<string> usedIconList = new();
 
             foreach (Labels i in GetImages(lARFinal[0].LabelsFinal))
             {
                 string divisionPath = "";
-                if (!usedIconList.Contains(i.Division_Label_Name))
+                if (!usedIconList.Contains(i.Division_Label_Name) && !i.Division_Label_Type.Trim().ToLower().Equals("logo"))
                 {
                     if (!i.Division_Label_Type.Trim().ToLower().Equals("wbug"))
                     {
-                        if (!i.Division_Label_Name.Trim().ToLower().Contains("fiber") && division.ToLower().Equals("c1"))
+                        if (!i.Division_Label_Name.ToLower().Contains("residential") && (!i.Division_Label_Name.ToLower().Contains("fiber")))
                         {
-                            divisionPath = "Carpet One:C1 - ";
-                        }
-                        if (!i.Division_Label_Name.Trim().ToLower().Contains("fiber") && division.ToLower().Equals("fa"))
-                        {
-                            divisionPath = "Flooring America:FA - ";
-                        }
-                        if (!i.Division_Label_Name.ToLower().Contains("residential"))
-                        {
-                            xmlData.Add("		    	<image>" + CheckForMissing(imagesPath + divisionPath + XmlRemapping(i.Division_Label_Name, "Images"), missingImages) + "</image>");
+                            xmlData.Add("		    	<inline>" + CheckForMissing(jobName, imagesPath + divisionPath + XmlRemapping(i.Division_Label_Name, "Images"), missingImages) + "</inline>");
                         }
                         usedIconList.Add(i.Division_Label_Name);
                     }
                 }
             }
-            xmlData.Add("			</images>");
-            xmlData.Add("			<inlines>");
             xmlData.Add("			</inlines>");
             xmlData.Add("		</graphics>");
             xmlData.Add("		<JobName>" + jobName + "</JobName>");
@@ -261,29 +252,33 @@ namespace CCAAutomation.Lib
             xmlData.Add("		<indd>");
             xmlData.Add("			<string>\\\\MAG1PVSF7\\WebShop\\InputPDF\\" + jobName + ".indd</string>");
             xmlData.Add("		</indd>");
-            xmlData.AddRange(InsiteXMLSnippet(" - ss", "FL", lARFinal[0].DetailsFinal.Supplier_Name, lARFinal[0].SampleFinal.Sample_Name, styleName, ConvertToTitleCase(lARFinal[0].SampleFinal.Feeler), Path.GetFileNameWithoutExtension(template.Replace(":", "\\"))));
+            xmlData.AddRange(InsiteXMLSnippet(" - ss", "FL", lARFinal[0].DetailsFinal.Supplier_Name, lARFinal[0].DetailsFinal.Division_List, styleName, ConvertToTitleCase(lARFinal[0].SampleFinal.Feeler), Path.GetFileNameWithoutExtension(template.Replace(":", "\\"))));
             xmlData.Add("	</job>");
             xmlData.Add("</jobs>");
 
-            if ((!template.Equals("")) && (!error))
+            List<string> approvedPlateIdsList = new();
+            if (!File.Exists(Path.Combine(export, "Approved.txt")))
             {
-                if (goWorkShop)
+                using StreamWriter approvedPlateIdsWriter = new(Path.Combine(export, "Approved.txt"));
+            }
+            using (StreamReader approvedPlateIdsReader = new(Path.Combine(export, "Approved.txt")))
+            {
+                while (!approvedPlateIdsReader.EndOfStream)
                 {
+                    approvedPlateIdsList.Add(approvedPlateIdsReader.ReadLine());
+                }
+            }
+            if ((!template.Equals("")) && (!error) && !approvedPlateIdsList.Any(p => p.EqualsString(jobName)))
+            {
                     ExportXML(jobName, xmlData, export, "WorkShop XML");
-                    goWorkShop = false;
-                }
-                else
-                {
                     ExportXML(jobName, xmlData, export, "WebShop XML");
-                    CreateXMLSS8_25x0_875FL(files, skip, true, lARFinal, plateId, export);
-                }
             }
             else if (template.EqualsString(""))
             {
                 Console.WriteLine("Template Blank.");
             }
 
-            return (missingImages, files);
+            return (missingImages);
         }
     }
 }
