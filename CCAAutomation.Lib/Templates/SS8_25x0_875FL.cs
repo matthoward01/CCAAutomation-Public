@@ -50,7 +50,7 @@ namespace CCAAutomation.Lib
             return specs;
         }        
 
-        public static List<string> CreateXMLSS8_25x0_875FL(List<LARFinal> lARFinal, string export)
+        public static List<string> CreateXMLSS8_25x0_875FL(List<LARFinal> lARFinal, string export, bool forced)
         {
             List<string> missingImages = new();
             List<string> colorList = new();
@@ -268,7 +268,7 @@ namespace CCAAutomation.Lib
                     approvedPlateIdsList.Add(approvedPlateIdsReader.ReadLine());
                 }
             }
-            if ((!template.Equals("")) && (!error) && !approvedPlateIdsList.Any(p => p.EqualsString(jobName)))
+            if (forced || ((!template.Equals("")) && (!error) && !approvedPlateIdsList.Any(p => p.EqualsString(jobName))))
             {
                     ExportXML(jobName, xmlData, export, "WorkShop XML");
                     ExportXML(jobName, xmlData, export, "WebShop XML");

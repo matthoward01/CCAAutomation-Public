@@ -35,9 +35,13 @@ namespace CCAAutomation.Lib
                     approvedPlateIdsList.Add(approvedPlateIdsReader.ReadLine());
                 }
             }
-
-            if (plateId.Equals(""))
+            if (plateId.Trim().ToLower().EndsWith("/f"))
             {
+                forced = true;
+                plateId = plateId.Replace("/f", "").Trim();
+            }
+            if (plateId.Equals(""))
+            {                
                 List<LarModels.LARFinal> aRFinals = new (Lar.GetLarFinal(LARXlsSheet, plateId));
                 List<string> plateList = new();
                 foreach (LarModels.LARFinal lf in aRFinals)

@@ -648,7 +648,8 @@ namespace CCAAutomation.Lib
 
             if (!seqError)
             {
-                xmlData.AddRange(Swatches.SwatchXML(feeler, colorList, "1", settings.Id + twoFeature, out seqError, out colorCount));
+                var swatchXmlResults = Swatches.SwatchXML(feeler, colorList, "1", settings.Id + twoFeature, out seqError, out colorCount);
+                xmlData.AddRange(swatchXmlResults.swatchXml);
             }
 
             xmlData.Add("		<JobName>" + jobName + "</JobName>");

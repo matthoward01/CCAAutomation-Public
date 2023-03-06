@@ -196,7 +196,7 @@ namespace CCAAutomation.Lib
             }
 
             //string width = details.Size_Name;
-            specs.Add(details.Size_Name.Replace("x", " x ").Replace("X", "x").Replace(",", ", ").Replace("  ", " ") + "<!--Size_Name-->");
+            specs.Add(details.Size_Name.Replace("x", " x ").Replace("X", " x ").Replace(",", ", ").Replace("  ", " ") + "<!--Size_Name-->");
                      
             specs.Add(details.CcaSkuId + "<!--CCASKUID-->");
 

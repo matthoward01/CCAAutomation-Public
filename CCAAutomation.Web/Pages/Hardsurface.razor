@@ -1,0 +1,294 @@
+﻿@page "/hardsurface"
+@page "/hardsurface/{offset:int?}"
+@using CCAAutomation.Lib;
+@using System.IO;
+
+<h1>CCA Automation Web</h1>
+<p>
+    <label>Search:</label>
+    <input class="form-text" @bind-value="search" @bind-value:event="oninput" size="150" name="search" type="text" placeholder="Search" />
+</p>
+<p>
+    <label>Approvals Only:</label>
+    <input type="checkbox" class="form-check-inline" @bind-value="showApprovals" @bind-value:event="onchange" name="showApprovals" />
+    <label>Approvals Pending Only:</label>
+    <input type="checkbox" class="form-check-inline" @bind-value="showApprovalsPending" @bind-value:event="onchange" name="showApprovalsPending" />
+    <label>Changes Only:</label>
+    <input type="checkbox" class="form-check-inline" @bind-value="showChanges" @bind-value:event="onchange" name="showChanges" />
+    <label>Questions Only:</label>
+    <input type="checkbox" class="form-check-inline" @bind-value="showQuestions" @bind-value:event="onchange" name="showQuestions" />
+    <label>Rejections Only:</label>
+    <input type="checkbox" class="form-check-inline" @bind-value="showRejections" @bind-value:event="onchange" name="showRejections" />
+</p>
+<table class="table table-hover table-sm" width="100%">
+    <thead>
+        <tr>
+            <AuthorizeView>
+                <Authorized>
+                    <th>Run</th>
+                </Authorized>
+            </AuthorizeView>
+            <th @onclick="() => { SortPlates(); }">Plate #</th>
+            <th>Style</th>
+            <th @onclick="() => { SortTemplates(); }">Template</th>
+            <th>Status</th>
+            <AuthorizeView>
+                <Authorized>
+                    <th>Update</th>
+                </Authorized>
+            </AuthorizeView>
+        </tr>
+    </thead>
+    @foreach (LarModels.WebTableItem wti in webTableItems)
+    {        
+<tbody>
+    @if ((showRejections && wti.Status.ToLower().Trim().Equals("rejected") &&
+       (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+        (showApprovals && wti.Status.ToLower().Trim().Equals("approved") &&
+       (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+        (showApprovalsPending && wti.Status.ToLower().Trim().Equals("approved pending") &&
+       (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+        (showQuestions && wti.Status.ToLower().Trim().Equals("questions") &&
+       (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+        (showChanges && !wti.Change.ToLower().Trim().Equals("") &&
+       (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+        ((wti.SearchTags.ToLower().Contains(search.ToLower()) ||
+       wti.Status.ToLower().Contains(search.ToLower())) && !showChanges && !showApprovals && !showApprovalsPending && !showRejections && !showQuestions))
+    {
+        <tr class="@TableClass(wti.Status)">
+            <AuthorizeView>
+                <Authorized>
+                    <td width="10%">
+                        @if (wti.Output.Equals(1))
+                        {
+                            <button class="btn btn-outline-dark">Queued</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-dark" @onclick="() => { SetToRun(wti.Plate_ID, 1); }">Run</button>
+                        }
+                    </td>
+                </Authorized>
+            </AuthorizeView>
+            <td width="10%" @onclick="() => wti.ShowRow = !wti.ShowRow">@wti.Plate_ID <br /> <i>(@wti.Sample_ID)</i></td>
+            <td width="50%">
+                @wti.Style - @wti.Feeler<br />
+                @if (!wti.Console.Count.Equals(0))
+                {
+                    <b>Console:</b><br />
+                    @foreach (string c in wti.Console)
+                    {
+                        @c<br />
+                    }
+                }
+                @if (wti.ShowRow)
+                {
+                    GetLabels(wti.Sample_ID);
+                    <table>
+                        @if (!wti.Change.Trim().Equals(""))
+                        {
+                            <tr @onclick="() => wti.EditChange = !wti.EditChange">
+                                <td colspan="4">
+                                    <b>Required Change: </b><br />
+                                    @foreach (string s in wti.Change.Split(';'))
+                                    {
+                                        @s<br />
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        <AuthorizeView>
+                            <Authorized>
+                                @if (@context.User.IsInRole(ADMINISTRATION_ROLE))
+                                {
+                                    @if (wti.EditChange)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="form-inline">
+                                                    <button class="btn btn-dark btn-sm" @onclick='(() => { SetChange(wti.Plate_ID, wti.Change); wti.EditChange = !wti.EditChange; })'>Edit</button><textarea cols="60" rows="5" class="form-text" @bind-value="@wti.Change" @bind-value:event="oninput"></textarea>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </Authorized>
+                        </AuthorizeView>
+                        <tr @onclick="() => wti.EditChange = !wti.EditChange">
+                            <td colspan="2">
+                                <b>Sample ID:</b> @wti.Sample_ID<br />
+                                <b>Customer: </b> @wti.Customer<br />
+                                <b>Size_Name:</b> @wti.Size_Name.Replace("\"", "")<br />
+                                <b>Width:</b> @wti.Width @wti.Width_Measurement<br />
+                                <b>Length:</b> @wti.Length @wti.Length_Measurement<br />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <b>Logos Used:</b><br />
+                                @foreach (LarModels.Labels l in labelsList)
+                                {
+                                    @if (l.Sample_ID.Equals(wti.Sample_ID))
+                                    {
+                                        @l.Division_Label_Name<br />
+                                    }
+                                }
+                            </td>
+                            <td colspan="2">
+                            </td>
+                        </tr>
+                    </table>
+                }
+            </td>
+            <td width="10%" @onclick="() => wti.ShowRow = !wti.ShowRow">@wti.Art_Type</td>
+            <td width="10%" @onclick="() => wti.ShowRow = !wti.ShowRow">@wti.Status</td>
+            <AuthorizeView>
+                <Authorized>
+                    <td>
+                        <table width="100%">
+                            <tr height="20px">
+                                <td width="16px" class="table-success" @onclick='(() => SetStatus(wti.Plate_ID, "Approved"))'></td>
+                                <td width="16px" class="table-info" @onclick='(() => SetStatus(wti.Plate_ID, "Approved Pending"))'></td>
+                                <td width="16px" class="table-danger" @onclick='(() => SetStatus(wti.Plate_ID, "Rejected"))'></td>
+                                <td width="16px" class="table-warning" @onclick='(() => SetStatus(wti.Plate_ID, "Waiting for Approval"))'></td>
+                                <td width="16px" class="table-primary" @onclick='(() => SetStatus(wti.Plate_ID, "Questions"))'></td>
+                                <td width="16px" class="table-light" @onclick='(() => SetStatus(wti.Plate_ID, "Not Done"))'></td>
+                            </tr>
+                        </table>
+                    </td>
+                </Authorized>
+            </AuthorizeView>
+        </tr>
+    }
+</tbody>
+    }
+</table>
+
+@code {
+    [Parameter]
+    public int offset { get; set; } = 0;
+    string ADMINISTRATION_ROLE = "Administrators";
+    private string search = "";
+    private bool showChanges = false;
+    private bool showApprovals = false;
+    private bool showApprovalsPending = false;
+    private bool showQuestions = false;
+    private bool showRejections = false;
+    private bool plateSortAsc = false;
+    static List<LarModels.WebTableItem> webTableItems = new();
+    static List<LarModels.Labels> labelsList = new();
+    static List<string> colorList = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await IngestSql();
+    }
+
+    Task IngestSql()
+    {
+        webTableItems = SqlMethods.SqlSelectWebTableItem(false, offset);
+        //plateList = SqlMethods.SqlSelectPlateId(true);
+        //foreach (string p in plateList)
+        //{
+        //    GetTableItem(p);
+        //}
+
+        return Task.CompletedTask;
+    }
+
+    private bool Toggle()
+    {
+        bool showThis = false;
+
+        return showThis;
+    }
+
+    private void GetTableItem(string plateId)
+    {
+        webTableItems.Add(SqlMethods.SqlSelectWebTableItem(plateId, false));
+    }
+    private void GetLabels(string sampleId)
+    {
+        labelsList = SqlMethods.SqlSelectLabels(sampleId, false);
+    }
+    private void GetColors(string sampleId)
+    {
+        colorList = SqlMethods.SqlSelectSwatchColors(sampleId, false);
+    }
+
+    private void SetStatus(string id, string thisStatus)
+    {
+        int index = webTableItems.FindIndex(S => S.Plate_ID == id);
+        if (index != -1)
+        {
+            webTableItems[index].Status = SqlMethods.SqlUpdateStatus(id, thisStatus, false);
+            if (thisStatus.Equals("Approved"))
+            {
+                webTableItems[index].Change = "";
+            }
+        }
+    }
+
+    private void SetChange(string id, string thisChange)
+    {
+        int index = webTableItems.FindIndex(S => S.Plate_ID == id);
+        if (index != -1)
+        {
+            webTableItems[index].Change = SqlMethods.SqlUpdateChange(id, thisChange, false);
+        }
+    }
+
+    private string TableClass(string id)
+    {
+        string tbClass = "table-default";
+        if (id.ToLower().Equals("rejected"))
+        {
+            tbClass = "table-danger";
+        }
+        if (id.ToLower().Contains("waiting"))
+        {
+            tbClass = "table-warning";
+        }
+        if (id.ToLower().Equals("approved"))
+        {
+            tbClass = "table-success";
+        }
+        if (id.ToLower().Equals("approved pending"))
+        {
+            tbClass = "table-info";
+        }
+        if (id.ToLower().Equals("questions"))
+        {
+            tbClass = "table-primary";
+        }
+        return tbClass;
+    }
+
+    private void SetToRun(string id, int run)
+    {
+        int index = webTableItems.FindIndex(S => S.Plate_ID == id);
+        if (index != -1)
+        {
+            webTableItems[index].Output = SqlMethods.SqlSetToRun(id, false, run);
+        }
+    }
+
+    private void SortPlates()
+    {
+        if (!plateSortAsc)
+        {
+            webTableItems.Sort((x, y) => x.Plate_ID.CompareTo(y.Plate_ID));
+            plateSortAsc = true;
+        }
+        else
+        {
+            webTableItems.Sort((x, y) => y.Plate_ID.CompareTo(x.Plate_ID));
+            plateSortAsc = false;
+        }
+    }
+
+    private void SortTemplates()
+    {
+        webTableItems.Sort((x, y) => x.Art_Type.CompareTo(y.Art_Type));
+    }
+}

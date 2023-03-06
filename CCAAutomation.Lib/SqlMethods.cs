@@ -16,10 +16,10 @@ namespace CCAAutomation.Lib
 
         private static void SqlConnect(string db)
         {
-            server = "xxxxxx;
+            server = "xxxxxxxxx";
             database = db;
-            uid = "xxxxxx";
-            password = "xxxxxx;
+            uid = "xxxxxxxxxxx";
+            password = "xxxxxxxxx";
 
             string connectionString =
                 "Data Source = " + server + ";" +
@@ -214,7 +214,7 @@ namespace CCAAutomation.Lib
             SqlCommand command;
             SqlDataReader dataReader;
 
-            string sql = "select distinct dbo.Details.Merch_Color_Name, dbo.Details.Manufacturer_Feeler, Feeler from dbo.Sample inner join dbo.details on dbo.details.Sample_ID=dbo.sample.Sample_ID where dbo.Sample.Sample_ID='" + sampleId + "'";
+            string sql = "select distinct dbo.Details.Merch_Color_Name, dbo.Details.Color_Sequence, dbo.Details.Manufacturer_Feeler, Feeler from dbo.Sample inner join dbo.details on dbo.details.Sample_ID=dbo.sample.Sample_ID where dbo.Sample.Sample_ID='" + sampleId + "'";
 
             try
             {
@@ -223,13 +223,14 @@ namespace CCAAutomation.Lib
                 dataReader = command.ExecuteReader();
                 while (dataReader.Read())
                 {
+                    string sequence = dataReader.GetString(dataReader.GetOrdinal("Color_Sequence")).PadLeft(2, '0');
                     if (dataReader.GetString(dataReader.GetOrdinal("Manufacturer_Feeler")).EqualsString("yes") || dataReader.GetString(dataReader.GetOrdinal("Merch_Color_Name")).EqualsString(dataReader.GetString(dataReader.GetOrdinal("Feeler"))))
                     {
-                        colorList.Add("<b>" + dataReader.GetString(dataReader.GetOrdinal("Merch_Color_Name")) + "</b>");
+                        colorList.Add(sequence + " | " + "<b>" + dataReader.GetString(dataReader.GetOrdinal("Merch_Color_Name")) + "</b>");
                     }
                     else
                     {
-                        colorList.Add(dataReader.GetString(dataReader.GetOrdinal("Merch_Color_Name")));
+                        colorList.Add(sequence + " | " + dataReader.GetString(dataReader.GetOrdinal("Merch_Color_Name")));
                     }
                 }
 
@@ -241,7 +242,7 @@ namespace CCAAutomation.Lib
             {
                 Console.WriteLine(e.Message);
             }
-
+            colorList.Sort();
             return colorList;
         }        
 
@@ -508,7 +509,35 @@ namespace CCAAutomation.Lib
                     LarModels.Details details = new();
 
                     details.Plate_ID = dataReader.GetString(dataReader.GetOrdinal("Plate_#")).Trim();
-                    details.ArtType = dataReader.GetString(dataReader.GetOrdinal("Art_Type")).Trim();
+                    details.Plate_ID_BL = dataReader.GetString(dataReader.GetOrdinal("Back Label Plate #"));
+                    details.Plate_ID_FL = dataReader.GetString(dataReader.GetOrdinal("Face Label Plate #"));
+                    if (details.Plate_ID_BL.EqualsString(""))
+                    {
+                        details.Plate_ID_BL = dataReader.GetString(dataReader.GetOrdinal("Blanket Label Plate #"));
+                    }
+                    if (details.Plate_ID.EqualsString(""))
+                    {
+                        details.Plate_ID = details.Plate_ID_BL;
+                    }
+                    if (details.Plate_ID_FL.EqualsString(""))
+                    {
+                        details.Plate_ID_FL = dataReader.GetString(dataReader.GetOrdinal("Face Plate Plate #"));
+                    }
+                    details.ArtType = dataReader.GetString(dataReader.GetOrdinal("Art_Type"));
+                    details.ArtType_BL = dataReader.GetString(dataReader.GetOrdinal("Art Type - BL"));
+                    details.ArtType_FL = dataReader.GetString(dataReader.GetOrdinal("Art Type - FL"));
+                    if (details.ArtType_BL.EqualsString(""))
+                    {
+                        details.ArtType_BL = dataReader.GetString(dataReader.GetOrdinal("Art_Type - BL"));
+                    }
+                    if (details.ArtType.EqualsString(""))
+                    {
+                        details.ArtType = details.ArtType_BL;
+                    }
+                    if (details.ArtType_FL.EqualsString(""))
+                    {
+                        details.ArtType_FL = dataReader.GetString(dataReader.GetOrdinal("Art Type - FP"));
+                    }
                     details.Status = dataReader.GetString(dataReader.GetOrdinal("Status")).Trim();
                     details.Change = dataReader.GetString(dataReader.GetOrdinal("Change")).Trim();
                     details.Program = dataReader.GetString(dataReader.GetOrdinal("Program")).Trim();
@@ -517,44 +546,44 @@ namespace CCAAutomation.Lib
                     details.Primary_Display = dataReader.GetString(dataReader.GetOrdinal("Primary_Display")).Trim();
                     details.Division_List = dataReader.GetString(dataReader.GetOrdinal("Division_List")).Trim();
                     details.Supplier_Name = dataReader.GetString(dataReader.GetOrdinal("Supplier_Name")).Trim();
-                    //details.Child_Supplier = dataReader.GetString(dataReader.GetOrdinal("Child_Supplier")).Trim();
+                    details.Child_Supplier = dataReader.GetString(dataReader.GetOrdinal("Child_Supplier")).Trim();
                     details.Taxonomy = dataReader.GetString(dataReader.GetOrdinal("Taxonomy")).Trim();
                     details.Supplier_Product_Name = dataReader.GetString(dataReader.GetOrdinal("Supplier_Product_Name")).Trim();
-                    //details.Merchandised_Product_ID = dataReader.GetString(dataReader.GetOrdinal("Merchandised_Product_ID")).Trim();
-                    //details.Merch_Prod_Start_Date = dataReader.GetString(dataReader.GetOrdinal("Merch_Prod_Start_Date")).Trim();
+                    details.Merchandised_Product_ID = dataReader.GetString(dataReader.GetOrdinal("Merchandised_Product_ID")).Trim();
+                    details.Merch_Prod_Start_Date = dataReader.GetString(dataReader.GetOrdinal("Merch_Prod_Start_Date")).Trim();
                     details.Division_Product_Name = dataReader.GetString(dataReader.GetOrdinal("Division_Product_Name")).Trim();
-                    //details.Division_Collection = dataReader.GetString(dataReader.GetOrdinal("Division_Collection")).Trim();
+                    details.Division_Collection = dataReader.GetString(dataReader.GetOrdinal("Division_Collection")).Trim();
                     details.Division_Rating = dataReader.GetString(dataReader.GetOrdinal("Division_Rating")).Trim();
                     details.Product_Type = dataReader.GetString(dataReader.GetOrdinal("Product_Type")).Trim();
                     details.Product_Class = dataReader.GetString(dataReader.GetOrdinal("Product_Class")).Trim();
-                    //details.Is_Web_Product = dataReader.GetString(dataReader.GetOrdinal("Is_Web_Product")).Trim();
-                    //details.Sample_Box_Enabled = dataReader.GetString(dataReader.GetOrdinal("Sample_Box_Enabled")).Trim();
-                    //details.Made_In = dataReader.GetString(dataReader.GetOrdinal("Made_In")).Trim();
+                    details.Is_Web_Product = dataReader.GetString(dataReader.GetOrdinal("Is_Web_Product")).Trim();
+                    details.Sample_Box_Enabled = dataReader.GetString(dataReader.GetOrdinal("Sample_Box_Enabled")).Trim();
+                    details.Made_In = dataReader.GetString(dataReader.GetOrdinal("Made_In")).Trim();
                     details.Merchandise_Brand = dataReader.GetString(dataReader.GetOrdinal("Merchandise_Brand")).Trim();
-                    //details.Stain_Treatment = dataReader.GetString(dataReader.GetOrdinal("Stain_Treatment")).Trim();
+                    details.Stain_Treatment = dataReader.GetString(dataReader.GetOrdinal("Stain_Treatment")).Trim();
                     details.Match = dataReader.GetString(dataReader.GetOrdinal("Match")).Trim();
                     details.Match_Length = dataReader.GetString(dataReader.GetOrdinal("Match_Length")).Trim();
                     details.Match_Width = dataReader.GetString(dataReader.GetOrdinal("Match_Width")).Trim();
                     details.Backing = dataReader.GetString(dataReader.GetOrdinal("Backing")).Trim();
-                    //details.Is_FHA_Certified = dataReader.GetString(dataReader.GetOrdinal("Is_FHA_Certified"));
-                    //details.FHA_Type = dataReader.GetString(dataReader.GetOrdinal("FHA_Type")).Trim();
-                    //details.FHA_Lab = dataReader.GetString(dataReader.GetOrdinal("FHA_Lab")).Trim();
-                    //details.Commercial_Rating = dataReader.GetString(dataReader.GetOrdinal("Commercial_Rating")).Trim();
-                    //details.Is_Green_Rated = dataReader.GetString(dataReader.GetOrdinal("Is_Green_Rated")).Trim();
-                    //details.Green_Natural_Sustained = dataReader.GetString(dataReader.GetOrdinal("Green_Natural_Sustained")).Trim();
-                    //details.Green_Recyclable_Content = dataReader.GetString(dataReader.GetOrdinal("Green_Recyclable_Content")).Trim();
-                    //details.Green_Recycled_Content = dataReader.GetString(dataReader.GetOrdinal("Green_Recycled_Content")).Trim();
+                    details.Is_FHA_Certified = dataReader.GetString(dataReader.GetOrdinal("Is_FHA_Certified"));
+                    details.FHA_Type = dataReader.GetString(dataReader.GetOrdinal("FHA_Type")).Trim();
+                    details.FHA_Lab = dataReader.GetString(dataReader.GetOrdinal("FHA_Lab")).Trim();
+                    details.Commercial_Rating = dataReader.GetString(dataReader.GetOrdinal("Commercial_Rating")).Trim();
+                    details.Is_Green_Rated = dataReader.GetString(dataReader.GetOrdinal("Is_Green_Rated")).Trim();
+                    details.Green_Natural_Sustained = dataReader.GetString(dataReader.GetOrdinal("Green_Natural_Sustained")).Trim();
+                    details.Green_Recyclable_Content = dataReader.GetString(dataReader.GetOrdinal("Green_Recyclable_Content")).Trim();
+                    details.Green_Recycled_Content = dataReader.GetString(dataReader.GetOrdinal("Green_Recycled_Content")).Trim();
                     details.Size_Name = dataReader.GetString(dataReader.GetOrdinal("Size_Name")).Trim();
                     details.Manufacturer_Product_Color_ID = dataReader.GetString(dataReader.GetOrdinal("Manufacturer_Product_Color_ID")).Trim();
                     details.Mfg_Color_Name = dataReader.GetString(dataReader.GetOrdinal("Mfg_Color_Name")).Trim();
-                    //details.Mfg_Color_Number = dataReader.GetString(dataReader.GetOrdinal("Mfg_Color_Number")).Trim();
-                    //details.Sample_Box = dataReader.GetString(dataReader.GetOrdinal("Sample_Box")).Trim();
-                    //details.Sample_Box_Availability = dataReader.GetString(dataReader.GetOrdinal("Sample_Box_Availability")).Trim();
+                    details.Mfg_Color_Number = dataReader.GetString(dataReader.GetOrdinal("Mfg_Color_Number")).Trim();
+                    details.Sample_Box = dataReader.GetString(dataReader.GetOrdinal("Sample_Box")).Trim();
+                    details.Sample_Box_Availability = dataReader.GetString(dataReader.GetOrdinal("Sample_Box_Availability")).Trim();
                     details.Manufacturer_SKU_Number = dataReader.GetString(dataReader.GetOrdinal("Manufacturer_SKU_Number")).Trim();
                     details.Merchandised_Product_Color_ID = dataReader.GetString(dataReader.GetOrdinal("Merchandised_Product_Color_ID")).Trim();
-                    //details.Merch_Color_Start_Date = dataReader.GetString(dataReader.GetOrdinal("Merch_Color_Start_Date")).Trim();
+                    details.Merch_Color_Start_Date = dataReader.GetString(dataReader.GetOrdinal("Merch_Color_Start_Date")).Trim();
                     details.Merch_Color_Name = dataReader.GetString(dataReader.GetOrdinal("Merch_Color_Name")).Trim();
-                    //details.Merch_Color_Number = dataReader.GetString(dataReader.GetOrdinal("Merch_Color_Number")).Trim();
+                    details.Merch_Color_Number = dataReader.GetString(dataReader.GetOrdinal("Merch_Color_Number")).Trim();
                     details.Merchandised_SKU_Number = dataReader.GetString(dataReader.GetOrdinal("Merchandised_SKU_Number")).Trim();
                     details.CcaSkuId = dataReader.GetString(dataReader.GetOrdinal("CcaSkuId")).Trim();
                     details.Output = dataReader.GetInt32(dataReader.GetOrdinal("Output"));
@@ -563,23 +592,23 @@ namespace CCAAutomation.Lib
                     {
                         details.Appearance = dataReader.GetString(dataReader.GetOrdinal("Appearance")).Trim();
                         details.Barcode = dataReader.GetString(dataReader.GetOrdinal("Barcode")).Trim();
-                        //details.Construction = dataReader.GetString(dataReader.GetOrdinal("Construction")).Trim();
-                        //details.Edge_Profile = dataReader.GetString(dataReader.GetOrdinal("Edge_Profile")).Trim();
-                        //details.End_Profile = dataReader.GetString(dataReader.GetOrdinal("End_Profile")).Trim();
-                        //details.Finish = dataReader.GetString(dataReader.GetOrdinal("Finish")).Trim();
-                        //details.Glazed_Hardness = dataReader.GetString(dataReader.GetOrdinal("Glazed_Hardness")).Trim();
-                        //details.Gloss_Level = dataReader.GetString(dataReader.GetOrdinal("Gloss_Level")).Trim();
-                        //details.Grade = dataReader.GetString(dataReader.GetOrdinal("Grade")).Trim();
-                        //details.Hardness_Rating = dataReader.GetString(dataReader.GetOrdinal("Hardness_Rating")).Trim();
-                        //details.Installation_Method = dataReader.GetString(dataReader.GetOrdinal("Installation_Method")).Trim();
-                        //details.Is_Recommended_Outdoors = dataReader.GetString(dataReader.GetOrdinal("Is_Recommended_Outdoors")).Trim();
-                        //details.Is_Wall_Tile = dataReader.GetString(dataReader.GetOrdinal("Is_Wall_Tile")).Trim();
+                        details.Construction = dataReader.GetString(dataReader.GetOrdinal("Construction")).Trim();
+                        details.Edge_Profile = dataReader.GetString(dataReader.GetOrdinal("Edge_Profile")).Trim();
+                        details.End_Profile = dataReader.GetString(dataReader.GetOrdinal("End_Profile")).Trim();
+                        details.Finish = dataReader.GetString(dataReader.GetOrdinal("Finish")).Trim();
+                        details.Glazed_Hardness = dataReader.GetString(dataReader.GetOrdinal("Glazed_Hardness")).Trim();
+                        details.Gloss_Level = dataReader.GetString(dataReader.GetOrdinal("Gloss_Level")).Trim();
+                        details.Grade = dataReader.GetString(dataReader.GetOrdinal("Grade")).Trim();
+                        details.Hardness_Rating = dataReader.GetString(dataReader.GetOrdinal("Hardness_Rating")).Trim();
+                        details.Installation_Method = dataReader.GetString(dataReader.GetOrdinal("Installation_Method")).Trim();
+                        details.Is_Recommended_Outdoors = dataReader.GetString(dataReader.GetOrdinal("Is_Recommended_Outdoors")).Trim();
+                        details.Is_Wall_Tile = dataReader.GetString(dataReader.GetOrdinal("Is_Wall_Tile")).Trim();
                         details.Length = dataReader.GetString(dataReader.GetOrdinal("Length")).Trim();
                         details.Length_Measurement = dataReader.GetString(dataReader.GetOrdinal("Length_Measurement")).Trim();
-                        //details.Locking_Type = dataReader.GetString(dataReader.GetOrdinal("Locking_Type")).Trim();
-                        //details.Radiant_Heat = dataReader.GetString(dataReader.GetOrdinal("Radiant_Heat")).Trim();
+                        details.Locking_Type = dataReader.GetString(dataReader.GetOrdinal("Locking_Type")).Trim();
+                        details.Radiant_Heat = dataReader.GetString(dataReader.GetOrdinal("Radiant_Heat")).Trim();
                         details.Roomscene = dataReader.GetString(dataReader.GetOrdinal("Roomscene")).Trim();
-                        //details.Shade_Variation = dataReader.GetString(dataReader.GetOrdinal("Shade_Variation")).Trim();
+                        details.Shade_Variation = dataReader.GetString(dataReader.GetOrdinal("Shade_Variation")).Trim();
                         details.Size_UC = dataReader.GetString(dataReader.GetOrdinal("Size_UC")).Trim();
                         details.Species = dataReader.GetString(dataReader.GetOrdinal("Species")).Trim();
                         details.Thickness_Fraction = dataReader.GetString(dataReader.GetOrdinal("Thickness_Fraction")).Trim();
@@ -594,34 +623,34 @@ namespace CCAAutomation.Lib
                     if (isSoftSurface)
                     {
                         details.Number_of_Colors = dataReader.GetString(dataReader.GetOrdinal("Number_of_Colors")).Trim();
-                        //details.Fiber_Company = dataReader.GetString(dataReader.GetOrdinal("Fiber_Company")).Trim();
-                        //details.Fiber_Brand = dataReader.GetString(dataReader.GetOrdinal("Fiber_Brand")).Trim();
-                        //details.Primary_Fiber = dataReader.GetString(dataReader.GetOrdinal("Primary_Fiber")).Trim();
-                        //details.Primary_Fiber_Percentage = dataReader.GetString(dataReader.GetOrdinal("Primary_Fiber_Percentage")).Trim();
-                        //details.Second_Fiber = dataReader.GetString(dataReader.GetOrdinal("Second_Fiber")).Trim();
-                        //details.Second_Fiber_Percentage = dataReader.GetString(dataReader.GetOrdinal("Second_Fiber_Percentage")).Trim();
-                        //details.Third_Fiber = dataReader.GetString(dataReader.GetOrdinal("Third_Fiber")).Trim();
-                        //details.Third_Fiber_Percentage = dataReader.GetString(dataReader.GetOrdinal("Third_Fiber_Percentage")).Trim();
-                        //details.Percent_BCF = dataReader.GetString(dataReader.GetOrdinal("Percent_BCF")).Trim();
-                        //details.Percent_Spun = dataReader.GetString(dataReader.GetOrdinal("Percent_Spun")).Trim();
+                        details.Fiber_Company = dataReader.GetString(dataReader.GetOrdinal("Fiber_Company")).Trim();
+                        details.Fiber_Brand = dataReader.GetString(dataReader.GetOrdinal("Fiber_Brand")).Trim();
+                        details.Primary_Fiber = dataReader.GetString(dataReader.GetOrdinal("Primary_Fiber")).Trim();
+                        details.Primary_Fiber_Percentage = dataReader.GetString(dataReader.GetOrdinal("Primary_Fiber_Percentage")).Trim();
+                        details.Second_Fiber = dataReader.GetString(dataReader.GetOrdinal("Second_Fiber")).Trim();
+                        details.Second_Fiber_Percentage = dataReader.GetString(dataReader.GetOrdinal("Second_Fiber_Percentage")).Trim();
+                        details.Third_Fiber = dataReader.GetString(dataReader.GetOrdinal("Third_Fiber")).Trim();
+                        details.Third_Fiber_Percentage = dataReader.GetString(dataReader.GetOrdinal("Third_Fiber_Percentage")).Trim();
+                        details.Percent_BCF = dataReader.GetString(dataReader.GetOrdinal("Percent_BCF")).Trim();
+                        details.Percent_Spun = dataReader.GetString(dataReader.GetOrdinal("Percent_Spun")).Trim();
                         details.Pile_Line = dataReader.GetString(dataReader.GetOrdinal("Pile_Line")).Trim();
-                        //details.Soil_Treatment = dataReader.GetString(dataReader.GetOrdinal("Soil_Treatment")).Trim();
-                        //details.Dye_Method = dataReader.GetString(dataReader.GetOrdinal("Dye_Method")).Trim();
-                        //details.Face_Weight = dataReader.GetString(dataReader.GetOrdinal("Face_Weight")).Trim();
-                        //details.Yarn_Twist = dataReader.GetString(dataReader.GetOrdinal("Yarn_Twist")).Trim();
-                        //details.Total_Weight = dataReader.GetString(dataReader.GetOrdinal("Total_Weight")).Trim();
-                        //details.Density = dataReader.GetString(dataReader.GetOrdinal("Density")).Trim();
-                        //details.Gauge = dataReader.GetString(dataReader.GetOrdinal("Gauge")).Trim();
-                        //details.Pile_Height = dataReader.GetString(dataReader.GetOrdinal("Pile_Height")).Trim();
-                        //details.Stitches = dataReader.GetString(dataReader.GetOrdinal("Stitches")).Trim();
-                        //details.IAQ_Number = dataReader.GetString(dataReader.GetOrdinal("IAQ_Number")).Trim();
-                        //details.FHA_Class = dataReader.GetString(dataReader.GetOrdinal("FHA_Class")).Trim();
-                        //details.Durability_Rating = dataReader.GetString(dataReader.GetOrdinal("Durability_Rating")).Trim();
-                        //details.Flammability = dataReader.GetString(dataReader.GetOrdinal("Flammability")).Trim();
-                        //details.Static_AATCC134 = dataReader.GetString(dataReader.GetOrdinal("Static_AATCC134")).Trim();
-                        //details.NBS_Smoke_Density_ASTME662 = dataReader.GetString(dataReader.GetOrdinal("NBS_Smoke_Density_ASTME662")).Trim();
-                        //details.Radiant_Panel_ASTME648 = dataReader.GetString(dataReader.GetOrdinal("Radiant_Panel_ASTME648")).Trim();
-                        //details.Installation_Pattern = dataReader.GetString(dataReader.GetOrdinal("Installation_Pattern")).Trim();
+                        details.Soil_Treatment = dataReader.GetString(dataReader.GetOrdinal("Soil_Treatment")).Trim();
+                        details.Dye_Method = dataReader.GetString(dataReader.GetOrdinal("Dye_Method")).Trim();
+                        details.Face_Weight = dataReader.GetString(dataReader.GetOrdinal("Face_Weight")).Trim();
+                        details.Yarn_Twist = dataReader.GetString(dataReader.GetOrdinal("Yarn_Twist")).Trim();
+                        details.Total_Weight = dataReader.GetString(dataReader.GetOrdinal("Total_Weight")).Trim();
+                        details.Density = dataReader.GetString(dataReader.GetOrdinal("Density")).Trim();
+                        details.Gauge = dataReader.GetString(dataReader.GetOrdinal("Gauge")).Trim();
+                        details.Pile_Height = dataReader.GetString(dataReader.GetOrdinal("Pile_Height")).Trim();
+                        details.Stitches = dataReader.GetString(dataReader.GetOrdinal("Stitches")).Trim();
+                        details.IAQ_Number = dataReader.GetString(dataReader.GetOrdinal("IAQ_Number")).Trim();
+                        details.FHA_Class = dataReader.GetString(dataReader.GetOrdinal("FHA_Class")).Trim();
+                        details.Durability_Rating = dataReader.GetString(dataReader.GetOrdinal("Durability_Rating")).Trim();
+                        details.Flammability = dataReader.GetString(dataReader.GetOrdinal("Flammability")).Trim();
+                        details.Static_AATCC134 = dataReader.GetString(dataReader.GetOrdinal("Static_AATCC134")).Trim();
+                        details.NBS_Smoke_Density_ASTME662 = dataReader.GetString(dataReader.GetOrdinal("NBS_Smoke_Density_ASTME662")).Trim();
+                        details.Radiant_Panel_ASTME648 = dataReader.GetString(dataReader.GetOrdinal("Radiant_Panel_ASTME648")).Trim();
+                        details.Installation_Pattern = dataReader.GetString(dataReader.GetOrdinal("Installation_Pattern")).Trim();
                         details.Manufacturer_Feeler = dataReader.GetString(dataReader.GetOrdinal("Manufacturer_Feeler")).Trim();
                         details.Color_Sequence = dataReader.GetString(dataReader.GetOrdinal("Color_Sequence")).Trim();
                         details.ADDNumber = dataReader.GetString(dataReader.GetOrdinal("ADDNumber")).Trim();
@@ -741,7 +770,7 @@ namespace CCAAutomation.Lib
             string sql = "SELECT Sample_ID, Sample_Name, Feeler, Shared_Card FROM dbo.Sample WHERE Sample_ID = '" + sampleId + "'";
             if (isSoftSurface)
             {
-                sql = "SELECT Sample_ID, Sample_Name, Feeler, Sample_Type, Shared_Card, Multiple_Color_Lines FROM dbo.Sample WHERE Sample_ID = '" + sampleId + "'";
+                sql = "SELECT Sample_ID, Sample_Name, Feeler, Sample_Type, Shared_Card, Multiple_Color_Lines, Split_Board FROM dbo.Sample WHERE Sample_ID = '" + sampleId + "'";
             }
             try
             {
@@ -760,6 +789,7 @@ namespace CCAAutomation.Lib
                     {
                         sample.Multiple_Color_Lines = dataReader.GetString(dataReader.GetOrdinal("Multiple_Color_Lines"));
                         sample.Sample_Type = dataReader.GetString(dataReader.GetOrdinal("Sample_Type"));
+                        sample.Split_Board = dataReader.GetString(dataReader.GetOrdinal("Split_Board"));
                     }
 
                     sampleList.Add(sample);
@@ -1441,62 +1471,118 @@ namespace CCAAutomation.Lib
             }
             else
             {*/
-                if (x.ToLower().Equals("waitingfl"))
-                {
-                    sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Status_FL='Waiting for Approval' and Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
-                }
-                if (x.ToLower().Equals("waitingbl"))
-                {
-                    sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Status='Waiting for Approval' and Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
-                }
-                if (x.ToLower().Equals("rejectedfl"))
-                {
-                    sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Status_FL='Rejected' and Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
-                }
-                if (x.ToLower().Equals("rejectedbl"))
-                {
-                    sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Status='Rejected' and Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
-                }
-                if (x.ToLower().Equals("approvedpendfl"))
-                {
-                    sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Status_FL='Approved Pending' and Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
-                }
-                if (x.ToLower().Equals("approvedpendbl"))
-                {
-                    sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Status='Approved Pending' and Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
-                }
-                if (x.ToLower().Equals("approvedfl"))
-                {
-                    sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Status_FL='Approved' and Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
-                }
-                if (x.ToLower().Equals("approvedbl"))
-                {
-                    sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Status='Approved' and Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
-                }
-                if (x.ToLower().Equals("questionsfl"))
-                {
-                    sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Status_FL='Questions' and Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
-                }
-                if (x.ToLower().Equals("questionsbl"))
-                {
-                    sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Status='Questions' and Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
-                }
-                if (x.ToLower().Equals("notdonefl"))
-                {
-                    sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Status_FL='Not Done' and Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
-                }
-                if (x.ToLower().Equals("notdonebl"))
-                {
-                    sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Status='Not Done' and Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
-                }
-                if (x.ToLower().Equals("totalfl"))
-                {
-                    sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
-                }
-                if (x.ToLower().Equals("totalbl"))
-                {
-                    sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
-                }
+            if (x.ToLower().Equals("waitingfl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Status_FL='Waiting for Approval' and Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("waitingbl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Status='Waiting for Approval' and Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("rejectedfl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Status_FL='Rejected' and Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("rejectedbl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Status='Rejected' and Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("approvedpendfl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Status_FL='Approved Pending' and Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("approvedpendbl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Status='Approved Pending' and Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("approvedfl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Status_FL LIKE '%Reprint%' OR Status_FL='Approved' and Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("approvedbl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Status LIKE '%Reprint%' OR Status='Approved' and Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("questionsfl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Status_FL='Questions' and Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("questionsbl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Status='Questions' and Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("notdonefl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Status_FL='Not Done' and Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("notdonebl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Status='Not Done' and Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("totalfl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("totalbl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("reprint-waitingfl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Status_FL='Reprint-Waiting for Approval' and Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("reprint-waitingbl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Status='Reprint-Waiting for Approval' and Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("reprint-rejectedfl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Status_FL='Reprint-Rejected' and Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("reprint-rejectedbl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Status='Reprint-Rejected' and Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("reprint-approvedpendfl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Status_FL='Reprint-Approved Pending' and Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("reprint-approvedpendbl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Status='Reprint-Approved Pending' and Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("reprint-approvedfl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Status_FL='Reprint-Approved' and Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("reprint-approvedbl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Status='Reprint-Approved' and Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("reprint-questionsfl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Status_FL='Reprint-Questions' and Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("reprint-questionsbl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Status='Reprint-Questions' and Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("reprint-notdonefl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Status_FL='Reprint-Not Done' and Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("reprint-notdonebl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Status='Reprint-Not Done' and Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("reprint-totalfl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_FL from dbo.Details where (Status_FL Like '%Reprint%' and Art_Type_FL Like '%FL%' and Program = '" + program + "')) t";
+            }
+            if (x.ToLower().Equals("reprint-totalbl"))
+            {
+                sql = "Select COUNT(*) FROM (Select DISTINCT Sample_ID, Art_Type_BL from dbo.Details where (Status Like '%Reprint%' and Art_Type_BL Like '%BL%' and Program = '" + program + "')) t";
+            }
             //}
 
             try

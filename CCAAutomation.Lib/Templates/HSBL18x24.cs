@@ -211,6 +211,10 @@ namespace CCAAutomation.Lib
                 ExportXML(jobName, xmlData, export, "WorkShop XML");
                 xmlData[roomsceneLineIndex] = xmlData[roomsceneLineIndex].Replace("WebShop:webshop roomscenes:", mainPath + settings.RoomscenePath);
                 ExportXML(jobName, xmlData, export, "WebShop XML");
+                using (StreamWriter textFile = new(Path.Combine(export, "Reports", "Roomscene Matchups.txt"), append: true))
+                {
+                    textFile.WriteLine(jobName + "|" + lARFinal.DetailsFinal.Sample_ID + "|" + styleName + "|" + lARFinal.DetailsFinal.Supplier_Name + "|" + roomScene);
+                }
                 HSFL4_5x2_1875.CreateXMLHS4_5x2_1875(lARFinal, export);
             }
             if (roomScene.Contains("FPOwaitingonroom"))
@@ -230,7 +234,8 @@ namespace CCAAutomation.Lib
 
             //1 Width
             string width = lARFinal.DetailsFinal.Size_Name;
-            if (lARFinal.DetailsFinal.Width.Trim().Equals("") && 
+            if ((lARFinal.DetailsFinal.Width.Trim().Equals("") ||
+                lARFinal.DetailsFinal.Width.Trim().Equals("0")) && 
                 (lARFinal.DetailsFinal.Width_Measurement.ToLower().Equals("random") ||
                 lARFinal.DetailsFinal.Width_Measurement.ToLower().Equals("multi")))
             {
@@ -254,7 +259,25 @@ namespace CCAAutomation.Lib
             }*/
             else
             {
-                characteristicsList.Add("characteristics:width - " + XmlRemapping(lARFinal.DetailsFinal.Width.ToLower(), "Widths") + "<!--Widths-->");
+                width = lARFinal.DetailsFinal.Width;
+                //decimal widthD = decimal.Parse(details.Width);
+                bool success = decimal.TryParse(width, out decimal widthD);
+                if (success)
+                {
+                    //if (width.EndsWith('0'))
+                    //{
+                    width = widthD.ToString("0.00");
+                    if (width.EndsWith(".25") || width.EndsWith(".50") || width.EndsWith(".75"))
+                    {
+                        width = ConvertDecimalToFraction(widthD).Replace(" ", "-");
+                    }
+                    //}
+                }
+                if (width.EndsWith(".00"))
+                {
+                    width = width.ToLower().Replace(".00", "");
+                }
+                characteristicsList.Add("characteristics:width - " + XmlRemapping(width.ToLower(), "Widths") + "<!--Widths-->");
             }
 
             //2 Length
@@ -264,6 +287,20 @@ namespace CCAAutomation.Lib
             }
             else
             {
+                string length = lARFinal.DetailsFinal.Length;
+                //decimal lengthD = decimal.Parse(details.Length);
+                bool success = decimal.TryParse(length, out decimal lengthD);
+                if (success)
+                {
+                    //if (length.EndsWith('0'))
+                    //{
+                    length = lengthD.ToString("0.00");
+                    if (length.EndsWith(".25") || length.EndsWith(".50") || length.EndsWith(".75"))
+                    {
+                        length = ConvertDecimalToFraction(lengthD).Replace(" ", "-");
+                    }
+                    //}
+                }
                 characteristicsList.Add("characteristics:length - " + XmlRemapping(lARFinal.DetailsFinal.Length.ToLower(), "Lengths") + "<!--Length-->");
             }
 
@@ -387,7 +424,8 @@ namespace CCAAutomation.Lib
             List<string> specs = new();
             specs.Add(ConvertToTitleCase(details.Merch_Color_Name) + "<!--Merch_Color_Name-->");
             string width = details.Size_Name;
-            if (details.Width.Trim().Equals("") &&
+            if ((details.Width.Trim().Equals("") ||
+                details.Width.Trim().Equals("0")) &&
                 (details.Width_Measurement.ToLower().Equals("random") ||
                 details.Width_Measurement.ToLower().Equals("multi")))
             {
@@ -443,7 +481,8 @@ namespace CCAAutomation.Lib
                 specs.Add(width + "<!--Size_Name-->");
             }*/
 
-            if (details.Length.Trim().Equals("") || details.Length_Measurement.Trim().EqualsString("random"))
+            if ((details.Length.Trim().Equals("") || details.Length.Trim().Equals("0")) && 
+                (details.Length_Measurement.Trim().EqualsString("random") || details.Length_Measurement.Trim().EqualsString("multi")))
             {
                 specs.Add(details.Length_Measurement + "<!--Length_Measurement-->");
             }
@@ -476,11 +515,30 @@ namespace CCAAutomation.Lib
                     specs.Add(length + "<!--Size_Name-->");
                 }*/
             }
+            try
+            {
+                specs.Add(details.Size_UC.Trim().Substring(0, details.Size_UC.IndexOf(" ")) + "<!--Size_UC-->");
+            }
+            catch (Exception)
+            {
+                specs.Add(details.Size_UC.Trim());
+            }
 
-            specs.Add(details.Size_UC.Trim().Substring(0, details.Size_UC.IndexOf(" ")) + "<!--Size_UC-->");
             if (XmlRemapping(details.Taxonomy.ToLower(), "Types").Equals("wood"))
             {
-                specs.Add(details.Species + "<!--Species-->");
+                if (details.Species.Contains(", "))
+                {
+                    specs.Add(details.Species + "<!--Species-->");
+                }
+                else if (details.Species.Contains(","))
+                {
+                    specs.Add(details.Species.Replace(",", ", ") + "<!--Species-->");
+                }
+                else
+                {
+                    specs.Add(details.Species + "<!--Species-->");
+                }
+
             }
             else if (XmlRemapping(details.Taxonomy.ToLower(), "Types").Equals("vinyl"))
             {
@@ -499,7 +557,7 @@ namespace CCAAutomation.Lib
             }
             else
             {
-                specs.Add("" + "<!--Laminate?? No idea what should do here if anything.-->");
+                //specs.Add("" + "<!--Laminate?? No idea what should do here if anything.-->");
             }
             specs.Add(details.CcaSkuId + "<!--CCASKUID-->");
 

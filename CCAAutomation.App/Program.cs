@@ -130,7 +130,10 @@ namespace CCAAutomation.App
                                     Directory.CreateDirectory(Path.Combine(newFolderPath, "Results"));
                                     using (StreamWriter writer1 = new(Path.Combine(newFolderPath, "Results", Path.GetFileNameWithoutExtension(f) + ".txt"), append: true))
                                     {
-                                        writer1.WriteLine(newLine);
+                                        if (!newLine.Contains("<jobalias>") && !newLine.Contains("<text type=\"spec\">"))
+                                        {
+                                            writer1.WriteLine(newLine);
+                                        }
                                     }
                                 }
                             }
@@ -199,9 +202,14 @@ namespace CCAAutomation.App
             fileName = Console.ReadLine();
             fileName = fileName.Replace("\"", "");
 
-            Console.WriteLine("Export XML Where?");
+            /*Console.WriteLine("Export XML Where?");
             string export = Console.ReadLine();
             export = export.Replace("\"", "");
+            if (export.EqualsString(""))
+            {*/
+                string export = Path.GetDirectoryName(fileName);
+            //}
+            //Console.WriteLine(export);
 
             LARXlsSheet LARXlsSheet = GetLar(fileName);
             string[] files = ApprovedRoomscenes();

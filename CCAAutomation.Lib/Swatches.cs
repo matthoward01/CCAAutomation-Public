@@ -26,7 +26,7 @@ namespace CCAAutomation.Lib
             public string ColorSequence { get; set; }
         }
 
-        public static List<string> SwatchXML(string feeler, List<string> colorList, string swatchArea, string template, out bool seqError, out int colorCount)
+        public static (List<string> swatchXml, string swatchSize) SwatchXML(string feeler, List<string> colorList, string swatchArea, string template, out bool seqError, out int colorCount)
         {
             seqError = false;
             if (!Check_Prime(colorList.Distinct().Count()).Equals(0) && !colorList.Count.Equals(3) && !colorList.Count.Equals(5))
@@ -43,6 +43,7 @@ namespace CCAAutomation.Lib
                     Console.ReadLine();
                 }
             }
+            string swatchSize = "";
             SwatchesModel swatchSettings = new();
             colorCount = colorList.Distinct().Count();
             swatchSettings = Settings.GetSwatchLayout(colorCount.ToString(), template);
@@ -59,6 +60,7 @@ namespace CCAAutomation.Lib
                     "\" swatchrows=\"" + swatchSettings.SwatchRows + "\" swatchcols=\"" + swatchSettings.SwatchCols +
                     "\" swatchsizewidth=\"" + swatchSettings.SwatchSizeWidth + "\" swatchsizeheight=\"" + swatchSettings.SwatchSizeHeight +
                     "\" swatcharea=\"" + swatchArea + "\">");
+                swatchSize = swatchSettings.SwatchSizeWidth + " x " + swatchSettings.SwatchSizeHeight;
             }
 
             foreach (string s in colorList.Distinct())
@@ -66,9 +68,9 @@ namespace CCAAutomation.Lib
                 swatchXMLList.Add(" <colorname>" + ConvertToTitleCase(s) + "</colorname>");
             }
             swatchXMLList.Add("</swatches>");
-
             swatchSettings = new();
-            return swatchXMLList;
+            
+            return (swatchXMLList, swatchSize);
         }
         
     }

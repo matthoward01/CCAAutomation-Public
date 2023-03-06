@@ -43,17 +43,25 @@
     {        
         <tbody>
             @if ((showRejections && wti.Status.ToLower().Trim().Equals("rejected") &&
-                (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
-                 (showApprovals && wti.Status.ToLower().Trim().Equals("approved") &&
-                (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
-                 (showApprovalsPending && wti.Status.ToLower().Trim().Equals("approved pending") &&
-                (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
-                 (showQuestions && wti.Status.ToLower().Trim().Equals("questions") &&
-                (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
-                 (showChanges && !wti.Change.ToLower().Trim().Equals("") &&
-                (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
-                 ((wti.SearchTags.ToLower().Contains(search.ToLower()) ||
-                wti.Status.ToLower().Contains(search.ToLower())) && !showChanges && !showApprovals && !showApprovalsPending && !showRejections && !showQuestions))
+               (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+                (showApprovals && wti.Status.ToLower().Trim().Equals("approved") &&
+               (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+                (showApprovalsPending && wti.Status.ToLower().Trim().Equals("approved pending") &&
+               (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+                (showQuestions && wti.Status.ToLower().Trim().Equals("questions") &&
+               (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+               (showRejections && wti.Status.ToLower().Trim().Equals("reprint-rejected") &&
+               (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+                (showApprovals && wti.Status.ToLower().Trim().Equals("reprint-approved") &&
+               (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+                (showApprovalsPending && wti.Status.ToLower().Trim().Equals("reprint-approved pending") &&
+               (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+                (showQuestions && wti.Status.ToLower().Trim().Equals("reprint-questions") &&
+               (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+                (showChanges && !wti.Change.ToLower().Trim().Equals("") &&
+               (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+                ((wti.SearchTags.ToLower().Contains(search.ToLower()) ||
+               wti.Status.ToLower().Contains(search.ToLower())) && !showChanges && !showApprovals && !showApprovalsPending && !showRejections && !showQuestions))
             {
             <tr class="@TableClass(wti.Status)">
                 <AuthorizeView>
@@ -174,6 +182,14 @@
                                     <td width="16px" class="table-primary" @onclick='(() => SetStatus(wti.Plate_ID, "Questions"))'></td>
                                     <td width="16px" class="table-light" @onclick='(() => SetStatus(wti.Plate_ID, "Not Done"))'></td>
                                 </tr>
+                                <tr height="20px">
+                                    <td width="16px" class="table-success" @onclick='(() => SetStatus(wti.Plate_ID, "Reprint-Approved"))'></td>
+                                    <td width="16px" class="table-info" @onclick='(() => SetStatus(wti.Plate_ID, "Reprint-Approved Pending"))'></td>
+                                    <td width="16px" class="table-danger" @onclick='(() => SetStatus(wti.Plate_ID, "Reprint-Rejected"))'></td>
+                                    <td width="16px" class="table-warning" @onclick='(() => SetStatus(wti.Plate_ID, "Reprint-Waiting for Approval"))'></td>
+                                    <td width="16px" class="table-primary" @onclick='(() => SetStatus(wti.Plate_ID, "Reprint-Questions"))'></td>
+                                    <td width="16px" class="table-light" @onclick='(() => SetStatus(wti.Plate_ID, "Reprint-Not Done"))'></td>
+                                </tr>
                             </table>
                         </td>
                     </Authorized>
@@ -242,7 +258,8 @@
         if (index != -1)
         {
             webTableItems[index].Status = SqlMethods.SqlUpdateStatus(id, thisStatus, true);
-            if (thisStatus.Equals("Approved") || thisStatus.Equals("Approved Pending"))
+            if (thisStatus.Equals("Approved") || thisStatus.Equals("Approved Pending") ||
+                thisStatus.Equals("Reprint-Approved") || thisStatus.Equals("Reprint-Approved Pending"))
             {
                 webTableItems[index].Change = "";
             }
@@ -261,23 +278,23 @@
     private string TableClass(string id)
     {
         string tbClass = "table-default";
-        if (id.ToLower().Equals("rejected"))
+        if (id.ToLower().Equals("rejected") || id.ToLower().Equals("reprint-rejected"))
         {
             tbClass = "table-danger";
         }
-        if (id.ToLower().Contains("waiting"))
+        if (id.ToLower().Contains("waiting") || id.ToLower().Equals("reprint-waiting"))
         {
             tbClass = "table-warning";
         }
-        if (id.ToLower().Equals("approved"))
+        if (id.ToLower().Equals("approved") || id.ToLower().Equals("reprint-approved"))
         {
             tbClass = "table-success";
         }
-        if (id.ToLower().Equals("approved pending"))
+        if (id.ToLower().Equals("approved pending") || id.ToLower().Equals("reprint-approved pending"))
         {
             tbClass = "table-info";
         }
-        if (id.ToLower().Equals("questions"))
+        if (id.ToLower().Equals("questions") || id.ToLower().Equals("reprint-questions"))
         {
             tbClass = "table-primary";
         }

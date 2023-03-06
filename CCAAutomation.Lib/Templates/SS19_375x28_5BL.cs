@@ -15,7 +15,6 @@ namespace CCAAutomation.Lib
         public static (List<string> missingItems, string[] updatedFiles) CreateXMLSS19_375x28_5BL(bool forced, bool isShaw, string[] files, bool skip, List<LARFinal> lARFinal, string export)
         {
             List<Details> details = new();
-            //goWorkShop = true;
             List<string> missingImages = new();
             List<string> colorList = new();
             List<string> ccaSkuId = new();
@@ -42,12 +41,6 @@ namespace CCAAutomation.Lib
                     colors.ColorSequence = lf.DetailsFinal.Color_Sequence.PadLeft(2, '0');
                     swatchColors.Add(colors);
                 }
-                /*else if (isConv)
-                {
-                    colors.Color = lf.DetailsFinal.Merch_Color_Name;
-                    colors.ColorSequence = lf.DetailsFinal.Color_Sequence.PadLeft(2, '0');
-                    swatchColors.Add(colors);
-                }*/
 
                 if (lf.SampleFinal.Sample_Name.Contains("/") && lf.SampleFinal.Shared_Card.Trim().ToLower().Equals("yes"))
                 {
@@ -94,7 +87,6 @@ namespace CCAAutomation.Lib
                                     ccaSkuIdList.Add(cCASkuIdModel);
                                 }
                             }
-                            //ccaSkuId.Add(lf.DetailsFinal.CcaSkuId);
                         }
                     }
                     if (style[1].Trim().ToLower().Equals(lf.DetailsFinal.Division_Product_Name.Trim().ToLower()))
@@ -141,7 +133,6 @@ namespace CCAAutomation.Lib
                                     ccaSkuIdList.Add(cCASkuIdModel);
                                 }
                             }
-                            //ccaSkuId.Add(lf.DetailsFinal.CcaSkuId);
                         }
                     }
                     else
@@ -183,9 +174,26 @@ namespace CCAAutomation.Lib
             swatchColors.Sort((x, y) => x.ColorSequence.CompareTo(y.ColorSequence));
             foreach (Swatches.SwatchColors c in swatchColors)
             {
-                colorList.Add(ConvertToTitleCase(c.Color));
+                colorList.Add(ConvertToTitleCase(c.Color));              
                 int.TryParse(c.ColorSequence, out int seq);
                 sequenceList.Add(seq);
+            }
+
+            List<string> checkSeq = new();
+            foreach (string c in colorList.Distinct())
+            {                
+                foreach (LARFinal lf in lARFinal)
+                {                    
+                    if (c.EqualsString(lf.DetailsFinal.Merch_Color_Name))
+                    {
+                        checkSeq.Add(lf.DetailsFinal.Color_Sequence);
+                    }
+                }
+                if (!checkSeq.Distinct().Count().Equals(1))
+                {
+                    seqError = true;
+                }
+                checkSeq = new();
             }
 
             bool useSqCrop = false;
@@ -205,7 +213,6 @@ namespace CCAAutomation.Lib
 
             string division = XmlRemapping(lARFinal[0].DetailsFinal.Division_List, "Divisions");
             TemplateModel settings = GetTemplateSettings("SS19.375x28.5BL", "Normal");
-            //TemplateModel settingsFL = GetTemplateSettings("SS8_25x0_875FL", "Normal");
             if (!lARFinal[0].SampleFinal.Shared_Card.EqualsString("yes") && lARFinal[0].SampleFinal.Multiple_Color_Lines.EqualsString("yes"))
             {
                 settings = GetTemplateSettings("SS19.375x28.5BL", "Combo");
@@ -348,8 +355,6 @@ namespace CCAAutomation.Lib
                 xmlData.Add("			<text type=\"stylename2\">" + styleName2 + "</text>");
                 xmlData.Add("           <text type=\"topcolor1\">" + feeler + "</text>");
 
-
-
                 int index = lARFinal.FindIndex(i => i.DetailsFinal.Division_Product_Name.ToLower().Contains(styleName2.ToLower()));
                 if (!specList.Contains(GetPatternRepeat(lARFinal[index].DetailsFinal)))
                 {
@@ -359,7 +364,6 @@ namespace CCAAutomation.Lib
                 {
                     xmlData.Add("           <text type=\"topcolor2\">" + feeler + "</text>");
                 }
-
             }
             else
             {
@@ -420,10 +424,12 @@ namespace CCAAutomation.Lib
             xmlData.Add("			<inlines>");
             xmlData.Add("			</inlines>");
             xmlData.Add("		</graphics>");
-
+            string swatchSize = "";
             if (!seqError)
             {
-                xmlData.AddRange(Swatches.SwatchXML(feeler, colorList, "1", settings.Id + twoFeature, out seqError, out colorCount));
+                var swatchXmlResults = Swatches.SwatchXML(feeler, colorList, "1", settings.Id + twoFeature, out seqError, out colorCount);
+                xmlData.AddRange(swatchXmlResults.swatchXml);
+                swatchSize = swatchXmlResults.swatchSize;
             }
 
             xmlData.Add("		<JobName>" + jobName + "</JobName>");
@@ -450,20 +456,86 @@ namespace CCAAutomation.Lib
             {
                 Console.WriteLine("NOT SEQUENTIAL");
             }
-            if (!forced && int.TryParse(GetColorCount(lARFinal[0].DetailsFinal.Layout), out int colorCountLayout) && !colorCount.Equals(colorCountLayout) || !colorCount.Equals(sequenceList.Distinct().Count()) || !sequenceSeq)
+            if (!forced && 
+                (
+                (int.TryParse(GetColorCount(lARFinal[0].DetailsFinal.Layout), out int colorCountLayout) &&
+                !colorCount.Equals(colorCountLayout)) ||
+                !colorCount.Equals(sequenceList.Distinct().Count()) ||
+                !sequenceSeq ||
+                seqError ||
+                secondStyleError ||
+                template.EqualsString("")) ||
+                (lARFinal[0].DetailsFinal.ADDNumber.EqualsString("") || lARFinal[0].DetailsFinal.ADDNumber.EqualsString("NULL")) ||
+                colorList.Distinct().Count() > 32
+                )
             {
                 if (!lARFinal[0].DetailsFinal.Layout.EqualsString(""))
                 {
-                    Console.WriteLine("Color Sequence Missing, 2nd Style Problem, or Incomplete, but we have Roomscene");
-                    using (StreamWriter textFile = new(Path.Combine(export, "Reports", "Possible Layout Problem.txt"), append: true))
-                    {
-                        textFile.WriteLine(jobName + "|" + lARFinal[0].DetailsFinal.Sample_ID + "|" + styleName + "|" + colorCount + "|" + lARFinal[0].DetailsFinal.Layout);
-                    }
-                
+                    Console.WriteLine("Need to check Layout.");
+                    using (StreamWriter textFile = new(Path.Combine(export, "Reports", "Errors.txt"), append: true))
+                    {                        
+                        textFile.WriteLine(jobName + "|" + lARFinal[0].DetailsFinal.Sample_ID + "|" + styleName + "|Check Layout" );
+                    }                
                     layoutError = true;
                 }
+                if (seqError)
+                {
+                    Console.WriteLine("Color Sequence Missing.");
+                    using (StreamWriter textFile = new(Path.Combine(export, "Reports", "Errors.txt"), append: true))
+                    {
+                        textFile.WriteLine(jobName + "|" + lARFinal[0].DetailsFinal.Sample_ID + "|" + styleName + "|Sequence is missing.");
+                    }
+                }
+                if (secondStyleError)
+                {
+                    Console.WriteLine("Second Style Problem.");
+                    using (StreamWriter textFile = new(Path.Combine(export, "Reports", "Errors.txt"), append: true))
+                    {
+                        textFile.WriteLine(jobName + "|" + lARFinal[0].DetailsFinal.Sample_ID + "|" + styleName + "|There is a second style problem.");
+                    }
+                }
+                if (template.EqualsString(""))
+                {
+                    Console.WriteLine("Second Style Problem.");
+                    using (StreamWriter textFile = new(Path.Combine(export, "Reports", "Errors.txt"), append: true))
+                    {
+                        textFile.WriteLine(jobName + "|" + lARFinal[0].DetailsFinal.Sample_ID + "|" + styleName + "|Template problem.");
+                    }
+                }
+                if (!sequenceSeq)
+                {
+                    Console.WriteLine("Sequence is not sequential");
+                    using (StreamWriter textFile = new(Path.Combine(export, "Reports", "Errors.txt"), append: true))
+                    {
+                        textFile.WriteLine(jobName + "|" + lARFinal[0].DetailsFinal.Sample_ID + "|" + styleName + "|Sequence is not sequential.");
+                    }
+                }
+                if (!colorCount.Equals(sequenceList.Distinct().Count()))
+                {
+                    Console.WriteLine("Sequence count problem");
+                    using (StreamWriter textFile = new(Path.Combine(export, "Reports", "Errors.txt"), append: true))
+                    {
+                        textFile.WriteLine(jobName + "|" + lARFinal[0].DetailsFinal.Sample_ID + "|" + styleName + "|Color count and sequence count do not match.");
+                    }
+                }
+                if (colorList.Distinct().Count() > 32)
+                {
+                    Console.WriteLine("More than 32 colors.");
+                    using (StreamWriter textFile = new(Path.Combine(export, "Reports", "Errors.txt"), append: true))
+                    {
+                        textFile.WriteLine(jobName + "|" + lARFinal[0].DetailsFinal.Sample_ID + "|" + styleName + "|There are more than 32 colors.");
+                    }
+                }
+                if (lARFinal[0].DetailsFinal.ADDNumber.EqualsString("") || lARFinal[0].DetailsFinal.ADDNumber.EqualsString("NULL"))
+                {
+                    Console.WriteLine("ADD Number blank or NULL");
+                    using (StreamWriter textFile = new(Path.Combine(export, "Reports", "Errors.txt"), append: true))
+                    {
+                        textFile.WriteLine(jobName + "|" + lARFinal[0].DetailsFinal.Sample_ID + "|" + styleName + "|ADD number blank or null.");
+                    }
+                }
             }
-            if ((forced || !forced) && (!isShaw && !template.Equals("") && !layoutError && !seqError && !roomScene.Contains("FPOwaitingonroom") && !lARFinal[0].DetailsFinal.ADDNumber.EqualsString("")) ||
+            if (forced || (!isShaw && !template.Equals("") && !layoutError && !seqError && !roomScene.Contains("FPOwaitingonroom") && !lARFinal[0].DetailsFinal.ADDNumber.EqualsString("")) ||
                 isShaw && !template.EqualsString("") && !seqError && !layoutError)
             {
                 ExportXML(jobName, xmlData, export, "WorkShop XML");
@@ -483,42 +555,11 @@ namespace CCAAutomation.Lib
                     textFile.WriteLine(jobName + "|" + lARFinal[0].DetailsFinal.Sample_ID + "|" + styleName + "|" + "No" + "|" + lARFinal[0].DetailsFinal.Supplier_Name + "|" + roomScene);
                 }
             }
-            else if (secondStyleError)
-            {
-                Console.WriteLine("2nd Style Problem.");
-            }
-            else if (template.EqualsString(""))
-            {
-                Console.WriteLine("Template Blank.");
-            }
-            if (!forced && secondStyleError && seqError && !roomScene.Contains("FPOwaitingonroom"))
-            {
-                Console.WriteLine("Color Sequence Missing, 2nd Style Problem, or Incomplete, but we have Roomscene");
-                using (StreamWriter textFile = new(Path.Combine(export, "Reports", "Roomscenes no Sequence.txt"), append: true))
-                {
-                    textFile.WriteLine(jobName + "|" + lARFinal[0].DetailsFinal.Sample_ID + "|" + styleName + "|" + "No" + "|" + lARFinal[0].DetailsFinal.Supplier_Name + "|" + roomScene);
-                }
-            }
-            if (!forced && seqError)
-            {
-                Console.WriteLine("Color Sequence Missing.");
-                using (StreamWriter textFile = new(Path.Combine(export, "Reports", "Color Sequence Missing.txt"), append: true))
-                {
-                    textFile.WriteLine(jobName + "|" + lARFinal[0].DetailsFinal.Sample_ID + "|" + styleName);
-                }
-            }
-            if (!sequenceSeq)
-            {
-                Console.WriteLine("Color Sequence Not Sequential.");
-                using (StreamWriter textFile = new(Path.Combine(export, "Reports", "Color Sequence Not Sequential.txt"), append: true))
-                {
-                    textFile.WriteLine(jobName + "|" + lARFinal[0].DetailsFinal.Sample_ID + "|" + styleName);
-                }
-            }
+
             if (!colorCount.Equals(sequenceList.Distinct().Count()))
             {
-                Console.WriteLine("Color Sequence Incomplete.");
-                using (StreamWriter textFile = new(Path.Combine(export, "Reports", "Color Sequence Incomplete.txt"), append: true))
+                Console.WriteLine("Color Sequence Count Problem.");
+                using (StreamWriter textFile = new(Path.Combine(export, "Reports", "Color Sequence Count Problem.txt"), append: true))
                 {
                     textFile.WriteLine(jobName + "|" + lARFinal[0].DetailsFinal.Sample_ID + "|" + styleName);
                 }
@@ -541,30 +582,6 @@ namespace CCAAutomation.Lib
                 SyncRoomsceneDoubleCheck(details, Path.Combine(export, "Reports"));
                 details = new();
             }
-            if (!forced && lARFinal[0].DetailsFinal.ADDNumber.EqualsString("") || lARFinal[0].DetailsFinal.ADDNumber.EqualsString("NULL"))
-            {
-                Console.WriteLine("ADD Number is Blank.");
-                using (StreamWriter textFile = new(Path.Combine(export, "Reports", "ADD Number is Blank.txt"), append: true))
-                {
-                    textFile.WriteLine(jobName + "|" + lARFinal[0].DetailsFinal.Sample_ID + "|" + styleName);
-                }
-            }
-            if (!forced && lARFinal[0].DetailsFinal.ADDNumber.EqualsString("NULL"))
-            {
-                Console.WriteLine("ADD Number is NULL.");
-                using (StreamWriter textFile = new(Path.Combine(export, "Reports", "ADD Number is Null.txt"), append: true))
-                {
-                    textFile.WriteLine(jobName + "|" + lARFinal[0].DetailsFinal.Sample_ID + "|" + styleName);
-                }
-            }
-            if (!forced && colorList.Distinct().Count() > 32)
-            {
-                Console.WriteLine("Color Count greater than 32.");
-                using (StreamWriter textFile = new(Path.Combine(export, "Reports", "Color Count too High.txt"), append: true))
-                {
-                    textFile.WriteLine(jobName + "|" + lARFinal[0].DetailsFinal.Sample_ID + "|" + styleName + "|" + colorList.Distinct().Count() + "|" + lARFinal[0].DetailsFinal.Layout);
-                }
-            }
             bool mismatch = false;
             if ((lARFinal[0].SampleFinal.Merchandised_Product_Color_ID_C1.Count.Equals(0) && lARFinal[0].DetailsFinal.Division_List.ToLower().Contains("c1"))
                 || lARFinal[0].SampleFinal.Merchandised_Product_Color_ID_FA.Count.Equals(0) && lARFinal[0].DetailsFinal.Division_List.ToLower().Contains("fa"))
@@ -576,9 +593,14 @@ namespace CCAAutomation.Lib
                 }
                 mismatch = true;                
             }
-            if (!mismatch)
+            if (!mismatch || forced)
             {                
-                missingImages.AddRange(SS8_25x0_875FL.CreateXMLSS8_25x0_875FL(lARFinal, export));
+                missingImages.AddRange(SS8_25x0_875FL.CreateXMLSS8_25x0_875FL(lARFinal, export, forced));
+            }
+
+            using (StreamWriter textFile = new(Path.Combine(export, "Reports", "Swatch Sizes.txt"), append: true))
+            {
+                textFile.WriteLine(jobName + "|" + lARFinal[0].DetailsFinal.Sample_ID + "|" + styleName + "|" + swatchSize);
             }
 
             return (missingImages, files);
