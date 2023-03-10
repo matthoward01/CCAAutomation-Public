@@ -30,7 +30,8 @@ namespace CCAAutomation.App
             Console.WriteLine("Function?");
             Console.WriteLine("\"c\" to compare xml files in two different directories.");
             Console.WriteLine("\"s\" to make shaw versions for approval.");
-            Console.WriteLine("\"i\" to update the database.");
+            Console.WriteLine("\"i\" to update the roomscene array.");
+            Console.WriteLine("\"r\" to get roomscene names from xml.");
             Console.WriteLine("Anything else or nothing to continue to Program");
             string choice = Console.ReadLine().Trim().ToLower();
             if (choice.EqualsString(""))
@@ -55,13 +56,30 @@ namespace CCAAutomation.App
                     WebIntegrationApp(true);
                 }
             }
-            else if (choice.EqualsString("c") || args.Contains("-c"))
+            else if (choice.EqualsString("c"))
             {
                 CompareXMLFiles();
             }
-            else if (choice.EqualsString("i") || args.Contains("-i"))
+            else if (choice.EqualsString("i"))
             {
                 ImportData();
+            }
+            else if (choice.EqualsString("r"))
+            {
+                GetRoomsceneFromXml();
+            }
+        }
+
+        private static void GetRoomsceneFromXml()
+        {
+            Console.WriteLine("XML Folder location...");
+            string xmlFolder = Console.ReadLine().Replace("\"", "");
+            Console.WriteLine("LAR File location...");
+            string larFile = Console.ReadLine().Replace("\"", "");
+            if (Directory.Exists(xmlFolder) && File.Exists(larFile))
+            {
+                string[] xmlFileArray = Directory.GetFiles(xmlFolder, "*.xml", SearchOption.AllDirectories);
+                CreateListOfRoomscenes(xmlFileArray, larFile);
             }
         }
 

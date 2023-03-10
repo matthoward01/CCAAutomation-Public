@@ -30,6 +30,22 @@ namespace CCAAutomation.Lib
 
             return newString.ToLower();
         }
+
+        public static (string plateId, string roomsceneName) GetRoomSceneFromXml(string xmlFile)
+        {
+            XmlDocument doc = new XmlDocument();
+            string xmlPath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), xmlFile);
+            doc.Load(xmlPath);
+            XmlNode jobNameNode = doc.DocumentElement.SelectSingleNode("//*[name() = '" + "output" + "']");
+            XmlNode roomsceneNode = doc.DocumentElement.SelectSingleNode("//*[name() = '" + "roomscene" + "']");
+
+            string plateId = jobNameNode.Attributes["jobname"].Value;
+            string roomsceneName = roomsceneNode.InnerText; 
+
+            return (plateId, roomsceneName);
+
+        }
+
         public static string XmlRemapping(string passedString, string nodeName, string attribute, bool addPath)
         {
             string newString = passedString.Trim();

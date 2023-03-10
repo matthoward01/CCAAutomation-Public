@@ -2,10 +2,10 @@
 @page "/{offset:int?}"
 @using CCAAutomation.Lib;
 @using System.IO;
-@inject IJSRuntime JS
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 
 <h1>CCA Automation Web</h1>
-<p>    
+<p>
     <label>Search: @thisIp</label>
     <input class="form-text" @bind-value="search" @bind-value:event="oninput" size="150" name="search" type="text" placeholder="Search" />
 </p>
@@ -20,11 +20,11 @@
     <input type="checkbox" class="form-check-inline" @bind-value="showQuestions" @bind-value:event="onchange" name="showQuestions" />
     <label>Rejections Only:</label>
     <input type="checkbox" class="form-check-inline" @bind-value="showRejections" @bind-value:event="onchange" name="showRejections" />
-    <button class="@hsButton" @onclick="@(() => { SetType("hs"); })">Hardsurface</button>
-    <button class="@ssButton" @onclick="@(() => { SetType("ss"); })">Softsurface</button><br />
+    <button class="@hsButton" @onclick="@(async () => { await SetType("hs"); })">Hardsurface</button>
+    <button class="@ssButton" @onclick="@(async () => { await SetType("ss"); })">Softsurface</button><br />
     <AuthorizeView>
         <Authorized>
-            <table width="100%">
+            <table width="100%" class="table table-hover table-sm">
                 <tr>
                     <td width="10%">
                         Selected: @bulkEditList.Count()
@@ -79,25 +79,25 @@
     {
         <tbody>
             @if ((showRejections && wti.Status.ToLower().Trim().Equals("rejected") &&
-              (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
-               (showApprovals && wti.Status.ToLower().Trim().Equals("approved") &&
-              (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
-               (showApprovalsPending && wti.Status.ToLower().Trim().Equals("approved pending") &&
-              (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
-               (showQuestions && wti.Status.ToLower().Trim().Equals("questions") &&
-              (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
-              (showRejections && wti.Status.ToLower().Trim().Equals("reprint-rejected") &&
-              (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
-               (showApprovals && wti.Status.ToLower().Trim().Equals("reprint-approved") &&
-              (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
-               (showApprovalsPending && wti.Status.ToLower().Trim().Equals("reprint-approved pending") &&
-              (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
-               (showQuestions && wti.Status.ToLower().Trim().Equals("reprint-questions") &&
-              (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
-               (showChanges && !wti.Change.ToLower().Trim().Equals("") &&
-              (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
-               ((wti.SearchTags.ToLower().Contains(search.ToLower()) ||
-              wti.Status.ToLower().Contains(search.ToLower())) && !showChanges && !showApprovals && !showApprovalsPending && !showRejections && !showQuestions))
+             (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+              (showApprovals && wti.Status.ToLower().Trim().Equals("approved") &&
+             (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+              (showApprovalsPending && wti.Status.ToLower().Trim().Equals("approved pending") &&
+             (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+              (showQuestions && wti.Status.ToLower().Trim().Equals("questions") &&
+             (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+             (showRejections && wti.Status.ToLower().Trim().Equals("reprint-rejected") &&
+             (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+              (showApprovals && wti.Status.ToLower().Trim().Equals("reprint-approved") &&
+             (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+              (showApprovalsPending && wti.Status.ToLower().Trim().Equals("reprint-approved pending") &&
+             (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+              (showQuestions && wti.Status.ToLower().Trim().Equals("reprint-questions") &&
+             (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+              (showChanges && !wti.Change.ToLower().Trim().Equals("") &&
+             (wti.SearchTags.ToLower().Contains(search.ToLower()))) ||
+              ((wti.SearchTags.ToLower().Contains(search.ToLower()) ||
+             wti.Status.ToLower().Contains(search.ToLower())) && !showChanges && !showApprovals && !showApprovalsPending && !showRejections && !showQuestions))
             {
                 <tr class="@TableClass(wti.Status)">
                     <AuthorizeView>
@@ -254,15 +254,49 @@
     private bool plateSortAsc = false;
     private bool isSoftsurface = false;
     private string isChecked = "";
-    private string hsButton = "btn btn-dark";
+    private string hsButton = "btn btn-light";
     private string ssButton = "btn btn-light";
+    private string type = "";
     static List<LarModels.WebTableItem> webTableItems = new();
     static List<LarModels.Labels> labelsList = new();
     static List<string> colorList = new();
 
     protected override async Task OnInitializedAsync()
     {
+        type = await sessionStorage.GetItemAsync<string>("type");
+        if(type.EqualsString(""))
+        {
+            await sessionStorage.SetItemAsync("type", "hs");
+        }
+
+        if (type.EqualsString("ss"))
+        {
+            isSoftsurface = true;
+            hsButton = "btn btn-light";
+            ssButton = "btn btn-dark";
+        }
+        else
+        {
+            isSoftsurface = false;
+            hsButton = "btn btn-dark";
+            ssButton = "btn btn-light";
+        }
         await IngestSql();
+    }
+
+    async Task RecordType()
+    {
+        if (!type.EqualsString(""))
+        {
+            if (isSoftsurface)
+            {
+                await sessionStorage.SetItemAsync("type", "ss");
+            }
+            else
+            {
+                await sessionStorage.SetItemAsync("type", "hs");
+            }
+        }
     }
 
     Task IngestSql()
@@ -273,14 +307,7 @@
         //{
         //    GetTableItem(p);
         //}
-        GetIP();
         return Task.CompletedTask;
-    }
-
-    private async Task GetIP()
-    {
-        thisIp  = await JS.InvokeAsync<string>("getUserAgent");
-        thisIp = thisIp;
     }
 
     private bool Toggle()
@@ -315,21 +342,26 @@
         colorList = SqlMethods.SqlSelectSwatchColors(sampleId, isSoftsurface);
     }
 
-    private void SetType(string type)
+    //private void SetType(string type)
+    private async Task SetType(string type)
     {
         if (type.EqualsString("hs"))
         {
             isSoftsurface = false;
             hsButton = "btn btn-dark";
             ssButton = "btn btn-light";
-            IngestSql();
+            //await RecordType();
+            await sessionStorage.SetItemAsync("type", "hs");
+            await IngestSql();
         }
         if (type.EqualsString("ss"))
         {
             isSoftsurface = true;
             hsButton = "btn btn-light";
             ssButton = "btn btn-dark";
-            IngestSql();
+            //await RecordType();
+            await sessionStorage.SetItemAsync("type", "ss");
+            await IngestSql();
         }
     }
 

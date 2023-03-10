@@ -16,10 +16,10 @@ namespace CCAAutomation.Lib
 
         private static void SqlConnect(string db)
         {
-            server = "xxxxxxxxx";
+            server = "xxxxxxxx";
             database = db;
-            uid = "xxxxxxxxxxx";
-            password = "xxxxxxxxx";
+            uid = "xxxxxxxx";
+            password = "xxxxxxx";
 
             string connectionString =
                 "Data Source = " + server + ";" +

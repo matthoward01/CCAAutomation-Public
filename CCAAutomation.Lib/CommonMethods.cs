@@ -14,6 +14,71 @@ namespace CCAAutomation.Lib
 {
     public class CommonMethods
     {
+        public static void CreateListOfRoomscenes(string[] xmlFiles, string larFile)
+        {
+            Settings.MainSettings mainSettings = Settings.GetMainSettings();
+            string webShopRoomscenes = mainSettings.WebShopRoomScenes;
+            string approvedRoomscenes = mainSettings.ApprovedRoomScenes;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                webShopRoomscenes = OsXPathConversion(webShopRoomscenes);
+                approvedRoomscenes = OsXPathConversion(approvedRoomscenes);
+            }
+            string[] files = Directory.GetFiles(webShopRoomscenes, "*", SearchOption.AllDirectories);
+            string export = "";
+            List<string> roomsceneList = new();
+            foreach (string s in xmlFiles)
+            {
+                var results = XmlMethods.GetRoomSceneFromXml(s);
+                string plateId = results.plateId;
+                string roomsceneName = results.roomsceneName;
+                roomsceneName = roomsceneName.Replace(":", "/");
+                roomsceneName = Path.GetFileName(roomsceneName);
+                export = Path.GetDirectoryName(s);
+                using (StreamWriter textFile = new(Path.Combine(export, "RoomscenesesFromXml.txt"), append: true))
+                {
+                    textFile.WriteLine(plateId + "|" + roomsceneName);
+                }
+            }
+            using (StreamReader roomsceneListReader = new(Path.Combine(export, "RoomscenesesFromXml.txt")))
+            {
+                while (!roomsceneListReader.EndOfStream)
+                {
+                    roomsceneList.Add(roomsceneListReader.ReadLine());
+                }
+            }
+            LarModels.LARXlsSheet LARXlsSheet = Lar.GetLar(larFile);
+            foreach (string s in roomsceneList)
+            {
+                string plateId = s.Split('|')[0];
+                string roomsceneName = s.Split('|')[1];
+
+                int mpidIndex = LARXlsSheet.DetailsList.FindIndex(s => (s.Plate_ID_BL.EqualsString("") && s.Division_List.ToLower().Contains("c1")));
+                if (mpidIndex != -1)
+                {
+                    string mpid = LARXlsSheet.DetailsList[mpidIndex].Merchandised_Product_Color_ID;
+                    int roomsceneIndex = Array.IndexOf(files, roomsceneName);
+                    if (roomsceneIndex != -1)
+                    {
+                        if (File.Exists(files[roomsceneIndex]))
+                        {
+                            string newName = mpid + "_" + roomsceneName;
+                            Console.WriteLine("Copying " + newName + "to Approved Roomscenes...");
+                            File.Copy(files[roomsceneIndex], Path.Combine(approvedRoomscenes, newName));
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Roomscene not under Webshop Roomscenes...");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Mpid not found...");
+                }
+            }
+        }
         /// <summary>
         /// Convert a fraction to a decimal
         /// </summary>

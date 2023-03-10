@@ -1,3 +1,4 @@
+using Blazored.SessionStorage;
 using CCAAutomation.Web.Areas.Identity;
 using CCAAutomation.Web.Data;
 using Microsoft.AspNetCore.Builder;
@@ -41,6 +42,7 @@ namespace CCAAutomation.Web
             services.AddServerSideBlazor();
             services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
             services.AddDatabaseDeveloperPageExceptionFilter();
+            services.AddBlazoredSessionStorage();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
