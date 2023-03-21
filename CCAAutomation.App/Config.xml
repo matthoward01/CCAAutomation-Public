@@ -40,6 +40,16 @@
 			<Element>nourison</Element>
 			<Element>ahf, llc</Element>
 		</InsiteCustomer>
+		<InsiteCustomer name="CCA_HS_AUTO_FL">
+			<Element>dixie group - fl</Element>
+			<Element>mohawk industries - fl</Element>
+			<Element>shaw industries - fl</Element>
+			<Element>stanton carpet corp. - fl</Element>
+			<Element>mannington - fl</Element>
+			<Element>beaulieu canada - fl</Element>
+			<Element>nourison - fl</Element>
+			<Element>ahf, llc - fl</Element>
+		</InsiteCustomer>
 		<InsiteCustomer name="CCA_SS_Auto">
 			<Element>beaulieu canada - ss</Element>
 			<Element>dixie group - ss</Element>
@@ -263,6 +273,10 @@
 			<Elements>Edge/End: Rolled Profile</Elements>
 			<Elements>Edge/End:  Rolled Profile</Elements>
 		</Image>
+		<Image name="Profile - Square.eps" priority="03" path="Characteristics:">
+			<Elements>Edge/End: Square Profile</Elements>
+			<Elements>Edge/End:  Square Profile</Elements>
+		</Image>
 		<Image name="Appearance - Smooth.eps" priority="04" path="Characteristics:">
 			<Elements>Appearance: Smooth</Elements>
 			<Elements>Appearance:  Smooth</Elements>
@@ -363,6 +377,9 @@
 		<Image name="Installation - Radiant Heat.eps" priority="21" path="Installation:">
 			<Elements>Installation:  Radiant Heat</Elements>
 			<Elements>Installation: Radiant Heat</Elements>
+		</Image>
+		<Image name="Trim - Base-Shoe.eps" priority="01" path="Trim Style:">
+			<Elements>Trim: Base/Shoe</Elements>
 		</Image>
 		<Image name="Trim - End Molding.eps" priority="01" path="Trim Style:">
 			<Elements>Trim: End Molding</Elements>
@@ -498,6 +515,9 @@
 		<Category name="hardwood">
 			<Element>wood</Element>
 		</Category>
+		<Category name="hardwood multi-widths">
+			<Element>wood - multi</Element>
+		</Category>
 		<Category name="lvt">
 			<Element>vinyl tile</Element>
 		</Category>
@@ -563,11 +583,17 @@
 			<Width name="5.87in.eps">
 				<Element>5.87</Element>
 			</Width>
+			<Width name="5.88in.eps">
+				<Element>5.88</Element>
+			</Width>
 			<Width name="5.91in.eps">
 				<Element>5.91</Element>
 			</Width>
 			<Width name="5.60in.eps">
 				<Element>5.60</Element>
+			</Width>
+			<Width name="5.63in.eps">
+				<Element>5.63</Element>
 			</Width>
 			<Width name="6 1-2in.eps">
 				<Element>6 1/2</Element>
@@ -607,6 +633,10 @@
 			<Width name="7 9-16in.eps">
 				<Element>7 9/16</Element>
 			</Width>
+			<Width name="7.08in.eps">
+				<Element>7.08</Element>
+				<Element>7.080</Element>
+			</Width>
 			<Width name="7.09in.eps">
 				<Element>7.09</Element>
 				<Element>7.090</Element>
@@ -626,6 +656,10 @@
 			</Width>
 			<Width name="7.476in.eps">
 				<Element>7.476</Element>
+			</Width>
+			<Width name="7.46in.eps">
+				<Element>7.46</Element>
+				<Element>7.460</Element>
 			</Width>
 			<Width name="7.48in.eps">
 				<Element>7.48</Element>
@@ -651,10 +685,22 @@
 				<Element>8.34</Element>
 				<Element>8.340</Element>
 			</Width>
+			<Width name="8.35in.eps">
+				<Element>8.35</Element>
+				<Element>8.350</Element>
+			</Width>
 			<Width name="8.40in.eps">
 				<Element>8.4</Element>
 				<Element>8.40</Element>
 				<Element>8.400</Element>
+			</Width>
+			<Width name="8.66in.eps">
+				<Element>8.66</Element>
+				<Element>8.660</Element>
+			</Width>
+			<Width name="8.98in.eps">
+				<Element>8.98</Element>
+				<Element>8.980</Element>
 			</Width>
 			<Width name="8.70in.eps">
 				<Element>8.7</Element>
@@ -789,6 +835,13 @@
 				<Element>47.20</Element>
 				<Element>47.2</Element>
 			</Length>
+			<Length name="47.24in.eps">
+				<Element>47.24</Element>
+			</Length>
+			<Length name="47.80in.eps">
+				<Element>47.80</Element>
+				<Element>47.8</Element>
+			</Length>
 			<Length name="48.03in.eps">
 				<Element>48.03</Element>
 				<Element>48.030</Element>
@@ -797,8 +850,10 @@
 				<Element>48</Element>
 				<Element>48.000</Element>
 			</Length>
-			<Length name="50.5in.eps">
+			<Length name="50 1-2in.eps">
 				<Element>50.5</Element>
+				<Element>50-1/2</Element>
+				<Element>50 1/2</Element>
 			</Length>
 			<Length name="50.50in.eps">
 				<Element>50.50</Element>
@@ -816,6 +871,9 @@
 				<Element>54.3</Element>
 				<Element>54.30</Element>
 				<Element>54.300</Element>
+			</Length>
+			<Length name="54.33in.eps">
+				<Element>54.33</Element>
 			</Length>
 			<Length name="55.91in.eps">
 				<Element>55.91</Element>
@@ -835,6 +893,11 @@
 			<Length name="60in.eps">
 				<Element>60</Element>
 				<Element>60.000</Element>
+			</Length>
+			<Length name="72.01in.eps">
+				<Element>72.014</Element>
+				<Element>72.010</Element>				
+				<Element>72.010000000000005</Element>				
 			</Length>
 			<Length name="72.04in.eps">
 				<Element>72.04</Element>
@@ -859,6 +922,12 @@
 				<Element>80.7</Element>
 				<Element>80.70</Element>
 				<Element>80.700</Element>
+			</Length>
+			<Length name="80.71in.eps">
+				<Element>80.7</Element>
+				<Element>80.70</Element>
+				<Element>80.700</Element>
+				<Element>80.709999999999994</Element>
 			</Length>
 			<Length name="81in.eps">
 				<Element>81</Element>
@@ -962,6 +1031,10 @@
 			<Thickness name="5.20mm.eps">
 				<Element>5.2 millimeters</Element>
 				<Element>5.200 millimeters</Element>
+			</Thickness>
+			<Thickness name="4.5mm.eps">
+				<Element>4.5 millimeters</Element>
+				<Element>4.500 millimeters</Element>
 			</Thickness>
 			<Thickness name="5mm.eps">
 				<Element>5 millimeters</Element>

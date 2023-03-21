@@ -14,11 +14,11 @@ namespace CCAAutomation.Lib
 {
     public class CommonMethods
     {
-        public static void CreateListOfRoomscenes(string[] xmlFiles, string larFile)
+        public static void CreateListOfRoomscenes(string[] xmlFiles, string larFile, string program, bool isSoftSurface)
         {
             Settings.MainSettings mainSettings = Settings.GetMainSettings();
             string webShopRoomscenes = mainSettings.WebShopRoomScenes;
-            string approvedRoomscenes = mainSettings.ApprovedRoomScenes;
+            string approvedRoomscenes = mainSettings.ApprovedRoomScenes;            
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
@@ -27,6 +27,11 @@ namespace CCAAutomation.Lib
             }
             string[] files = Directory.GetFiles(webShopRoomscenes, "*", SearchOption.AllDirectories);
             string export = "";
+            export = Path.GetDirectoryName(xmlFiles[0]);
+            if (File.Exists(Path.Combine(export, "RoomscenesesFromXml.txt")))
+            {
+                File.Delete(Path.Combine(export, "RoomscenesesFromXml.txt"));
+            }
             List<string> roomsceneList = new();
             foreach (string s in xmlFiles)
             {
@@ -35,7 +40,7 @@ namespace CCAAutomation.Lib
                 string roomsceneName = results.roomsceneName;
                 roomsceneName = roomsceneName.Replace(":", "/");
                 roomsceneName = Path.GetFileName(roomsceneName);
-                export = Path.GetDirectoryName(s);
+                
                 using (StreamWriter textFile = new(Path.Combine(export, "RoomscenesesFromXml.txt"), append: true))
                 {
                     textFile.WriteLine(plateId + "|" + roomsceneName);
@@ -51,21 +56,45 @@ namespace CCAAutomation.Lib
             LarModels.LARXlsSheet LARXlsSheet = Lar.GetLar(larFile);
             foreach (string s in roomsceneList)
             {
+                Console.WriteLine("--------------------------------------");
                 string plateId = s.Split('|')[0];
+                Console.WriteLine(plateId);
                 string roomsceneName = s.Split('|')[1];
-
-                int mpidIndex = LARXlsSheet.DetailsList.FindIndex(s => (s.Plate_ID_BL.EqualsString("") && s.Division_List.ToLower().Contains("c1")));
-                if (mpidIndex != -1)
+                Console.WriteLine(roomsceneName);
+                int mpidIndex = -1;
+                if (!isSoftSurface)
                 {
-                    string mpid = LARXlsSheet.DetailsList[mpidIndex].Merchandised_Product_Color_ID;
-                    int roomsceneIndex = Array.IndexOf(files, roomsceneName);
+                    mpidIndex = LARXlsSheet.DetailsList.FindIndex(s => (s.Plate_ID.EqualsString(plateId) && s.Division_List.ToLower().Contains("c1")));
+                }
+                if (mpidIndex != -1 || isSoftSurface)
+                {
+                    int roomsceneIndex = files.ToList().FindIndex(s => s.ToLower().EndsWith(roomsceneName.ToLower()));
                     if (roomsceneIndex != -1)
                     {
                         if (File.Exists(files[roomsceneIndex]))
                         {
-                            string newName = mpid + "_" + roomsceneName;
-                            Console.WriteLine("Copying " + newName + "to Approved Roomscenes...");
-                            File.Copy(files[roomsceneIndex], Path.Combine(approvedRoomscenes, newName));
+                            string newName = roomsceneName;
+                            if (!isSoftSurface)
+                            {
+                                string mpid = LARXlsSheet.DetailsList[mpidIndex].Merchandised_Product_Color_ID;
+                                Console.WriteLine(mpid);
+                                if (!roomsceneName.StartsWith(mpid))
+                                {
+                                    newName = mpid + "_" + roomsceneName;
+                                }
+                                Console.WriteLine(newName);
+                            }
+
+                            Directory.CreateDirectory(Path.Combine(approvedRoomscenes, program));
+                            Console.WriteLine("Copying " + newName + " to Approved Roomscenes...");
+                            if (!File.Exists(Path.Combine(approvedRoomscenes, program, newName)))
+                            {
+                                File.Copy(files[roomsceneIndex], Path.Combine(approvedRoomscenes, program, newName));
+                            }
+                            else
+                            {
+                                Console.WriteLine(newName + " already Exists...");
+                            }
                         }
                     }
                     else
@@ -77,6 +106,7 @@ namespace CCAAutomation.Lib
                 {
                     Console.WriteLine("Mpid not found...");
                 }
+                Console.WriteLine("--------------------------------------");
             }
         }
         /// <summary>
@@ -654,6 +684,16 @@ namespace CCAAutomation.Lib
 
             return xmlData;
         }
+        public static void CreateDeleteXML(string export, string jobName)
+        {
+            List<string> xmlData = new();
+
+            xmlData.Add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+            xmlData.Add("   <RBAImpTest xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">");
+            xmlData.Add("       <JobName>" + jobName + "</JobName>");
+            xmlData.Add("	</RBAImpTest>");            
+            ExportXML(jobName, xmlData, export, "Delete XML");
+        }
 
         /// <summary>
         ///     Created the XML to update the WorkShop job with Insite information.
@@ -997,6 +1037,19 @@ public static class Extensions
 }
 static class EnumerableExtensions
 {
+    public static IEnumerable<TSource> DistinctBy<TSource, TKey>
+    (this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
+    {
+        HashSet<TKey> seenKeys = new HashSet<TKey>();
+        foreach (TSource element in source)
+        {
+            if (seenKeys.Add(keySelector(element)))
+            {
+                yield return element;
+            }
+        }
+    }
+
     public static T MaxObject<T, U>(this IEnumerable<T> source, Func<T, U> selector)
       where U : IComparable<U>
     {

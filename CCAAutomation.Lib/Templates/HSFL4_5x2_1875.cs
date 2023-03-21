@@ -78,7 +78,7 @@ namespace CCAAutomation.Lib
             xmlData.Add("		<indd>");
             xmlData.Add("			<string>\\\\MAG1PVSF7\\WebShop\\InputPDF\\" + jobName + ".indd</string>");
             xmlData.Add("		</indd>");
-            xmlData.AddRange(InsiteXMLSnippet("", "FL", lARFinal.DetailsFinal.Supplier_Name, lARFinal.DetailsFinal.Division_List, styleName, ConvertToTitleCase(lARFinal.DetailsFinal.Merch_Color_Name), Path.GetFileNameWithoutExtension(template.Replace(":", "\\"))));
+            xmlData.AddRange(InsiteXMLSnippet(" - fl", "FL", lARFinal.DetailsFinal.Supplier_Name, lARFinal.DetailsFinal.Division_List, styleName, ConvertToTitleCase(lARFinal.DetailsFinal.Merch_Color_Name), Path.GetFileNameWithoutExtension(template.Replace(":", "\\"))));
             xmlData.Add("	</job>");
             xmlData.Add("</jobs>");
 
@@ -98,6 +98,7 @@ namespace CCAAutomation.Lib
             {
                 ExportXML(jobName, xmlData, export, "WorkShop XML");
                 ExportXML(jobName, xmlData, export, "WebShop XML");
+                CreateDeleteXML(export, jobName);
             }
 
             return missingImages;

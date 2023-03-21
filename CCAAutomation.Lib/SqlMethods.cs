@@ -16,10 +16,10 @@ namespace CCAAutomation.Lib
 
         private static void SqlConnect(string db)
         {
-            server = "xxxxxxxx";
+            server = "xxxxxxxxx";
             database = db;
-            uid = "xxxxxxxx";
-            password = "xxxxxxx";
+            uid = "xxxxxxxxx";
+            password = "xxxxxxxxx";
 
             string connectionString =
                 "Data Source = " + server + ";" +
@@ -1157,9 +1157,9 @@ namespace CCAAutomation.Lib
                             "Our_Price, Our_Price_Canada, RRP_US, Sampling_Color_Description, Split_Board, " +
                             "Trade_Up, Wood_Imaging, Sample_Note) " +
                             "VALUES('" + s.Sample_ID + "', '" + s.Sample_Name.Replace("'", "''") + "', '" + s.Sample_Size + "', '" + s.Sample_Type + "', " +
-                            "'" + s.Sampled_Color_SKU + "', '" + s.Shared_Card + "', '" + s.Sampled_With_Merch_Product_ID + "', '" + s.Quick_Ship + "', '" + s.Binder + "', " +
+                            "'" + s.Sampled_Color_SKU.Replace("'", "''") + "', '" + s.Shared_Card + "', '" + s.Sampled_With_Merch_Product_ID + "', '" + s.Quick_Ship + "', '" + s.Binder + "', " +
                             "'" + s.Border + "', '" + s.Character_Rating_by_Color + "', '" + s.Feeler.Replace("'", "''") + "', '" + s.MSRP + "', '" + s.MSRP_Canada + "', " +
-                            "'" + s.Our_Price + "', '" + s.Our_Price_Canada + "', '" + s.RRP_US + "', '" + s.Sampling_Color_Description + "', '" + s.Split_Board + "', " +
+                            "'" + s.Our_Price + "', '" + s.Our_Price_Canada + "', '" + s.RRP_US + "', '" + s.Sampling_Color_Description + "', '" + s.Split_Board.Replace("'", "''") + "', " +
                             "'" + s.Trade_Up + "', '" + s.Wood_Imaging + "', '" + s.Sample_Note + "')";
                 }
                 else

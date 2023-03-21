@@ -119,7 +119,7 @@
                     </AuthorizeView>
                     <td width="10%" @onclick="() => wti.ShowRow = !wti.ShowRow">@wti.Plate_ID <br /> <i>(@wti.Sample_ID)</i></td>
                     <td width="40%">
-                        @wti.Style<br />
+                        @wti.Style - @wti.Feeler<br />
                         @if (!wti.Console.Count.Equals(0))
                         {
                             <b>Console:</b><br />

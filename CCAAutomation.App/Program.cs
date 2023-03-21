@@ -32,6 +32,7 @@ namespace CCAAutomation.App
             Console.WriteLine("\"s\" to make shaw versions for approval.");
             Console.WriteLine("\"i\" to update the roomscene array.");
             Console.WriteLine("\"r\" to get roomscene names from xml.");
+            Console.WriteLine("\"pdf\" to create PDF LAR for MAS.");
             Console.WriteLine("Anything else or nothing to continue to Program");
             string choice = Console.ReadLine().Trim().ToLower();
             if (choice.EqualsString(""))
@@ -68,6 +69,31 @@ namespace CCAAutomation.App
             {
                 GetRoomsceneFromXml();
             }
+            else if (choice.EqualsString("pdf"))
+            {
+                MakeLarPdf();
+            }
+        }
+
+        private static void MakeLarPdf()
+        {
+            Console.WriteLine("LAR XLS File...");
+            string larFile = Console.ReadLine().Replace("\"", "");
+            bool go = true;
+            while (go)
+            {
+                Console.WriteLine("Sample Id...");
+                string sampleId = Console.ReadLine().Replace("\"", "");
+                if (sampleId.EqualsString("stop"))
+                {
+                    go = false;
+                }
+                else
+                {
+                    LarPdf.GetInfo(larFile, sampleId);
+                }
+            }
+            StartupChoices();
         }
 
         private static void GetRoomsceneFromXml()
@@ -76,10 +102,20 @@ namespace CCAAutomation.App
             string xmlFolder = Console.ReadLine().Replace("\"", "");
             Console.WriteLine("LAR File location...");
             string larFile = Console.ReadLine().Replace("\"", "");
+            Console.WriteLine("Program name?...");
+            string program = Console.ReadLine().Replace("\"", "");
+            Console.WriteLine("Softsurface? (y/n)...(Default is n)");
+            string isSoftsurfaceResult = Console.ReadLine().Replace("\"", "");
+            bool isSoftsurface = false; 
+            if (isSoftsurfaceResult.EqualsString("y"))
+            {
+                isSoftsurface = true;
+            }
+
             if (Directory.Exists(xmlFolder) && File.Exists(larFile))
             {
                 string[] xmlFileArray = Directory.GetFiles(xmlFolder, "*.xml", SearchOption.AllDirectories);
-                CreateListOfRoomscenes(xmlFileArray, larFile);
+                CreateListOfRoomscenes(xmlFileArray, larFile, program, isSoftsurface);
             }
         }
 

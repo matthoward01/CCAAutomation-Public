@@ -36,6 +36,11 @@ namespace CCAAutomation.Lib
             string imagesPath = mainPath + settings.ImagesPath;
             string category = XmlRemapping(lARFinal.DetailsFinal.Taxonomy.ToLower(), "Categories");
             string snippetCategory = "category:" + category + ".idms" + "<!--Taxonomy-->";
+            if (lARFinal.SampleFinal.Sample_Note.ToLower().Contains("available"))
+            {
+                snippetCategory = "category:" + XmlRemapping(lARFinal.DetailsFinal.Taxonomy.ToLower() + " - multi", "Categories") + ".idms";
+            }            
+            
             string snippetWarranties = "warranties:" + XmlRemapping(lARFinal.DetailsFinal.Division_Rating.ToLower(), "Ratings") + " " + category + ".idms" + "<!--Division_Rating-->";
             string styleName = ConvertToTitleCase(lARFinal.SampleFinal.Sample_Name.Trim());
 
@@ -106,7 +111,7 @@ namespace CCAAutomation.Lib
                 roomScene = "FPOwaitingonroom.tif" + "<!--Roomscene skipped-->";
             }
 
-            List<string> specList = GetSpecList(lARFinal.DetailsFinal);
+            List<string> specList = GetSpecList(lARFinal.DetailsFinal, lARFinal.SampleFinal);
             List<string> xmlData = new();
 
             xmlData.Add("<jobs>");
@@ -215,6 +220,7 @@ namespace CCAAutomation.Lib
                 {
                     textFile.WriteLine(jobName + "|" + lARFinal.DetailsFinal.Sample_ID + "|" + styleName + "|" + lARFinal.DetailsFinal.Supplier_Name + "|" + roomScene);
                 }
+                CreateDeleteXML(export, jobName);
                 HSFL4_5x2_1875.CreateXMLHS4_5x2_1875(lARFinal, export);
             }
             if (roomScene.Contains("FPOwaitingonroom"))
@@ -419,7 +425,7 @@ namespace CCAAutomation.Lib
             return installationList;
         }
 
-        private static List<string> GetSpecList(Details details)
+        private static List<string> GetSpecList(Details details, Sample sample)
         {
             List<string> specs = new();
             specs.Add(ConvertToTitleCase(details.Merch_Color_Name) + "<!--Merch_Color_Name-->");
@@ -560,6 +566,11 @@ namespace CCAAutomation.Lib
                 //specs.Add("" + "<!--Laminate?? No idea what should do here if anything.-->");
             }
             specs.Add(details.CcaSkuId + "<!--CCASKUID-->");
+
+            if (sample.Sample_Note.ToLower().Contains("available"))
+            {
+                specs.Add("Also " + sample.Sample_Note);
+            }
 
             return specs;
         }

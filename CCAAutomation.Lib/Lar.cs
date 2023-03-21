@@ -263,6 +263,7 @@ namespace CCAAutomation.Lib
             details.Stain_Treatment = GetCell(sheet, i, detailHeaderList.IndexOf("Stain_Treatment"));
             details.Static_AATCC134 = GetCell(sheet, i, detailHeaderList.IndexOf("Static_AATCC134"));
             details.Stitches = GetCell(sheet, i, detailHeaderList.IndexOf("Stitches"));
+            details.Style_Color_Combo = GetCell(sheet, i, detailHeaderList.IndexOf("Style Color Combo"));
             details.Supplementary_SKUs = GetCell(sheet, i, detailHeaderList.IndexOf("Supplementary_SKUs"));
             details.Supplier_Product_Name = GetCell(sheet, i, detailHeaderList.IndexOf("Supplier_Product_Name"));
             details.Total_Weight = GetCell(sheet, i, detailHeaderList.IndexOf("Total_Weight"));

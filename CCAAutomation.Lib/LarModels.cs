@@ -116,6 +116,7 @@ namespace CCAAutomation.Lib
             public string Manufacturer_Feeler { get; set; } = "";
             public string Merch_Color_Number { get; set; } = "";
             public string Merchandised_SKU_Number { get; set; } = "";
+            public string Style_Color_Combo { get; set; } = "";
             public string Barcode { get; set; } = "";
             public string CcaSkuId { get; set; } = "";
             public string Size_UC { get; set; } = "";

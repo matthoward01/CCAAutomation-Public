@@ -6,17 +6,39 @@
 
   <ItemGroup>
     <None Remove="Config.xml" />
+    <None Remove="Fonts\GILB____.ttf" />
+    <None Remove="Fonts\GIL_____.ttf" />
+    <None Remove="GILB____.ttf" />
+    <None Remove="GIL_____.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Fonts\GILB____.ttf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Fonts\GIL_____.ttf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Config.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+    <EmbeddedResource Include="Fonts\GILB____.ttf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Fonts\GIL_____.ttf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="iTextSharp" Version="5.2.0" />
     <PackageReference Include="NPOI" Version="2.5.6" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
