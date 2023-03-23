@@ -16,10 +16,10 @@ namespace CCAAutomation.Lib
 
         private static void SqlConnect(string db)
         {
-            server = "xxxxxxxxx";
+            server = "xxxxxxxx";
             database = db;
-            uid = "xxxxxxxxx";
-            password = "xxxxxxxxx";
+            uid = "xxxxxxxx";
+            password = "xxxxxxx";
 
             string connectionString =
                 "Data Source = " + server + ";" +
@@ -509,11 +509,11 @@ namespace CCAAutomation.Lib
                     LarModels.Details details = new();
 
                     details.Plate_ID = dataReader.GetString(dataReader.GetOrdinal("Plate_#")).Trim();
-                    details.Plate_ID_BL = dataReader.GetString(dataReader.GetOrdinal("Back Label Plate #"));
-                    details.Plate_ID_FL = dataReader.GetString(dataReader.GetOrdinal("Face Label Plate #"));
+                    details.Plate_ID_BL = dataReader.GetString(dataReader.GetOrdinal("Back_Label_Plate_#"));
+                    details.Plate_ID_FL = dataReader.GetString(dataReader.GetOrdinal("Face_Label_Plate_#"));
                     if (details.Plate_ID_BL.EqualsString(""))
                     {
-                        details.Plate_ID_BL = dataReader.GetString(dataReader.GetOrdinal("Blanket Label Plate #"));
+                        details.Plate_ID_BL = dataReader.GetString(dataReader.GetOrdinal("Blanket_Label_Plate_#"));
                     }
                     if (details.Plate_ID.EqualsString(""))
                     {
@@ -521,14 +521,14 @@ namespace CCAAutomation.Lib
                     }
                     if (details.Plate_ID_FL.EqualsString(""))
                     {
-                        details.Plate_ID_FL = dataReader.GetString(dataReader.GetOrdinal("Face Plate Plate #"));
+                        details.Plate_ID_FL = dataReader.GetString(dataReader.GetOrdinal("Face_Plate_Plate_#"));
                     }
                     details.ArtType = dataReader.GetString(dataReader.GetOrdinal("Art_Type"));
-                    details.ArtType_BL = dataReader.GetString(dataReader.GetOrdinal("Art Type - BL"));
-                    details.ArtType_FL = dataReader.GetString(dataReader.GetOrdinal("Art Type - FL"));
+                    details.ArtType_BL = dataReader.GetString(dataReader.GetOrdinal("Art_Type_BL"));
+                    details.ArtType_FL = dataReader.GetString(dataReader.GetOrdinal("Art_Type_FL"));
                     if (details.ArtType_BL.EqualsString(""))
                     {
-                        details.ArtType_BL = dataReader.GetString(dataReader.GetOrdinal("Art_Type - BL"));
+                        details.ArtType_BL = dataReader.GetString(dataReader.GetOrdinal("Art_Type_BL"));
                     }
                     if (details.ArtType.EqualsString(""))
                     {
@@ -536,7 +536,7 @@ namespace CCAAutomation.Lib
                     }
                     if (details.ArtType_FL.EqualsString(""))
                     {
-                        details.ArtType_FL = dataReader.GetString(dataReader.GetOrdinal("Art Type - FP"));
+                        details.ArtType_FL = dataReader.GetString(dataReader.GetOrdinal("Art_Type_FP"));
                     }
                     details.Status = dataReader.GetString(dataReader.GetOrdinal("Status")).Trim();
                     details.Change = dataReader.GetString(dataReader.GetOrdinal("Change")).Trim();

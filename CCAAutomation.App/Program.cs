@@ -32,6 +32,7 @@ namespace CCAAutomation.App
             Console.WriteLine("\"s\" to make shaw versions for approval.");
             Console.WriteLine("\"i\" to update the roomscene array.");
             Console.WriteLine("\"r\" to get roomscene names from xml.");
+            Console.WriteLine("\"e\" email parsing for insite (WIP).");
             Console.WriteLine("\"pdf\" to create PDF LAR for MAS.");
             Console.WriteLine("Anything else or nothing to continue to Program");
             string choice = Console.ReadLine().Trim().ToLower();
@@ -69,10 +70,29 @@ namespace CCAAutomation.App
             {
                 GetRoomsceneFromXml();
             }
+            else if (choice.EqualsString("e"))
+            {
+                StartEmailParsing();
+            }
             else if (choice.EqualsString("pdf"))
             {
                 MakeLarPdf();
             }
+        }
+
+        private static void StartEmailParsing()
+        {
+            bool go = true;
+            while (go)
+            {
+                Console.WriteLine("Getting Emails...");
+                Email.ReadEmails();
+
+                Console.WriteLine("Checking for Run Jobs...");
+                WebIntegrationApp(false);
+
+                Thread.Sleep(300000);
+            }    
         }
 
         private static void MakeLarPdf()
@@ -199,14 +219,18 @@ namespace CCAAutomation.App
         }
 
         private static void WebIntegrationApp(bool isShaw)
-        {            
+        {   
+            Console.WriteLine("--------------------------------");
+
             try
             {
                 bool go = true;
                 List<string> missingImagesProc = new();
 
                 string export = "\\\\Mac\\Home\\Desktop\\CCA Test\\SQL Testing\\";
-                                
+
+                Directory.CreateDirectory(export);
+                
                 string[] files = ApprovedRoomscenes();
 
                 while (go)
@@ -216,7 +240,7 @@ namespace CCAAutomation.App
                     foreach (string j in runJobListHS)
                     {
                         LARXlsSheet LARXlsSheet = GetLar(false, j);
-                        missingImagesProc.AddRange(Run(isShaw, files, j, export, LARXlsSheet));
+                        missingImagesProc.AddRange(Run(isShaw, files, j + " /f", export, LARXlsSheet));
                         var uniqueMissing = missingImagesProc.Distinct();
                         foreach (string s in uniqueMissing)
                         {
@@ -228,7 +252,7 @@ namespace CCAAutomation.App
                     foreach (string j in runJobListSS)
                     {
                         LARXlsSheet LARXlsSheet = GetLar(true, j);
-                        missingImagesProc.AddRange(Run(isShaw, files, j, export, LARXlsSheet));
+                        missingImagesProc.AddRange(Run(isShaw, files, j + " /f", export, LARXlsSheet));
                         var uniqueMissing = missingImagesProc.Distinct();
                         foreach (string s in uniqueMissing)
                         {
@@ -237,13 +261,14 @@ namespace CCAAutomation.App
                         SqlMethods.SqlSetToRun(j, true, 0);
                         missingImagesProc = new();
                     }
-                    Thread.Sleep(10000);
+                    go = false;
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
             }
+            Console.WriteLine("--------------------------------");
         }
 
         private static void StandAloneApp(bool isShaw)

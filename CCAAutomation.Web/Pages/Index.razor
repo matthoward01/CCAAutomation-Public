@@ -442,8 +442,9 @@
         int index = webTableItems.FindIndex(s => s.Plate_ID == id);
         if (index != -1)
         {
-            webTableItems[index].Output = SqlMethods.SqlSetToRun(id, isSoftsurface, run);
-            CheckRunStatus();
+            webTableItems[index].Output = run;
+            SqlMethods.SqlSetToRun(id, isSoftsurface, run);
+            //CheckRunStatus();
         }
     }
 

@@ -4,8 +4,15 @@
 		<SyncFolder>\\MAG1PVWA2\CCA_Approved_Roomscenes\Approved_Roomscenes\</SyncFolder>
 		<SyncFolderProcessed>\\MAG1PVWA2\CCA_Approved_Roomscenes\Processed\</SyncFolderProcessed>
 		<ApprovedRoomScenes>\\MAG1PVSF4\Resources\Approved Roomscenes\CCA Automation 2.0\</ApprovedRoomScenes>
-		<WebShopRoomScenes>\\MAG1PVSF7\Webshop\webshop roomscenes\</WebShopRoomScenes>
+		<WebShopRoomScenes>\\MAG1PVSF7\Webshop\webshop roomscenes\</WebShopRoomScenes>	
 	</MainSettings>
+	<MailSettings>
+		<MailServer>imap.gmail.com</MailServer>
+		<Port>993</Port>
+		<SSL>true</SSL>
+		<User>matthoward.mktalliance@gmail.com</User>
+		<Password>zmnrkdbcaasyuaok</Password>
+	</MailSettings>
 	<Types>
 		<Type name="wood">		
 			<Element>hardwood</Element>
@@ -414,13 +421,13 @@
 		<Image name="Trim - Stair Tread.eps" priority="01" path="Trim Style:">
 			<Elements>Trim: Stair Tread</Elements>
 		</Image>
-		<Image name="Trim - T-mold.eps" priority="01" path="Trim Style:">
+		<Image name="Trim - T-mold.eps" priority="03" path="Trim Style:">
 			<Elements>Trim: T-Mold</Elements>
 		</Image>
-		<Image name="Trim - Threshold.eps" priority="01" path="Trim Style:">
+		<Image name="Trim - Threshold.eps" priority="02" path="Trim Style:">
 			<Elements>Trim: Threshold</Elements>
 		</Image>
-		<Image name="Trim - Wall Base.eps" priority="02" path="Trim Style:">
+		<Image name="Trim - Wall Base.eps" priority="04" path="Trim Style:">
 			<Elements>Trim: Wall Base</Elements>
 			<Elements>Trim: Bullnose</Elements>
 		</Image>

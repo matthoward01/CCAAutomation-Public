@@ -36,9 +36,17 @@ namespace CCAAutomation.Lib
             public string ApprovedRoomScenes { get; set; }
             public string WebShopRoomScenes { get; set; }
             public bool UseSql { get; set; }
-        }   
+        }
+        public class MailSettings
+        {
+            public string MailServer { get; set; } = "";
+            public int Port { get; set; } = 0;
+            public bool SSL { get; set; } = true;
+            public string User { get; set; } = "";
+            public string Password { get; set; } = "";
+        }
 
-		public class RunSheet
+        public class RunSheet
         {
             public string Plate_ID { get; set; }
         }
@@ -51,15 +59,29 @@ namespace CCAAutomation.Lib
             doc.Load(xmlPath);
             XmlNode mainSettingNode = doc.DocumentElement.SelectSingleNode("MainSettings");
 
-            //foreach (XmlNode node in mainSettingNode.ChildNodes)
-            //{
-                mainSettings.ApprovedRoomScenes = mainSettingNode.SelectSingleNode("ApprovedRoomScenes").InnerText;
-                mainSettings.SyncFolder = mainSettingNode.SelectSingleNode("SyncFolder").InnerText;
-                mainSettings.SyncFolderProcessed = mainSettingNode.SelectSingleNode("SyncFolderProcessed").InnerText;
-                mainSettings.WebShopRoomScenes = mainSettingNode.SelectSingleNode("WebShopRoomScenes").InnerText;
-            //}
+            mainSettings.ApprovedRoomScenes = mainSettingNode.SelectSingleNode("ApprovedRoomScenes").InnerText;
+            mainSettings.SyncFolder = mainSettingNode.SelectSingleNode("SyncFolder").InnerText;
+            mainSettings.SyncFolderProcessed = mainSettingNode.SelectSingleNode("SyncFolderProcessed").InnerText;
+            mainSettings.WebShopRoomScenes = mainSettingNode.SelectSingleNode("WebShopRoomScenes").InnerText;
 
             return mainSettings;
+        }
+
+        public static MailSettings GetMailSettings()
+        {
+            MailSettings mailSettings = new();
+            XmlDocument doc = new();
+            string xmlPath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Config.xml");
+            doc.Load(xmlPath);
+            XmlNode mainSettingNode = doc.DocumentElement.SelectSingleNode("MailSettings");
+
+            mailSettings.MailServer = mainSettingNode.SelectSingleNode("MailServer").InnerText;
+            mailSettings.Port = int.Parse(mainSettingNode.SelectSingleNode("Port").InnerText);
+            mailSettings.SSL = bool.Parse(mainSettingNode.SelectSingleNode("SSL").InnerText);
+            mailSettings.User = mainSettingNode.SelectSingleNode("User").InnerText;
+            mailSettings.Password = mainSettingNode.SelectSingleNode("Password").InnerText;
+
+            return mailSettings;
         }
 
         public static TemplateModel GetTemplateSettings(string passedString, string type)
