@@ -48,8 +48,106 @@ namespace CCAAutomation.Lib
             }
 
             return specs;
-        }        
+        }
+        public static List<string> CreateXMLSS8_25x0_875FL(List<string> missingImages, string snippetWarranties, string division,
+            string spec1, string styleName, string feeler, List<LARFinal> lARFinal, string export, bool forced)
+        {
+            TemplateModel settings = GetTemplateSettings("SS8.25x0.875FL", "Normal");
 
+            string mainPath = settings.WebShopPath;
+            string template = settings.WebShopPath + settings.Name;
+            string jobName = lARFinal[0].DetailsFinal.Plate_ID_FL;
+            if (jobName.Equals(""))
+            {
+                jobName = lARFinal[0].DetailsFinal.Sample_ID;
+            }
+            string userEmail = settings.UserEmail;
+            string snippetPath = mainPath + settings.SnippetPath;
+            string imagesPath = mainPath + settings.ImagesPath;
+
+            List<string> xmlData = new();
+
+            xmlData.Add("<jobs>");
+            xmlData.Add("	<job>");
+            xmlData.Add("		<template useremail=\"" + userEmail + "\">" + CheckForMissing(jobName, template, missingImages) + "</template>");
+            xmlData.Add("		<output jobname=\"" + jobName + "\">Webshop:InputPDF</output>");
+            xmlData.Add("		<snippets>");
+            xmlData.Add("           <snippet page=\"1\">" + CheckForMissing(jobName, snippetPath + snippetWarranties, missingImages) + "</snippet>");
+            if (division.Trim().ToLower().Equals("fa"))
+            {
+                xmlData.Add("           <snippet page=\"1\">" + CheckForMissing(jobName, snippetPath + "FlooringAmerica.idms", missingImages) + "</snippet>");
+            }
+            else if (division.Trim().ToLower().Equals("c1"))
+            {
+                xmlData.Add("           <snippet page=\"1\">" + CheckForMissing(jobName, snippetPath + "CarpetOne.idms", missingImages) + "</snippet>");
+            }
+            xmlData.Add("		</snippets>");
+            xmlData.Add("		<texts>");
+            xmlData.Add("			<text type=\"spec\">" + spec1 + "</text>");
+            xmlData.Add("           <text type=\"spec1\">" + spec1 + "</text>");
+
+            xmlData.Add("			<text type=\"stylename\">" + styleName + "<!--SampleFinal.Sample_Name--></text>");
+            xmlData.Add("			<text type=\"stylename1\">" + styleName + "<!--SampleFinal.Sample_Name--></text>");
+            xmlData.Add("           <text type=\"topcolor1\">" + feeler + "<!--SampleFinal.Feeler--></text>");
+            xmlData.Add("		</texts>");
+            xmlData.Add("		<graphics>");
+            xmlData.Add("			<inlines>");
+            List<string> usedIconList = new();
+
+            foreach (Labels i in GetImages(lARFinal[0].LabelsFinal))
+            {
+                string divisionPath = "";
+                if (!usedIconList.Contains(i.Division_Label_Name) && !i.Division_Label_Type.Trim().ToLower().Equals("logo"))
+                {
+                    if (!i.Division_Label_Type.Trim().ToLower().Equals("wbug"))
+                    {
+                        if (!i.Division_Label_Name.ToLower().Contains("residential") && (!i.Division_Label_Name.ToLower().Contains("fiber")))
+                        {
+                            xmlData.Add("		    	<inline>" + CheckForMissing(jobName, imagesPath + divisionPath + XmlRemapping(i.Division_Label_Name, "Images"), missingImages) + "</inline>");
+                        }
+                        usedIconList.Add(i.Division_Label_Name);
+                    }
+                }
+            }
+            xmlData.Add("			</inlines>");
+            xmlData.Add("		</graphics>");
+            xmlData.Add("		<JobName>" + jobName + "</JobName>");
+            xmlData.Add("		<JobTemplate>" + settings.PreJobTemplateName + "</JobTemplate>");
+            xmlData.Add("		<JobGroup>" + settings.PreJobPath + "</JobGroup>");
+            xmlData.Add("		<inputfiles>");
+            xmlData.Add("			<string>\\\\MAG1PVSF7\\WebShop\\InputPDF\\" + jobName + ".pdf</string>");
+            xmlData.Add("		</inputfiles>");
+            xmlData.Add("		<indd>");
+            xmlData.Add("			<string>\\\\MAG1PVSF7\\WebShop\\InputPDF\\" + jobName + ".indd</string>");
+            xmlData.Add("		</indd>");
+            xmlData.AddRange(InsiteXMLSnippet(" - ss - fl", "FL", lARFinal[0].DetailsFinal.Supplier_Name, lARFinal[0].DetailsFinal.Division_List, styleName, ConvertToTitleCase(lARFinal[0].SampleFinal.Feeler), Path.GetFileNameWithoutExtension(template.Replace(":", "\\"))));
+            xmlData.Add("	</job>");
+            xmlData.Add("</jobs>");
+
+            List<string> approvedPlateIdsList = new();
+            if (!File.Exists(Path.Combine(export, "Approved.txt")))
+            {
+                using StreamWriter approvedPlateIdsWriter = new(Path.Combine(export, "Approved.txt"));
+            }
+            using (StreamReader approvedPlateIdsReader = new(Path.Combine(export, "Approved.txt")))
+            {
+                while (!approvedPlateIdsReader.EndOfStream)
+                {
+                    approvedPlateIdsList.Add(approvedPlateIdsReader.ReadLine());
+                }
+            }
+            if (forced || ((!template.Equals("")) && !approvedPlateIdsList.Any(p => p.EqualsString(jobName))))
+            {
+                ExportXML(jobName, xmlData, export, "WorkShop XML");
+                ExportXML(jobName, xmlData, export, "WebShop XML");
+            }
+            else if (template.EqualsString(""))
+            {
+                Console.WriteLine("Template Blank.");
+            }
+
+            return (missingImages);
+        }
         public static List<string> CreateXMLSS8_25x0_875FL(List<LARFinal> lARFinal, string export, bool forced)
         {
             List<string> missingImages = new();

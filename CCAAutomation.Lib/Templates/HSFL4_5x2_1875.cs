@@ -11,11 +11,19 @@ namespace CCAAutomation.Lib
 {
     public class HSFL4_5x2_1875
     {
-        public static List<string> CreateXMLHS4_5x2_1875(LARFinal lARFinal, string export)
+        public static List<string> CreateXMLHS4_5x2_1875(LARFinal lARFinal, string export, bool isCanada)
         {
             //goWorkShop = true;
             List<string> missingImages = new();
-            TemplateModel settings = GetTemplateSettings(XmlRemapping(lARFinal.DetailsFinal.Division_List, "Divisions"), "FL");
+            string division = XmlRemapping(lARFinal.DetailsFinal.Division_List, "Divisions");
+            string canadaIndicator = "";
+            if (isCanada)
+            {
+                division = XmlRemapping(lARFinal.DetailsFinal.Division_List + " canada", "Divisions");
+                canadaIndicator = " canada";
+            }
+            TemplateModel settings = GetTemplateSettings(division, "FL");
+            //TemplateModel settings = GetTemplateSettings(XmlRemapping(lARFinal.DetailsFinal.Division_List, "Divisions"), "FL");
             string mainPath = settings.WebShopPath;
             string template = settings.WebShopPath + settings.Name;
             string jobName = lARFinal.DetailsFinal.Plate_ID_FL;
@@ -27,7 +35,7 @@ namespace CCAAutomation.Lib
             string snippetPath = mainPath + settings.SnippetPath;
             string imagesPath = mainPath + settings.ImagesPath;
             string category = XmlRemapping(lARFinal.DetailsFinal.Taxonomy.ToLower(), "Categories");
-            string snippetCategory = "category:" + category + ".idms" + "<!--Taxonomy-->";
+            string snippetCategory = "category:" + category + canadaIndicator + ".idms" + "<!--Taxonomy-->";
             string snippetWarranties = "rating:" + XmlRemapping(lARFinal.DetailsFinal.Division_Rating.ToLower(), "Ratings") + " " + category + ".idms" + "<!--Division_Rating-->";
             string styleName = ConvertToTitleCase(lARFinal.SampleFinal.Sample_Name.Trim());
 
@@ -78,7 +86,7 @@ namespace CCAAutomation.Lib
             xmlData.Add("		<indd>");
             xmlData.Add("			<string>\\\\MAG1PVSF7\\WebShop\\InputPDF\\" + jobName + ".indd</string>");
             xmlData.Add("		</indd>");
-            xmlData.AddRange(InsiteXMLSnippet(" - fl", "FL", lARFinal.DetailsFinal.Supplier_Name, lARFinal.DetailsFinal.Division_List, styleName, ConvertToTitleCase(lARFinal.DetailsFinal.Merch_Color_Name), Path.GetFileNameWithoutExtension(template.Replace(":", "\\"))));
+            xmlData.AddRange(InsiteXMLSnippet(" - fl", "FL", lARFinal.DetailsFinal.Supplier_Name, division, styleName, ConvertToTitleCase(lARFinal.DetailsFinal.Merch_Color_Name), Path.GetFileNameWithoutExtension(template.Replace(":", "\\"))));
             xmlData.Add("	</job>");
             xmlData.Add("</jobs>");
 
@@ -94,11 +102,13 @@ namespace CCAAutomation.Lib
                     approvedPlateIdsList.Add(approvedPlateIdsReader.ReadLine());
                 }
             }
+            SizeNameRoundingCheck(lARFinal.DetailsFinal, export, jobName, styleName);
+
             if ((!template.Equals("")) && !approvedPlateIdsList.Any(p => p.EqualsString(jobName)))
             {
                 ExportXML(jobName, xmlData, export, "WorkShop XML");
                 ExportXML(jobName, xmlData, export, "WebShop XML");
-                CreateDeleteXML(export, jobName);
+                //CreateDeleteXML(export, jobName);
             }
 
             return missingImages;
@@ -135,6 +145,33 @@ namespace CCAAutomation.Lib
             newWorkingList.Sort((x, y) => x.Priority.CompareTo(y.Priority));
 
             return newWorkingList;
+        }
+
+        private static void SizeNameRoundingCheck(Details details, string export, string jobName, string styleName)
+        {
+            string sizeName = details.Size_Name.Split('x')[0].Replace("\"", "").Trim();
+            string width = details.Width;
+
+            if (decimal.TryParse(width, out decimal widthDecimal))
+            {
+                if (!width.EndsWith(".25") && !width.EndsWith(".50") && !width.EndsWith(".75"))
+                {
+                    widthDecimal = Math.Round(widthDecimal);
+                
+                    if (decimal.TryParse(sizeName, out decimal sizeNameDecimal))
+                    {
+                        if (!sizeNameDecimal.Equals(widthDecimal))
+                        {
+                            Directory.CreateDirectory(Path.Combine(export, "Reports"));
+                            using (StreamWriter textFile = new(Path.Combine(export, "Reports", "Size_Name Rounding Check.txt"), append: true))
+                            {
+                                textFile.WriteLine(jobName + "|" + details.Sample_ID + "|" + styleName + "|" + details.Merch_Color_Name + "|" + width + "|" + ConvertDecimalToFraction(widthDecimal).Replace(" ", "-") + "|" + sizeName);
+                            }
+                        }
+                    }
+                }
+            }
+
         }
 
         private static List<string> GetSpecList(Details details)

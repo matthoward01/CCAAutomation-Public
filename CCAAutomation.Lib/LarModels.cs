@@ -16,6 +16,8 @@ namespace CCAAutomation.Lib
             public string ArtType { get; set; } = "";
             public string ArtType_BL { get; set; } = "";
             public string ArtType_FL { get; set; } = "";
+            public string Job_Number_BL { get; set; } = "";
+            public string Job_Number_FL { get; set; } = "";
             public string ADDNumber { get; set; } = "";
             public string Sample_ID { get; set; } = "";
             public string Primary_Display { get; set; } = "";
@@ -232,6 +234,12 @@ namespace CCAAutomation.Lib
             public string Change { get; set; } = "";
             public string Status_FL { get; set; } = "";
             public string Change_FL { get; set; } = "";
+            public string Job_Number_FL { get; set; } = "";
+            public string Job_Number_BL { get; set; } = "";
+            public string Art_Type_FL { get; set; } = "";
+            public string Art_Type_BL { get; set; } = "";
+            public string Plate_ID_FL { get; set; } = "";
+            public string Plate_ID_BL { get; set; } = "";
         }
     }
 }

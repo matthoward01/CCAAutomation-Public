@@ -16,9 +16,9 @@ namespace CCAAutomation.Lib
 
         private static void SqlConnect(string db)
         {
-            server = "xxxxxxxx";
+            server = "xxxxxxx";
             database = db;
-            uid = "xxxxxxxx";
+            uid = "xxxxxxx";
             password = "xxxxxxx";
 
             string connectionString =
@@ -36,7 +36,7 @@ namespace CCAAutomation.Lib
             SqlCommand command;
             SqlDataReader dataReader;
 
-            string sql = "SELECT Status FROM dbo.Details WHERE Plate_# = '" + plate_ID + "'";
+            string sql = "SELECT Status FROM dbo.Details WHERE Plate = '" + plate_ID + "'";
 
             try
             {
@@ -46,7 +46,7 @@ namespace CCAAutomation.Lib
                 dataReader = command.ExecuteReader();
                 while (dataReader.Read())
                 {
-                    if ((dataReader.GetString(dataReader.GetOrdinal("Plate_#")).EqualsString("approved")))
+                    if ((dataReader.GetString(dataReader.GetOrdinal("Plate")).EqualsString("approved")))
                     {
                         approved = true;
                     }
@@ -62,7 +62,7 @@ namespace CCAAutomation.Lib
                 dataReader = command.ExecuteReader();
                 while (dataReader.Read())
                 {
-                    if ((dataReader.GetString(dataReader.GetOrdinal("Plate_#")).EqualsString("approved")))
+                    if ((dataReader.GetString(dataReader.GetOrdinal("Plate")).EqualsString("approved")))
                     {
                         approved = true;
                     }
@@ -95,7 +95,7 @@ namespace CCAAutomation.Lib
             SqlCommand command;
             SqlDataReader dataReader;
 
-            string sql = "SELECT Plate_# FROM dbo.Details WHERE Plate_# = '" + plateId + "'";
+            string sql = "SELECT Plate FROM dbo.Details WHERE Plate = '" + plateId + "'";
 
             try
             {
@@ -104,7 +104,7 @@ namespace CCAAutomation.Lib
                 dataReader = command.ExecuteReader();
                 while (dataReader.Read())
                 {
-                    lfSql.DetailsFinal.Plate_ID = (dataReader.GetString(dataReader.GetOrdinal("Plate_#")));
+                    lfSql.DetailsFinal.Plate_ID = (dataReader.GetString(dataReader.GetOrdinal("Plate")));
                 }
 
                 dataReader.Close();
@@ -136,7 +136,7 @@ namespace CCAAutomation.Lib
             SqlCommand command;
             SqlDataReader dataReader;
 
-            string sql = "SELECT DISTINCT Plate_# FROM dbo.Details WHERE (Output='1' AND Plate_# != '')";
+            string sql = "SELECT DISTINCT Plate FROM dbo.Details WHERE ((Output='1' OR Output_FL='1') AND Plate != '')";
 
             try
             {
@@ -145,7 +145,7 @@ namespace CCAAutomation.Lib
                 dataReader = command.ExecuteReader();
                 while (dataReader.Read())
                 {
-                    jobList.Add(dataReader.GetString(dataReader.GetOrdinal("Plate_#")));
+                    jobList.Add(dataReader.GetString(dataReader.GetOrdinal("Plate")));
                 }
 
                 dataReader.Close();
@@ -175,7 +175,7 @@ namespace CCAAutomation.Lib
             SqlCommand command;
             SqlDataReader dataReader;
 
-            string sql = "SELECT DISTINCT Output FROM dbo.Details WHERE Plate_# = '" + plateId + "')";
+            string sql = "SELECT DISTINCT Output FROM dbo.Details WHERE Plate = '" + plateId + "')";
 
             try
             {
@@ -254,18 +254,18 @@ namespace CCAAutomation.Lib
             if (isSoftSurface)
             {
                 SqlConnect("CCA-SS");
-                sql = "SELECT DISTINCT dbo.Details.Supplier_Name, dbo.Details.Plate_#, dbo.Details.Face_Label_Plate_#, dbo.Details.Back_Label_Plate_#, dbo.Details.Sample_ID, dbo.Details.Status, dbo.Details.Status_FL, dbo.Details.Art_Type, dbo.Details.Art_Type_BL, dbo.Details.Art_Type_FL, Sample_Name, Shared_Card, Multiple_Color_Lines, dbo.Details.Change, dbo.Details.Change_FL, dbo.Details.Output, dbo.Details.Output_FL FROM dbo.Sample INNER JOIN dbo.Details ON dbo.Details.Sample_ID=dbo.Sample.Sample_ID";
+                sql = "SELECT DISTINCT dbo.Details.Supplier_Name, dbo.Details.Plate, dbo.Details.Face_Label_Plate, dbo.Details.Back_Label_Plate, dbo.Details.Sample_ID, dbo.Details.Status, dbo.Details.Status_FL, dbo.Details.Art_Type, dbo.Details.Art_Type_BL, dbo.Details.Art_Type_FL, Sample_Name, Shared_Card, Multiple_Color_Lines, dbo.Details.Change, dbo.Details.Change_FL, dbo.Details.Output, dbo.Details.Output_FL FROM dbo.Sample INNER JOIN dbo.Details ON dbo.Details.Sample_ID=dbo.Sample.Sample_ID";
             }
             else
             {
                 SqlConnect("CCA");
-                sql = "SELECT DISTINCT dbo.Details.Supplier_Name, dbo.Details.Plate_#, dbo.Details.Face_Label_Plate_#, dbo.Details.Back_Label_Plate_#, dbo.Details.Sample_ID, dbo.Details.Status, dbo.Details.Status_FL, dbo.Details.Art_Type, dbo.Details.Art_Type_BL, dbo.Details.Art_Type_FL, Sample_Name, dbo.Details.Change, dbo.Details.Change_FL, dbo.Details.Output, dbo.Details.Output_FL, dbo.Details.Size_Name, dbo.Details.Width, dbo.Details.Width_Measurement, dbo.Details.Length, dbo.Details.Length_Measurement, dbo.Sample.Feeler FROM dbo.Sample INNER JOIN dbo.Details ON dbo.Details.Sample_ID=dbo.Sample.Sample_ID";
+                sql = "SELECT DISTINCT dbo.Details.Supplier_Name, dbo.Details.Plate, dbo.Details.Face_Label_Plate, dbo.Details.Back_Label_Plate, dbo.Details.Sample_ID, dbo.Details.Status, dbo.Details.Status_FL, dbo.Details.Art_Type, dbo.Details.Art_Type_BL, dbo.Details.Art_Type_FL, Sample_Name, dbo.Details.Change, dbo.Details.Change_FL, dbo.Details.Output, dbo.Details.Output_FL, dbo.Details.Size_Name, dbo.Details.Width, dbo.Details.Width_Measurement, dbo.Details.Length, dbo.Details.Length_Measurement, dbo.Sample.Feeler FROM dbo.Sample INNER JOIN dbo.Details ON dbo.Details.Sample_ID=dbo.Sample.Sample_ID";
             }
 
             SqlCommand command;
             SqlDataReader dataReader;
 
-            //string sql = "SELECT DISTINCT dbo.Details.Plate_#, dbo.Details.Sample_ID, dbo.Details.Status, dbo.Details.Art_Type, Sample_Name, Shared_Card, Multiple_Color_Lines, dbo.Details.Change FROM dbo.Sample INNER JOIN dbo.Details ON dbo.Details.Sample_ID=dbo.Sample.Sample_ID ORDER BY dbo.Details.Plate_# OFFSET " + offset + " ROWS FETCH NEXT 500 ROWS ONLY";
+            //string sql = "SELECT DISTINCT dbo.Details.Plate, dbo.Details.Sample_ID, dbo.Details.Status, dbo.Details.Art_Type, Sample_Name, Shared_Card, Multiple_Color_Lines, dbo.Details.Change FROM dbo.Sample INNER JOIN dbo.Details ON dbo.Details.Sample_ID=dbo.Sample.Sample_ID ORDER BY dbo.Details.Plate OFFSET " + offset + " ROWS FETCH NEXT 500 ROWS ONLY";
 
             try
             {
@@ -275,10 +275,10 @@ namespace CCAAutomation.Lib
                 while (dataReader.Read())
                 {
                     LarModels.WebTableItem webTableItem = new();
-                    webTableItem.SearchTags += webTableItem.Plate_ID = dataReader.GetString(dataReader.GetOrdinal("Plate_#"));
-                    if (dataReader.GetString(dataReader.GetOrdinal("Plate_#")).EqualsString(""))
+                    webTableItem.SearchTags += webTableItem.Plate_ID = dataReader.GetString(dataReader.GetOrdinal("Plate"));
+                    if (dataReader.GetString(dataReader.GetOrdinal("Plate")).EqualsString(""))
                     {
-                        webTableItem.SearchTags += webTableItem.Plate_ID = dataReader.GetString(dataReader.GetOrdinal("Back_Label_Plate_#"));
+                        webTableItem.SearchTags += webTableItem.Plate_ID = dataReader.GetString(dataReader.GetOrdinal("Back_Label_Plate"));
                         webTableItem.SearchTags += webTableItem.Art_Type = dataReader.GetString(dataReader.GetOrdinal("Art_Type_BL"));                        
                     }
                     else
@@ -342,10 +342,10 @@ namespace CCAAutomation.Lib
                 dataReader = command.ExecuteReader();
                 while (dataReader.Read())
                 {
-                    if (!dataReader.GetString(dataReader.GetOrdinal("Face_Label_Plate_#")).EqualsString(""))
+                    if (!dataReader.GetString(dataReader.GetOrdinal("Face_Label_Plate")).EqualsString(""))
                     {
                         LarModels.WebTableItem webTableItem = new();
-                        webTableItem.SearchTags += webTableItem.Plate_ID = dataReader.GetString(dataReader.GetOrdinal("Face_Label_Plate_#"));
+                        webTableItem.SearchTags += webTableItem.Plate_ID = dataReader.GetString(dataReader.GetOrdinal("Face_Label_Plate"));
                         webTableItem.SearchTags += webTableItem.Sample_ID = dataReader.GetString(dataReader.GetOrdinal("Sample_ID"));
                         webTableItem.SearchTags += webTableItem.Status = dataReader.GetString(dataReader.GetOrdinal("Status_FL"));
                         webTableItem.SearchTags += webTableItem.Art_Type = dataReader.GetString(dataReader.GetOrdinal("Art_Type_FL"));
@@ -396,7 +396,7 @@ namespace CCAAutomation.Lib
             SqlCommand command;
             SqlDataReader dataReader;
 
-            string sql = "SELECT TOP 1 Plate_#, Back_Label_Plate_#, Face_Label_Plate_#, Sample_ID, Status, Status_FL, Art_Type, Art_Type_FL, Change, Change_FL, Output, Output_FL FROM dbo.Details WHERE (Plate_#='" + plateId + "' OR Back_Label_Plate_#='" + plateId + "' OR Face_Label_Plate_#='" + plateId + "')";
+            string sql = "SELECT TOP 1 Plate, Back_Label_Plate, Face_Label_Plate, Sample_ID, Status, Status_FL, Art_Type, Art_Type_FL, Change, Change_FL, Output, Output_FL FROM dbo.Details WHERE (Plate='" + plateId + "' OR Back_Label_Plate='" + plateId + "' OR Face_Label_Plate='" + plateId + "')";
 
             try
             {
@@ -405,27 +405,27 @@ namespace CCAAutomation.Lib
                 dataReader = command.ExecuteReader();
                 while (dataReader.Read())
                 {
-                    if (dataReader.GetString(dataReader.GetOrdinal("Plate_#")).EqualsString(plateId))
+                    if (dataReader.GetString(dataReader.GetOrdinal("Plate")).EqualsString(plateId))
                     {
-                        webTableItem.Plate_ID = dataReader.GetString(dataReader.GetOrdinal("Plate_#"));
+                        webTableItem.Plate_ID = dataReader.GetString(dataReader.GetOrdinal("Plate"));
                         webTableItem.Sample_ID = dataReader.GetString(dataReader.GetOrdinal("Sample_ID"));
                         webTableItem.Status = dataReader.GetString(dataReader.GetOrdinal("Status"));
                         webTableItem.Art_Type = dataReader.GetString(dataReader.GetOrdinal("Art_Type"));
                         webTableItem.Change = dataReader.GetString(dataReader.GetOrdinal("Change"));
                         webTableItem.Output = dataReader.GetInt32(dataReader.GetOrdinal("Output"));
                     }
-                    else if (dataReader.GetString(dataReader.GetOrdinal("Back_Label_Plate_#")).EqualsString(plateId))
+                    else if (dataReader.GetString(dataReader.GetOrdinal("Back_Label_Plate")).EqualsString(plateId))
                     {
-                        webTableItem.Plate_ID = dataReader.GetString(dataReader.GetOrdinal("Back_Label_Plate_#"));
+                        webTableItem.Plate_ID = dataReader.GetString(dataReader.GetOrdinal("Back_Label_Plate"));
                         webTableItem.Sample_ID = dataReader.GetString(dataReader.GetOrdinal("Sample_ID"));
                         webTableItem.Status = dataReader.GetString(dataReader.GetOrdinal("Status"));
                         webTableItem.Art_Type = dataReader.GetString(dataReader.GetOrdinal("Art_Type_BL"));
                         webTableItem.Change = dataReader.GetString(dataReader.GetOrdinal("Change_BL"));
                         webTableItem.Output = dataReader.GetInt32(dataReader.GetOrdinal("Output_BL"));
                     }
-                    else if (dataReader.GetString(dataReader.GetOrdinal("Face_Label_Plate_#")).EqualsString(plateId))
+                    else if (dataReader.GetString(dataReader.GetOrdinal("Face_Label_Plate")).EqualsString(plateId))
                     {
-                        webTableItem.Plate_ID = dataReader.GetString(dataReader.GetOrdinal("Face_Label_Plate_#"));
+                        webTableItem.Plate_ID = dataReader.GetString(dataReader.GetOrdinal("Face_Label_Plate"));
                         webTableItem.Sample_ID = dataReader.GetString(dataReader.GetOrdinal("Sample_ID"));
                         webTableItem.Status = dataReader.GetString(dataReader.GetOrdinal("Status_FL"));
                         webTableItem.Art_Type = dataReader.GetString(dataReader.GetOrdinal("Art_Type_FL"));
@@ -487,7 +487,7 @@ namespace CCAAutomation.Lib
             }
             SqlCommand command;
             SqlDataReader dataReader;
-            string sql = "SELECT * FROM dbo.Details WHERE \"Plate_#\"='" + plateId + "'";            
+            string sql = "SELECT * FROM dbo.Details WHERE (\"Plate\"='" + plateId + "' OR \"Face_Label_Plate\"='" + plateId + "')";            
 
             if (plateId.Equals(""))
             {
@@ -495,7 +495,7 @@ namespace CCAAutomation.Lib
 
                 if (isSoftSurface)
                 {
-                    sql = "SELECT * Plate_# FROM dbo.Details GROUP BY Plate_#";
+                    sql = "SELECT * Plate FROM dbo.Details GROUP BY Plate";
                 }
             }
 
@@ -508,12 +508,12 @@ namespace CCAAutomation.Lib
                 {
                     LarModels.Details details = new();
 
-                    details.Plate_ID = dataReader.GetString(dataReader.GetOrdinal("Plate_#")).Trim();
-                    details.Plate_ID_BL = dataReader.GetString(dataReader.GetOrdinal("Back_Label_Plate_#"));
-                    details.Plate_ID_FL = dataReader.GetString(dataReader.GetOrdinal("Face_Label_Plate_#"));
+                    details.Plate_ID = dataReader.GetString(dataReader.GetOrdinal("Plate")).Trim();
+                    details.Plate_ID_BL = dataReader.GetString(dataReader.GetOrdinal("Back_Label_Plate"));
+                    details.Plate_ID_FL = dataReader.GetString(dataReader.GetOrdinal("Face_Label_Plate"));
                     if (details.Plate_ID_BL.EqualsString(""))
                     {
-                        details.Plate_ID_BL = dataReader.GetString(dataReader.GetOrdinal("Blanket_Label_Plate_#"));
+                        details.Plate_ID_BL = dataReader.GetString(dataReader.GetOrdinal("Blanket_Label_Plate"));
                     }
                     if (details.Plate_ID.EqualsString(""))
                     {
@@ -521,7 +521,7 @@ namespace CCAAutomation.Lib
                     }
                     if (details.Plate_ID_FL.EqualsString(""))
                     {
-                        details.Plate_ID_FL = dataReader.GetString(dataReader.GetOrdinal("Face_Plate_Plate_#"));
+                        details.Plate_ID_FL = dataReader.GetString(dataReader.GetOrdinal("Face_Plate_Plate"));
                     }
                     details.ArtType = dataReader.GetString(dataReader.GetOrdinal("Art_Type"));
                     details.ArtType_BL = dataReader.GetString(dataReader.GetOrdinal("Art_Type_BL"));
@@ -812,30 +812,30 @@ namespace CCAAutomation.Lib
             if (isSoftSurface)
             {
                 SqlConnect("CCA-SS");
-                //sql = "UPDATE dbo.Details SET Status='" + theStatus + "' WHERE \"Plate_#\"='" + plateId + "'";
-                sql = "UPDATE dbo.Details SET Status = case when (Plate_# ='" + plateId + "' OR Back_Label_Plate_# ='" + plateId + "') then '" + theStatus + "' ELSE Status end, " +
-                "Status_FL = case when Face_Label_Plate_# = '" + plateId + "' then '" + theStatus + "' ELSE Status_FL end " +
-                "WHERE (\"Plate_#\"='" + plateId + "' OR \"Face_Label_Plate_#\"='" + plateId + "' OR \"Back_Label_Plate_#\"='" + plateId + "')";
+                //sql = "UPDATE dbo.Details SET Status='" + theStatus + "' WHERE \"Plate\"='" + plateId + "'";
+                sql = "UPDATE dbo.Details SET Status = case when (Plate ='" + plateId + "' OR Back_Label_Plate ='" + plateId + "') then '" + theStatus + "' ELSE Status end, " +
+                "Status_FL = case when Face_Label_Plate = '" + plateId + "' then '" + theStatus + "' ELSE Status_FL end " +
+                "WHERE (\"Plate\"='" + plateId + "' OR \"Face_Label_Plate\"='" + plateId + "' OR \"Back_Label_Plate\"='" + plateId + "')";
                 if (theStatus.Equals("Approved"))
                 {
-                    //sql = "UPDATE dbo.Details SET Status='" + theStatus + "', Change='' WHERE \"Plate_#\"='" + plateId + "'";
-                    sql = "UPDATE dbo.Details SET Change = '', Status = case when (Plate_# ='" + plateId + "' OR Back_Label_Plate_# ='" + plateId + "') then '" + theStatus + "' ELSE Status end, " +
-                     "Change_FL = '', Status_FL = case when Face_Label_Plate_# = '" + plateId + "' then '" + theStatus + "' ELSE Status_FL end " +
-                     "WHERE (\"Plate_#\"='" + plateId + "' OR \"Face_Label_Plate_#\"='" + plateId + "' OR \"Back_Label_Plate_#\"='" + plateId + "')";
+                    //sql = "UPDATE dbo.Details SET Status='" + theStatus + "', Change='' WHERE \"Plate\"='" + plateId + "'";
+                    sql = "UPDATE dbo.Details SET Change = '', Status = case when (Plate ='" + plateId + "' OR Back_Label_Plate ='" + plateId + "') then '" + theStatus + "' ELSE Status end, " +
+                     "Change_FL = '', Status_FL = case when Face_Label_Plate = '" + plateId + "' then '" + theStatus + "' ELSE Status_FL end " +
+                     "WHERE (\"Plate\"='" + plateId + "' OR \"Face_Label_Plate\"='" + plateId + "' OR \"Back_Label_Plate\"='" + plateId + "')";
                 }
             }
             else
             {
                 SqlConnect("CCA");
-                sql = "UPDATE dbo.Details SET Status = case when (Plate_# ='" + plateId + "' OR Back_Label_Plate_# ='" + plateId + "') then '" + theStatus + "' ELSE Status end, " +
-                "Status_FL = case when Face_Label_Plate_# = '" + plateId + "' then '" + theStatus + "' ELSE Status_FL end " +
-                "WHERE (\"Plate_#\"='" + plateId + "' OR \"Face_Label_Plate_#\"='" + plateId + "' OR \"Back_Label_Plate_#\"='" + plateId + "')";
+                sql = "UPDATE dbo.Details SET Status = case when (Plate ='" + plateId + "' OR Back_Label_Plate ='" + plateId + "') then '" + theStatus + "' ELSE Status end, " +
+                "Status_FL = case when Face_Label_Plate = '" + plateId + "' then '" + theStatus + "' ELSE Status_FL end " +
+                "WHERE (\"Plate\"='" + plateId + "' OR \"Face_Label_Plate\"='" + plateId + "' OR \"Back_Label_Plate\"='" + plateId + "')";
 
                 if (theStatus.Equals("Approved"))
                 {
-                    sql = "UPDATE dbo.Details SET Change = '', Status = case when (Plate_# ='" + plateId + "' OR Back_Label_Plate_# ='" + plateId + "') then '" + theStatus + "' ELSE Status end, " +
-                     "Change_FL = '', Status_FL = case when Face_Label_Plate_# = '" + plateId + "' then '" + theStatus + "' ELSE Status_FL end " +
-                     "WHERE (\"Plate_#\"='" + plateId + "' OR \"Face_Label_Plate_#\"='" + plateId + "' OR \"Back_Label_Plate_#\"='" + plateId + "')";
+                    sql = "UPDATE dbo.Details SET Change = '', Status = case when (Plate ='" + plateId + "' OR Back_Label_Plate ='" + plateId + "') then '" + theStatus + "' ELSE Status end, " +
+                     "Change_FL = '', Status_FL = case when Face_Label_Plate = '" + plateId + "' then '" + theStatus + "' ELSE Status_FL end " +
+                     "WHERE (\"Plate\"='" + plateId + "' OR \"Face_Label_Plate\"='" + plateId + "' OR \"Back_Label_Plate\"='" + plateId + "')";
                 }
             }
             SqlCommand command;
@@ -869,11 +869,12 @@ namespace CCAAutomation.Lib
             }
             SqlCommand command;
             SqlDataReader dataReader;
-            string sql = "UPDATE dbo.Details SET Change = case when (Plate_# ='" + plateId + "' OR Back_Label_Plate_# ='" + plateId + "') then '" + theChange + "' ELSE Change end, " +
-                "Change_FL = case when Face_Label_Plate_# = '" + plateId + "' then '" + theChange + "' ELSE Change_FL end " +
-                "WHERE (\"Plate_#\"='" + plateId + "' OR \"Face_Label_Plate_#\"='" + plateId + "' OR \"Back_Label_Plate_#\"='" + plateId + "')";
+            theChange = theChange.Replace("'", "''");
+            string sql = "UPDATE dbo.Details SET Change = case when (Plate ='" + plateId + "' OR Back_Label_Plate ='" + plateId + "') then '" + theChange + "' ELSE Change end, " +
+                "Change_FL = case when Face_Label_Plate = '" + plateId + "' then '" + theChange + "' ELSE Change_FL end " +
+                "WHERE (\"Plate\"='" + plateId + "' OR \"Face_Label_Plate\"='" + plateId + "' OR \"Back_Label_Plate\"='" + plateId + "')";
 
-            //string sql = "UPDATE dbo.Details SET Change='" + theChange + "' WHERE \"Plate_#\"='" + plateId + "'";
+            //string sql = "UPDATE dbo.Details SET Change='" + theChange + "' WHERE \"Plate\"='" + plateId + "'";
 
             try
             {
@@ -904,7 +905,7 @@ namespace CCAAutomation.Lib
             }
             SqlCommand command;
             SqlDataReader dataReader;
-            string sql = "UPDATE dbo.Details SET Output='" + run + "' WHERE \"Plate_#\"='" + plateId + "'";
+            string sql = "UPDATE dbo.Details SET Output='" + run + "', Output_FL='" + run + "' WHERE (\"Plate\"='" + plateId + "' OR \"Face_Label_Plate\"='" + plateId + "')";
 
             try
             {
@@ -923,7 +924,7 @@ namespace CCAAutomation.Lib
             return run;
         }
 
-        public static void SqlWebDBUpdate(LarModels.LARXlsSheet larModels, bool isSoftSurface)
+        public static void SqlWebDBUpdate(LarModels.LARXlsSheet larModels, bool isSoftSurface, bool baseLAR)
         {
             List<LarModels.MktSpreadsheetItem> mktSSI = SqlWebDBCleanup(larModels, isSoftSurface);
 
@@ -954,8 +955,8 @@ namespace CCAAutomation.Lib
                         "Manufacturer_Feeler, Mfg_Color_Number, Sample_Box, Sample_Box_Availability, " +
                         "Manufacturer_SKU_Number, Merchandised_Product_Color_ID, Merch_Color_Start_Date, " +
                         "Merch_Color_Name, Merch_Color_Number, Merchandised_SKU_Number, " +
-                        "CCASKUID, Art_Type, Art_Type_BL, Art_Type_FL, Plate_#, Back_Label_Plate_#, Face_Label_Plate_#, " +
-                        "ADDNumber, Color_Sequence, Status, Status_FL, Change, Change_FL, Program, Output, Output_FL, Layout" +
+                        "CCASKUID, Art_Type, Art_Type_BL, Art_Type_FL, Plate, Back_Label_Plate, Face_Label_Plate, " +
+                        "ADDNumber, Color_Sequence, Status, Status_FL, Change, Change_FL, Program, Output, Output_FL, Layout, Job_Number_BL, Job_Number_FL" +
                         ") VALUES (" +
                         "'" + d.Sample_ID + "', '" + d.Primary_Display.Replace("'", "''") + "', '" + d.Division_List.Replace("'", "''") + "', " +
                         "'" + d.Supplier_Name.Replace("'", "''") + "', '" + d.Child_Supplier.Replace("'", "''") + "', '" + d.Taxonomy.Replace("'", "''") + "', " +
@@ -979,7 +980,7 @@ namespace CCAAutomation.Lib
                         "'" + d.Manufacturer_SKU_Number.Replace("'", "''") + "', '" + d.Merchandised_Product_Color_ID.Replace("'", "''") + "', '" + d.Merch_Color_Start_Date.Replace("'", "''") + "', " +
                         "'" + d.Merch_Color_Name.Replace("'", "''") + "', '" + d.Merch_Color_Number.Replace("'", "''") + "', '" + d.Merchandised_SKU_Number.Replace("'", "''") + "', " +
                         "'" + d.CcaSkuId.Replace("'", "''") + "', '" + d.ArtType.Replace("'", "''") + "', '" + d.ArtType_BL.Replace("'", "''") + "', '" + d.ArtType_FL.Replace("'", "''") + "', '" + d.Plate_ID.Replace("'", "''") + "', '" + d.Plate_ID_BL.Replace("'", "''") + "', '" + d.Plate_ID_FL.Replace("'", "''") + "', " +
-                        "'" + d.ADDNumber.Replace("'", "''") + "', '" + d.Color_Sequence.Replace("'", "''") + "', '" + d.Status.Replace("'", "''") + "', '" + d.Status_FL.Replace("'", "''") + "', '" + d.Change.Replace("'", "''") + "', '" + d.Change_FL.Replace("'", "''") + "', '" + d.Program.Replace("'", "''") + "', '" + d.Output + "', '" + d.Output_FL + "', '" + d.Layout.Replace("'", "''") + "')";
+                        "'" + d.ADDNumber.Replace("'", "''") + "', '" + d.Color_Sequence.Replace("'", "''") + "', '" + d.Status.Replace("'", "''") + "', '" + d.Status_FL.Replace("'", "''") + "', '" + d.Change.Replace("'", "''") + "', '" + d.Change_FL.Replace("'", "''") + "', '" + d.Program.Replace("'", "''") + "', '" + d.Output + "', '" + d.Output_FL + "', '" + d.Layout.Replace("'", "''") + "', '" + d.Job_Number_BL.Replace("'", "''") + "', '" + d.Job_Number_FL.Replace("'", "''") + "')";
                     try
                     {
                         SqlConnect("CCA-SS");
@@ -1017,8 +1018,8 @@ namespace CCAAutomation.Lib
                         "Thickness_Fraction, Manufacturer_Product_Color_ID, Mfg_Color_Name, Mfg_Color_Number, " +
                         "Sample_Box, Sample_Box_Availability, Manufacturer_SKU_Number, Merchandised_Product_Color_ID, " +
                         "Merch_Color_Start_Date, Merch_Color_Name, Merch_Color_Number, Merchandised_SKU_Number, Barcode, " +
-                        "CCASKUID, Size_UC, Roomscene, Plate_#, Back_Label_Plate_#, Face_Label_Plate_#, Art_Type, " +
-                        "Art_Type_BL, Art_Type_FL, Status, Status_FL, Change, Change_FL, Program, Output,Output_FL) " +
+                        "CCASKUID, Size_UC, Roomscene, Plate, Back_Label_Plate, Face_Label_Plate, Art_Type, " +
+                        "Art_Type_BL, Art_Type_FL, Status, Status_FL, Change, Change_FL, Program, Output, Output_FL, Job_Number_BL, Job_Number_FL) " +
                         "VALUES " +
                         "('" + d.Sample_ID.Replace("'", "''") +"', '" + d.Primary_Display.Replace("'", "''") +"', '" +
                         "" + d.Division_List.Replace("'", "''") +"', '" + d.Supplier_Name.Replace("'", "''") +"', '" +
@@ -1069,7 +1070,7 @@ namespace CCAAutomation.Lib
                         "" + d.ArtType_FL.Replace("'", "''") +"', '" + d.Status.Replace("'", "''") +"', '" +
                         "" + d.Status_FL.Replace("'", "''") +"', '" + d.Change.Replace("'", "''") +"', '" +
                         "" + d.Change_FL.Replace("'", "''") +"', '" + d.Program.Replace("'", "''") +"', '" +
-                        "" + d.Output +"', '" + d.Output_FL + "')";
+                        "" + d.Output +"', '" + d.Output_FL + "', '" + d.Job_Number_BL + "', '" + d.Job_Number_FL + "')";
                     try
                     {
                         SqlConnect("CCA");
@@ -1099,8 +1100,17 @@ namespace CCAAutomation.Lib
                     SqlConnect("CCA");
                 }
 
-                sql = "UPDATE dbo.Details SET Status='" + mkt.Status + "', Status_FL='" + mkt.Status_FL + "', Program='" + mkt.Program + "', Change='" + mkt.Change + "', Change_FL='" + mkt.Change_FL + "'  WHERE Sample_ID='" + mkt.Sample_ID + "'";
-
+                if (baseLAR)
+                {
+                    sql = "UPDATE dbo.Details SET Job_Number_FL='" + mkt.Job_Number_FL + "', Job_Number_BL='" + mkt.Job_Number_BL + "', " +
+                        "Art_Type_FL='" + mkt.Art_Type_FL + "', Art_Type_BL='" + mkt.Art_Type_BL + "', " +
+                        "face_label_plate='" + mkt.Plate_ID_FL + "', back_label_plate='" + mkt.Plate_ID_BL + "', " +
+                        "Status='" + mkt.Status + "', Status_FL='" + mkt.Status_FL + "', Program='" + mkt.Program + "', Change='" + mkt.Change + "', Change_FL='" + mkt.Change_FL + "'  WHERE Sample_ID='" + mkt.Sample_ID + "'";
+                }
+                else
+                {
+                    sql = "UPDATE dbo.Details SET Status='" + mkt.Status + "', Status_FL='" + mkt.Status_FL + "', Program='" + mkt.Program + "', Change='" + mkt.Change + "', Change_FL='" + mkt.Change_FL + "'  WHERE Sample_ID='" + mkt.Sample_ID + "'";
+                }
                 SqlCommand commandU;
                 SqlDataReader dataReaderU;
 
@@ -1243,7 +1253,7 @@ namespace CCAAutomation.Lib
                 SqlConnect("CCA");
             }
 
-            sql = "SELECT DISTINCT Sample_ID, Status, Status_FL, Program, Change, Change_FL FROM dbo.Details";
+            sql = "SELECT DISTINCT Job_Number_BL, Job_Number_FL, Art_Type_BL, Art_Type_FL, Back_Label_Plate, Face_Label_Plate, Sample_ID, Status, Status_FL, Program, Change, Change_FL FROM dbo.Details";
 
             SqlCommand commandS;
             SqlDataReader dataReaderS;
@@ -1259,6 +1269,12 @@ namespace CCAAutomation.Lib
 
                     mktSpreadsheetItem.Sample_ID = dataReaderS.GetString(dataReaderS.GetOrdinal("Sample_ID"));
                     mktSpreadsheetItem.Program = dataReaderS.GetString(dataReaderS.GetOrdinal("Program"));
+                    mktSpreadsheetItem.Art_Type_BL = dataReaderS.GetString(dataReaderS.GetOrdinal("Art_Type_BL"));
+                    mktSpreadsheetItem.Art_Type_FL = dataReaderS.GetString(dataReaderS.GetOrdinal("Art_Type_FL"));
+                    mktSpreadsheetItem.Job_Number_BL = dataReaderS.GetString(dataReaderS.GetOrdinal("Job_Number_BL"));
+                    mktSpreadsheetItem.Job_Number_FL = dataReaderS.GetString(dataReaderS.GetOrdinal("Job_Number_FL"));
+                    mktSpreadsheetItem.Plate_ID_BL = dataReaderS.GetString(dataReaderS.GetOrdinal("Back_Label_Plate"));
+                    mktSpreadsheetItem.Plate_ID_FL = dataReaderS.GetString(dataReaderS.GetOrdinal("Face_Label_Plate"));
                     mktSpreadsheetItem.Status = dataReaderS.GetString(dataReaderS.GetOrdinal("Status"));
                     mktSpreadsheetItem.Status_FL = dataReaderS.GetString(dataReaderS.GetOrdinal("Status_FL"));
                     mktSpreadsheetItem.Change = dataReaderS.GetString(dataReaderS.GetOrdinal("Change"));

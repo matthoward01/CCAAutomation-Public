@@ -111,11 +111,13 @@ namespace CCAAutomation.Lib
             for (int i = 0; i < larFinal.Count; i++)
             {
                 string divisionName = larFinal[i].DetailsFinal.Division_List;
-                if (larFinal[i].DetailsFinal.Division_List.ToLower().Contains("c1"))
+                if (larFinal[i].DetailsFinal.Division_List.ToLower().Contains("c1") ||
+                    larFinal[i].DetailsFinal.Division_List.ToLower().Contains("cn"))
                 {
                     divisionName = "Carpet One";
                 }
-                if (larFinal[i].DetailsFinal.Division_List.ToLower().Contains("fa"))
+                if (larFinal[i].DetailsFinal.Division_List.ToLower().Contains("fa") ||
+                    larFinal[i].DetailsFinal.Division_List.ToLower().Contains("fc"))
                 {
                     divisionName = "Flooring America";
                 }

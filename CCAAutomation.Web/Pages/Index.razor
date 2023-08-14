@@ -131,7 +131,10 @@
                         @if (wti.ShowRow)
                         {
                             GetLabels(wti.Sample_ID);
-                            GetColors(wti.Sample_ID);
+                            @if (isSoftsurface)
+                            {
+                                GetColors(wti.Sample_ID);
+                            }
                             <table>
                                 @if (!wti.Change.Trim().Equals(""))
                                 {
@@ -196,13 +199,17 @@
                                             }
                                         }
                                     </td>
-                                    <td colspan="2">
-                                        <b>Swatch Colors: </b>(@colorList.Count)<br />
-                                        @foreach (string c in colorList)
-                                        {
-                                            @((MarkupString)c)<br />
-                                        }
-                                    </td>
+                                    @if(isSoftsurface)
+                                    {
+                                        <td colspan="2">
+
+                                            <b>Swatch Colors: </b>(@colorList.Count)<br />
+                                            @foreach (string c in colorList)
+                                            {
+                                                @((MarkupString)c)<br />
+                                            }                                        
+                                        </td>
+                                    }
                                 </tr>
                             </table>
                         }

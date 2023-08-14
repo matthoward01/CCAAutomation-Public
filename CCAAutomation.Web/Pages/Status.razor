@@ -92,136 +92,139 @@
                     <ul>
                         @if (!@GetStatus("notdonefl", p, true).Equals("0") || !@GetStatus("notdonebl", p, true).Equals("0"))
                         {
-                        <li>
-                            Not Done: <b><u>@(Int32.Parse(GetStatus("notdonefl", p, true)) + Int32.Parse(GetStatus("notdonebl", p, true)))</u></b>
-                            <ul>
-                                <li>Front Labels: <b><u>@GetStatus("notdonefl", p, true)</u></b></li>
-                                <li>Back Labels: <b><u>@GetStatus("notdonebl", p, true)</u></b></li>
-                            </ul>
-                        </li>
+                            <li>
+                                Not Done: <b><u>@(Int32.Parse(GetStatus("notdonefl", p, true)) + Int32.Parse(GetStatus("notdonebl", p, true)))</u></b>
+                                <ul>
+                                    <li>Front Labels: <b><u>@GetStatus("notdonefl", p, true)</u></b></li>
+                                    <li>Back Labels: <b><u>@GetStatus("notdonebl", p, true)</u></b></li>
+                                </ul>
+                            </li>
                         }
                         @if (!@GetStatus("reprint-notdonefl", p, true).Equals("0") || !@GetStatus("reprint-notdonebl", p, true).Equals("0"))
                         {
-                        <li>
-                            Reprint-Not Done: <b><u>@(Int32.Parse(GetStatus("reprint-notdonefl", p, true)) + Int32.Parse(GetStatus("reprint-notdonebl", p, true)))</u></b>
-                            <ul>
-                                <li>Front Labels: <b><u>@GetStatus("reprint-notdonefl", p, true)</u></b></li>
-                                <li>Back Labels: <b><u>@GetStatus("reprint-notdonebl", p, true)</u></b></li>
-                            </ul>
-                        </li>
+                            <li>
+                                Reprint-Not Done: <b><u>@(Int32.Parse(GetStatus("reprint-notdonefl", p, true)) + Int32.Parse(GetStatus("reprint-notdonebl", p, true)))</u></b>
+                                <ul>
+                                    <li>Front Labels: <b><u>@GetStatus("reprint-notdonefl", p, true)</u></b></li>
+                                    <li>Back Labels: <b><u>@GetStatus("reprint-notdonebl", p, true)</u></b></li>
+                                </ul>
+                            </li>
                         }
                         @if (!@GetStatus("waitingfl", p, true).Equals("0") || !@GetStatus("waitingbl", p, true).Equals("0"))
                         {
-                        <li>
-                            Waiting for Approval: <b><u>@(Int32.Parse(GetStatus("waitingfl", p, true)) + Int32.Parse(GetStatus("waitingbl", p, true)))</u></b>
-                            <ul>
-                                <li>Front Labels: <b><u>@GetStatus("waitingfl", p, true)</u></b></li>
-                                <li>Back Labels: <b><u>@GetStatus("waitingbl", p, true)</u></b></li>
-                            </ul>
-                        </li>
+                            <li>
+                                Waiting for Approval: <b><u>@(Int32.Parse(GetStatus("waitingfl", p, true)) + Int32.Parse(GetStatus("waitingbl", p, true)))</u></b>
+                                <ul>
+                                    <li>Front Labels: <b><u>@GetStatus("waitingfl", p, true)</u></b></li>
+                                    <li>Back Labels: <b><u>@GetStatus("waitingbl", p, true)</u></b></li>
+                                </ul>
+                            </li>
                         }
                         @if (!@GetStatus("reprint-waitingfl", p, true).Equals("0") || !@GetStatus("reprint-waitingbl", p, true).Equals("0"))
                         {
-                        <li>
-                            Reprint-Waiting for Approval: <b><u>@(Int32.Parse(GetStatus("reprint-waitingfl", p, true)) + Int32.Parse(GetStatus("reprint-waitingbl", p, true)))</u></b>
-                            <ul>
-                                <li>Front Labels: <b><u>@GetStatus("reprint-waitingfl", p, true)</u></b></li>
-                                <li>Back Labels: <b><u>@GetStatus("reprint-waitingbl", p, true)</u></b></li>
-                            </ul>
-                        </li>
+                            <li>
+                                Reprint-Waiting for Approval: <b><u>@(Int32.Parse(GetStatus("reprint-waitingfl", p, true)) + Int32.Parse(GetStatus("reprint-waitingbl", p, true)))</u></b>
+                                <ul>
+                                    <li>Front Labels: <b><u>@GetStatus("reprint-waitingfl", p, true)</u></b></li>
+                                    <li>Back Labels: <b><u>@GetStatus("reprint-waitingbl", p, true)</u></b></li>
+                                </ul>
+                            </li>
                         }
                         @if (!@GetStatus("questionsfl", p, true).Equals("0") || !@GetStatus("questionsbl", p, true).Equals("0"))
                         {
-                        <li>
-                            Questions: <b><u>@(Int32.Parse(GetStatus("questionsfl", p, true)) + Int32.Parse(GetStatus("questionsbl", p, true)))</u></b>
-                            <ul>
-                                <li>Front Labels: <b><u>@GetStatus("questionsfl", p, true)</u></b></li>
-                                <li>Back Labels: <b><u>@GetStatus("questionsbl", p, true)</u></b></li>
-                            </ul>
-                        </li>
+                            <li>
+                                Questions: <b><u>@(Int32.Parse(GetStatus("questionsfl", p, true)) + Int32.Parse(GetStatus("questionsbl", p, true)))</u></b>
+                                <ul>
+                                    <li>Front Labels: <b><u>@GetStatus("questionsfl", p, true)</u></b></li>
+                                    <li>Back Labels: <b><u>@GetStatus("questionsbl", p, true)</u></b></li>
+                                </ul>
+                            </li>
                         }
                         @if (!@GetStatus("reprint-questionsfl", p, true).Equals("0") || !@GetStatus("reprint-questionsbl", p, true).Equals("0"))
                         {
-                        <li>
-                            Reprint-Questions: <b><u>@(Int32.Parse(GetStatus("reprint-questionsfl", p, true)) + Int32.Parse(GetStatus("reprint-questionsbl", p, true)))</u></b>
-                            <ul>
-                                <li>Front Labels: <b><u>@GetStatus("reprint-questionsfl", p, true)</u></b></li>
-                                <li>Back Labels: <b><u>@GetStatus("reprint-questionsbl", p, true)</u></b></li>
-                            </ul>
-                        </li>
+                            <li>
+                                Reprint-Questions: <b><u>@(Int32.Parse(GetStatus("reprint-questionsfl", p, true)) + Int32.Parse(GetStatus("reprint-questionsbl", p, true)))</u></b>
+                                <ul>
+                                    <li>Front Labels: <b><u>@GetStatus("reprint-questionsfl", p, true)</u></b></li>
+                                    <li>Back Labels: <b><u>@GetStatus("reprint-questionsbl", p, true)</u></b></li>
+                                </ul>
+                            </li>
                         }
                         @if (!@GetStatus("rejectedfl", p, true).Equals("0") || !@GetStatus("rejectedbl", p, true).Equals("0"))
                         {
-                        <li>
-                            Rejected: <b><u>@(Int32.Parse(GetStatus("rejectedfl", p, true)) + Int32.Parse(GetStatus("rejectedbl", p, true)))</u></b>
-                            <ul>
-                                <li>Front Labels: <b><u>@GetStatus("rejectedfl", p, true)</u></b></li>
-                                <li>Back Labels: <b><u>@GetStatus("rejectedbl", p, true)</u></b></li>
-                            </ul>
-                        </li>
+                            <li>
+                                Rejected: <b><u>@(Int32.Parse(GetStatus("rejectedfl", p, true)) + Int32.Parse(GetStatus("rejectedbl", p, true)))</u></b>
+                                <ul>
+                                    <li>Front Labels: <b><u>@GetStatus("rejectedfl", p, true)</u></b></li>
+                                    <li>Back Labels: <b><u>@GetStatus("rejectedbl", p, true)</u></b></li>
+                                </ul>
+                            </li>
                         }
                         @if (!@GetStatus("reprint-rejectedfl", p, true).Equals("0") || !@GetStatus("reprint-rejectedbl", p, true).Equals("0"))
                         {
-                        <li>
-                            Reprint-Rejected: <b><u>@(Int32.Parse(GetStatus("reprint-rejectedfl", p, true)) + Int32.Parse(GetStatus("reprint-rejectedbl", p, true)))</u></b>
-                            <ul>
-                                <li>Front Labels: <b><u>@GetStatus("reprint-rejectedfl", p, true)</u></b></li>
-                                <li>Back Labels: <b><u>@GetStatus("reprint-rejectedbl", p, true)</u></b></li>
-                            </ul>
-                        </li>
+                            <li>
+                                Reprint-Rejected: <b><u>@(Int32.Parse(GetStatus("reprint-rejectedfl", p, true)) + Int32.Parse(GetStatus("reprint-rejectedbl", p, true)))</u></b>
+                                <ul>
+                                    <li>Front Labels: <b><u>@GetStatus("reprint-rejectedfl", p, true)</u></b></li>
+                                    <li>Back Labels: <b><u>@GetStatus("reprint-rejectedbl", p, true)</u></b></li>
+                                </ul>
+                            </li>
                         }
-                        <li>
-                            Approved, Pending Match: <b><u>@(Int32.Parse(GetStatus("approvedpendfl", p, true)) + Int32.Parse(GetStatus("approvedpendbl", p, true)))</u></b>
-                            <ul>
-                                <li>Front Labels: <b><u>@GetStatus("approvedpendfl", p, true)</u></b></li>
-                                <li>Back Labels: <b><u>@GetStatus("approvedpendbl", p, true)</u></b></li>
-                            </ul>
-                        </li>
-                        @if (!@GetStatus("reprint-approvedpendfl", p, true).Equals("0") || !@GetStatus("reprint-approvedpendbl", p, true).Equals("0"))
+                        @if (!@GetStatus("approvedpendfl", p, false).Equals("0") || !@GetStatus("approvedpendbl", p, false).Equals("0"))
                         {
-                        <li>
-                            Reprint-Approved, Pending Match: <b><u>@(Int32.Parse(GetStatus("reprint-approvedpendfl", p, true)) + Int32.Parse(GetStatus("reprint-approvedpendbl", p, true)))</u></b>
-                            <ul>
-                                <li>Front Labels: <b><u>@GetStatus("reprint-approvedpendfl", p, true)</u></b></li>
-                                <li>Back Labels: <b><u>@GetStatus("reprint-approvedpendbl", p, true)</u></b></li>
-                            </ul>
-                        </li>
+                            <li>
+                                Approved, Pending Match: <b><u>@(Int32.Parse(GetStatus("approvedpendfl", p, true)) + Int32.Parse(GetStatus("approvedpendbl", p, true)))</u></b>
+                                <ul>
+                                    <li>Front Labels: <b><u>@GetStatus("approvedpendfl", p, true)</u></b></li>
+                                    <li>Back Labels: <b><u>@GetStatus("approvedpendbl", p, true)</u></b></li>
+                                </ul>
+                            </li>
                         }
-                        <li>
-                            Approved: <b><u>@(Int32.Parse(GetStatus("approvedfl", p, true)) + Int32.Parse(GetStatus("approvedbl", p, true)))</u></b>
-                            <ul>
-                                <li>Front Labels: <b><u>@GetStatus("approvedfl", p, true)</u></b></li>
-                                <li>Back Labels: <b><u>@GetStatus("approvedbl", p, true)</u></b></li>
-                            </ul>
-                        </li>
-                        @if (!@GetStatus("reprint-approvedfl", p, true).Equals("0") || !@GetStatus("reprint-approvedbl", p, true).Equals("0"))
-                        {
-                        <li>
-                            Reprint-Approved: <b><u>@(Int32.Parse(GetStatus("reprint-approvedfl", p, true)) + Int32.Parse(GetStatus("reprint-approvedbl", p, true)))</u></b>
-                            <ul>
-                                <li>Front Labels: <b><u>@GetStatus("reprint-approvedfl", p, true)</u></b></li>
-                                <li>Back Labels: <b><u>@GetStatus("reprint-approvedbl", p, true)</u></b></li>
-                            </ul>
-                        </li>
-                        }
-                        <li>
-                            Total:<b><u>@(Int32.Parse(GetStatus("totalfl", p, true)) + Int32.Parse(GetStatus("totalbl", p, true)))</u></b>
-                            <ul>
-                                <li>Front Labels: <b><u>@(Int32.Parse(GetStatus("totalfl", p, true)))</u></b></li>
-                                <li>Back Labels: <b><u>@(Int32.Parse(GetStatus("totalbl", p, true)))</u></b></li>
-                            </ul>
-                        </li>
-                        @if (!@GetStatus("reprint-totalfl", p, true).Equals("0") || !@GetStatus("reprint-totalbl", p, true).Equals("0"))
-                        {
-                        <li>
-                            Reprint-Total:<b><u>@(Int32.Parse(GetStatus("reprint-totalfl", p, true)) + Int32.Parse(GetStatus("reprint-totalbl", p, true)))</u></b>
-                            <ul>
-                                <li>Front Labels: <b><u>@(Int32.Parse(GetStatus("reprint-totalfl", p, true)))</u></b></li>
-                                <li>Back Labels: <b><u>@(Int32.Parse(GetStatus("reprint-totalbl", p, true)))</u></b></li>
-                            </ul>
-                        </li>
-                        }
-                    </ul>
+                            @if (!@GetStatus("reprint-approvedpendfl", p, true).Equals("0") || !@GetStatus("reprint-approvedpendbl", p, true).Equals("0"))
+                            {
+                                <li>
+                                    Reprint-Approved, Pending Match: <b><u>@(Int32.Parse(GetStatus("reprint-approvedpendfl", p, true)) + Int32.Parse(GetStatus("reprint-approvedpendbl", p, true)))</u></b>
+                                    <ul>
+                                        <li>Front Labels: <b><u>@GetStatus("reprint-approvedpendfl", p, true)</u></b></li>
+                                        <li>Back Labels: <b><u>@GetStatus("reprint-approvedpendbl", p, true)</u></b></li>
+                                    </ul>
+                                </li>
+                            }
+                            <li>
+                                Approved: <b><u>@(Int32.Parse(GetStatus("approvedfl", p, true)) + Int32.Parse(GetStatus("approvedbl", p, true)))</u></b>
+                                <ul>
+                                    <li>Front Labels: <b><u>@GetStatus("approvedfl", p, true)</u></b></li>
+                                    <li>Back Labels: <b><u>@GetStatus("approvedbl", p, true)</u></b></li>
+                                </ul>
+                            </li>
+                            @if (!@GetStatus("reprint-approvedfl", p, true).Equals("0") || !@GetStatus("reprint-approvedbl", p, true).Equals("0"))
+                            {
+                                <li>
+                                    Reprint-Approved: <b><u>@(Int32.Parse(GetStatus("reprint-approvedfl", p, true)) + Int32.Parse(GetStatus("reprint-approvedbl", p, true)))</u></b>
+                                    <ul>
+                                        <li>Front Labels: <b><u>@GetStatus("reprint-approvedfl", p, true)</u></b></li>
+                                        <li>Back Labels: <b><u>@GetStatus("reprint-approvedbl", p, true)</u></b></li>
+                                    </ul>
+                                </li>
+                            }
+                            <li>
+                                Total:<b><u>@(Int32.Parse(GetStatus("totalfl", p, true)) + Int32.Parse(GetStatus("totalbl", p, true)))</u></b>
+                                <ul>
+                                    <li>Front Labels: <b><u>@(Int32.Parse(GetStatus("totalfl", p, true)))</u></b></li>
+                                    <li>Back Labels: <b><u>@(Int32.Parse(GetStatus("totalbl", p, true)))</u></b></li>
+                                </ul>
+                            </li>
+                            @if (!@GetStatus("reprint-totalfl", p, true).Equals("0") || !@GetStatus("reprint-totalbl", p, true).Equals("0"))
+                            {
+                                <li>
+                                    Reprint-Total:<b><u>@(Int32.Parse(GetStatus("reprint-totalfl", p, true)) + Int32.Parse(GetStatus("reprint-totalbl", p, true)))</u></b>
+                                    <ul>
+                                        <li>Front Labels: <b><u>@(Int32.Parse(GetStatus("reprint-totalfl", p, true)))</u></b></li>
+                                        <li>Back Labels: <b><u>@(Int32.Parse(GetStatus("reprint-totalbl", p, true)))</u></b></li>
+                                    </ul>
+                                </li>
+                            }
+                        </ul>
                 </p>
             }
         </td>

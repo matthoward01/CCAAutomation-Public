@@ -8,6 +8,7 @@ using System.Linq;
 using CCAAutomation.Lib;
 using System.IO;
 using System.Threading;
+using System.Runtime.InteropServices;
 
 namespace CCAAutomation.App
 {
@@ -16,7 +17,7 @@ namespace CCAAutomation.App
         [STAThread]
         static void Main(string[] args)
         {            
-            StartupChoices(args);
+            StartupChoices();
         }
 
         private static void StartupChoices(string[] args = null)
@@ -30,10 +31,14 @@ namespace CCAAutomation.App
             Console.WriteLine("Function?");
             Console.WriteLine("\"c\" to compare xml files in two different directories.");
             Console.WriteLine("\"s\" to make shaw versions for approval.");
-            Console.WriteLine("\"i\" to update the roomscene array.");
             Console.WriteLine("\"r\" to get roomscene names from xml.");
-            Console.WriteLine("\"e\" email parsing for insite (WIP).");
-            Console.WriteLine("\"pdf\" to create PDF LAR for MAS.");
+            Console.WriteLine("\"e\" email parsing for insite.");
+            Console.WriteLine("\"b\" create batch file for sending to press.");
+            Console.WriteLine("\"d\" delete files based on one folder vs another (DANGEROUS KEEP A BACKUP OF THE FOLDERS!!!!).");
+            Console.WriteLine("\"i\" text parsing for insite.");
+            Console.WriteLine("\"l\" to get a list of unpackaged.");
+            Console.WriteLine("\"p\" to create PDF LAR for MAS.");
+            Console.WriteLine("\"m\" to move files based on LAR.");
             Console.WriteLine("Anything else or nothing to continue to Program");
             string choice = Console.ReadLine().Trim().ToLower();
             if (choice.EqualsString(""))
@@ -62,10 +67,10 @@ namespace CCAAutomation.App
             {
                 CompareXMLFiles();
             }
-            else if (choice.EqualsString("i"))
-            {
-                ImportData();
-            }
+            //else if (choice.EqualsString("i"))
+            //{
+            //    ImportData();
+            //}
             else if (choice.EqualsString("r"))
             {
                 GetRoomsceneFromXml();
@@ -74,25 +79,280 @@ namespace CCAAutomation.App
             {
                 StartEmailParsing();
             }
-            else if (choice.EqualsString("pdf"))
+            else if (choice.EqualsString("d"))
+            {
+                DeleteFiles();
+            }
+            else if (choice.EqualsString("b"))
+            {
+                MakeBatchSendXml();
+            }
+            else if (choice.EqualsString("p"))
             {
                 MakeLarPdf();
             }
+            else if (choice.EqualsString("i"))
+            {
+                GetInsiteJobs();
+            }
+            else if (choice.EqualsString("l"))
+            {
+                GetUnPackaged();
+            }
+            else if (choice.EqualsString("m"))
+            {
+                MoveFiles();
+            }
+        }
+
+        private static void MoveFiles()
+        {
+            bool isCanada = false;
+            Console.WriteLine("Location of files...");
+            string fileLocation = Console.ReadLine().Replace("\"", "");
+            Console.WriteLine("Lar path...");
+            string larPath = Console.ReadLine().Replace("\"", "");
+            Console.WriteLine("Is this for Canada? (y/n) Default (n)");
+            string isCanadaString = Console.ReadLine();
+            if (isCanadaString.EqualsString("y"))
+            {
+                isCanada = true;
+            }
+
+            LARXlsSheet lARXlsSheet = GetLar(larPath);
+
+            string[] fileArray = Directory.GetFiles(fileLocation, "*", SearchOption.AllDirectories);
+            foreach(string f in fileArray)
+            {
+                string fileName = Path.GetFileNameWithoutExtension(f).Replace(".p1", "");
+                int larIndex = lARXlsSheet.DetailsList.FindIndex(s => (s.Plate_ID_BL.EqualsString(fileName) || s.Plate_ID_FL.EqualsString(fileName)));
+
+                if (larIndex != -1)
+                {
+                    int larSampleIndex = lARXlsSheet.SampleList.FindIndex(s => (s.Sample_ID.EqualsString(lARXlsSheet.DetailsList[larIndex].Sample_ID)));
+                    if (larSampleIndex != -1)
+                    {
+                        string division = lARXlsSheet.DetailsList[larIndex].Division_List;
+                        if (isCanada)
+                        {
+                            if (division.ToLower().Contains("cn"))
+                            {
+                                Directory.CreateDirectory(Path.Combine(fileLocation, "CN"));
+                                if (File.Exists(f))
+                                {
+                                    if (fileName.ToLower().Contains("fl"))
+                                    {
+                                        Directory.CreateDirectory(Path.Combine(fileLocation, "CN", "Front Labels"));
+                                        File.Move(f, Path.Combine(fileLocation, "CN", "Front Labels", Path.GetFileName(f)), true);
+                                        Console.WriteLine(Path.GetFileName(f) + "have been moved to CN FLs");
+                                    }
+                                    else
+                                    {
+                                        Directory.CreateDirectory(Path.Combine(fileLocation, "CN", "Back Labels"));
+                                        File.Move(f, Path.Combine(fileLocation, "CN", "Back Labels", Path.GetFileName(f)), true);
+                                        Console.WriteLine(Path.GetFileName(f) + "have been moved to CN BLs");
+                                    }
+                                }
+                            }
+                            if (division.ToLower().Contains("fc"))
+                            {
+                                Directory.CreateDirectory(Path.Combine(fileLocation, "FC"));
+                                if (fileName.ToLower().Contains("fl"))
+                                {
+                                    Directory.CreateDirectory(Path.Combine(fileLocation, "FC", "Front Labels"));
+                                    File.Move(f, Path.Combine(fileLocation, "fc", "Front Labels", Path.GetFileName(f)), true);
+                                    Console.WriteLine(Path.GetFileName(f) + "have been moved to FC FLs");
+                                }
+                                else
+                                {
+                                    Directory.CreateDirectory(Path.Combine(fileLocation, "FC", "Back Labels"));
+                                    File.Move(f, Path.Combine(fileLocation, "fc", "Back Labels", Path.GetFileName(f)), true);
+                                    Console.WriteLine(Path.GetFileName(f) + "have been moved to FC BLs");
+                                }
+                            }
+                        }
+                        else
+                        {
+                            string newFileName = lARXlsSheet.SampleList[larSampleIndex].Sample_Name.Replace("/", "-") + " - " + lARXlsSheet.SampleList[larSampleIndex].Feeler.Replace("/", "-");
+                            if (division.ToLower().Contains("c1"))
+                            {
+                                Directory.CreateDirectory(Path.Combine(fileLocation, "C1"));
+                                if (File.Exists(f))
+                                {
+                                    if (lARXlsSheet.DetailsList[larIndex].Plate_ID_FL.EqualsString(fileName))
+                                    {
+                                        Directory.CreateDirectory(Path.Combine(fileLocation, "C1", "Front Labels"));
+                                        File.Move(f, Path.Combine(fileLocation, "C1", "Front Labels", newFileName + " - FL" + Path.GetExtension(f)), true);
+                                        Console.WriteLine(Path.GetFileName(f) + "have been moved to C1 FLs");
+                                    }
+                                    else
+                                    {
+                                        Directory.CreateDirectory(Path.Combine(fileLocation, "C1", "Back Labels"));
+                                        File.Move(f, Path.Combine(fileLocation, "C1", "Back Labels", newFileName + " - BL" + Path.GetExtension(f)), true);
+                                        Console.WriteLine(Path.GetFileName(f) + "have been moved to C1 BLs");
+                                    }
+                                }
+                            }
+                            if (division.ToLower().Contains("fa"))
+                            {
+                                Directory.CreateDirectory(Path.Combine(fileLocation, "FA"));
+                                if (lARXlsSheet.DetailsList[larIndex].Plate_ID_FL.EqualsString(fileName))
+                                {
+                                    Directory.CreateDirectory(Path.Combine(fileLocation, "FA", "Front Labels"));
+                                    File.Move(f, Path.Combine(fileLocation, "FA", "Front Labels", newFileName + " - FL" + Path.GetExtension(f)), true);
+                                    Console.WriteLine(Path.GetFileName(f) + "have been moved to FA FLs");
+                                }
+                                else
+                                {
+                                    Directory.CreateDirectory(Path.Combine(fileLocation, "FA", "Back Labels"));
+                                    File.Move(f, Path.Combine(fileLocation, "FA", "Back Labels", newFileName + " - BL" + Path.GetExtension(f)), true);
+                                    Console.WriteLine(Path.GetFileName(f) + "have been moved to FA BLs");
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Plate number not found.");
+                }
+            }
+            StartupChoices();
+        }
+
+        private static void BatchXml()
+        {
+            List<string> batchList = new();
+
+            Console.WriteLine("Text Document of Plate #'s to send...");
+            string batchTextDocument = Console.ReadLine().Replace("\"", "");
+
+            using (StreamReader sr = new(batchTextDocument))
+            {
+                while (!sr.EndOfStream)
+                {
+                    batchList.Add(sr.ReadLine());
+                }
+            }
+            foreach (string b in batchList)
+            {
+               CreateBatchXML(Path.GetDirectoryName(batchTextDocument), b);
+            }
+            StartupChoices();
+        }
+
+        private static void GetUnPackaged()
+        {
+            List<string> approvedList = new();
+            List<string> packagedList = new();
+
+            Console.WriteLine("Text Document of approved Plate #'s...");
+            string approvedTextDocument = Console.ReadLine().Replace("\"", "");
+            Console.WriteLine("Text Document of packaged Plate #'s...");
+            string packagedTextDocument = Console.ReadLine().Replace("\"", "");
+
+            using (StreamReader sr = new(approvedTextDocument))
+            {
+                while (!sr.EndOfStream)
+                {
+                    approvedList.Add(sr.ReadLine());
+                }
+            }
+            using (StreamReader sr = new(packagedTextDocument))
+            {
+                while (!sr.EndOfStream)
+                {
+                    packagedList.Add(sr.ReadLine());
+                }
+            }
+            foreach (string a in approvedList)
+            {
+                if (!packagedList.Contains(a))
+                {
+                    Console.WriteLine(a);
+                }
+            }
+            StartupChoices();
+        }
+
+        private static void DeleteFiles()
+        {
+            Console.WriteLine("This program compares two directories, and it will delete " +
+                "files that exist in both directories from the path of files to delete.");
+            Console.WriteLine("-----------------------------------------------------");
+            Console.WriteLine("Path to files to possibly Delete...");
+            string deleteDir = Console.ReadLine().Replace("\"", "");
+            //string deleteDir = @"C:\Delete\";
+            Console.WriteLine("Path to files to Keep...");
+            string keepDir = Console.ReadLine().Replace("\"", "");
+            Console.WriteLine("Delete if doesnt Exist (y/n) Default(n)");
+            string doesntExistString = Console.ReadLine();
+            bool doesntExist = false;
+            if (doesntExistString.ToLower().Trim().Equals("y"))
+            {
+                doesntExist = true;
+            }
+            //string keepDir = @"C:\Keep\";
+            Console.WriteLine("Creating Backup of Directories.");
+            //CopyDirectory(deleteDir, Path.Combine(Path.GetDirectoryName(deleteDir), Path.GetFileNameWithoutExtension(deleteDir) + " Backup"));
+            //CopyDirectory(keepDir, Path.Combine(Path.GetDirectoryName(keepDir), Path.GetFileNameWithoutExtension(keepDir) + " Backup"));
+
+            string[] checkFiles = Directory.GetFiles(deleteDir, "*", SearchOption.AllDirectories);
+            string[] doneFiles = Directory.GetFiles(keepDir, "*", SearchOption.AllDirectories);
+            
+            if (!doesntExist)
+            {
+                foreach (string s in checkFiles)
+                {
+                    for (int i = 0; i < doneFiles.Length; i++)
+                    {
+
+                        if (Path.GetFileNameWithoutExtension(doneFiles[i]) == Path.GetFileNameWithoutExtension(s))
+                        {
+                            Console.WriteLine("Found - " + doneFiles[i]);
+                            Console.WriteLine("Deleting - " + s);
+                            File.Delete(s);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach (string s in checkFiles)
+                {
+                    int index = doneFiles.ToList().FindIndex(c => Path.GetFileNameWithoutExtension(c).Equals(Path.GetFileNameWithoutExtension(s)));
+                    if (index == -1)
+                    {
+                        Console.WriteLine("Not Found - " + Path.GetFileNameWithoutExtension(s));
+                        Console.WriteLine("Deleting - " + s);
+                        File.Delete(s);
+                    }
+                }
+            }
+            Thread.Sleep(5000);
+            Console.WriteLine("Cleanup Done...");
+            Console.ReadLine();
+            StartupChoices();
         }
 
         private static void StartEmailParsing()
         {
             bool go = true;
-            while (go)
+            do
             {
-                Console.WriteLine("Getting Emails...");
-                Email.ReadEmails();
+                while (go)
+                {
+                    Console.WriteLine("Getting Emails...");
+                    Email.ReadEmails();
 
-                Console.WriteLine("Checking for Run Jobs...");
-                WebIntegrationApp(false);
+                    //Console.WriteLine("Checking for Run Jobs...");
+                    //WebIntegrationApp(false);
 
-                Thread.Sleep(300000);
-            }    
+                    Thread.Sleep(300000);
+                }
+            } while (Console.ReadKey(true).Key != ConsoleKey.Escape) ;
+
+            StartupChoices();
         }
 
         private static void MakeLarPdf()
@@ -116,6 +376,43 @@ namespace CCAAutomation.App
             StartupChoices();
         }
 
+        private static void GetInsiteJobs()
+        {
+            Console.WriteLine("Text Document of copy and paste from Insite...");
+            string insiteTextDocument = Console.ReadLine().Replace("\"", "");
+            using (StreamReader sr = new(insiteTextDocument))
+            {
+                while (!sr.EndOfStream)
+                {
+                    Console.WriteLine(sr.ReadLine().Split('(', ')')[1]);
+                }
+            }
+            StartupChoices();
+        }
+
+        private static void MakeBatchSendXml()
+        {
+            Console.WriteLine("Text Document of Plate numbers to send to press...");
+            string batchTextDocument = Console.ReadLine().Replace("\"", "");
+            if (File.Exists(batchTextDocument))
+            {
+                using (StreamReader batchTextDocumentReader = new(Path.Combine(batchTextDocument)))
+                {
+                    while (!batchTextDocumentReader.EndOfStream)
+                    {
+                       CreateBatchXML(Path.GetDirectoryName(batchTextDocument), batchTextDocumentReader.ReadLine());
+                    }
+                }
+                StartupChoices();
+            }
+            else
+            {
+                Console.WriteLine("File does not exist.");
+                MakeBatchSendXml();
+            }    
+            
+        }
+
         private static void GetRoomsceneFromXml()
         {
             Console.WriteLine("XML Folder location...");
@@ -137,6 +434,7 @@ namespace CCAAutomation.App
                 string[] xmlFileArray = Directory.GetFiles(xmlFolder, "*.xml", SearchOption.AllDirectories);
                 CreateListOfRoomscenes(xmlFileArray, larFile, program, isSoftsurface);
             }
+            StartupChoices();
         }
 
         private static void ImportData()
@@ -165,7 +463,7 @@ namespace CCAAutomation.App
                 Console.WriteLine("Proceed with the database update? Please type \"yes\"");
                 if (Console.ReadLine().EqualsString("yes"))
                 {
-                    SqlMethods.SqlWebDBUpdate(lARXlsSheet, isSoftSurface);
+                    SqlMethods.SqlWebDBUpdate(lARXlsSheet, isSoftSurface, false);
                 }
                 else
                 {
@@ -180,6 +478,13 @@ namespace CCAAutomation.App
             string newFolderPath = Console.ReadLine().Replace("\"", "");
             Console.WriteLine("Old Folder Path?");
             string oldFolderPath = Console.ReadLine().Replace("\"", "");
+            Console.WriteLine("Exclude Roomscene Line? (y/n)");
+            string skipRoomString = Console.ReadLine();
+            bool skipRoom = false;
+            if (skipRoomString.EqualsString("y"))
+            {
+                skipRoom = true;
+            }
 
             if (Directory.Exists(Path.Combine(newFolderPath, "Results")))
             {
@@ -195,25 +500,69 @@ namespace CCAAutomation.App
                     {
                         using (StreamReader oldFolderReader = new(Path.Combine(oldFolderPath, Path.GetFileName(f))))
                         {
-                            while (!newFolderReader.EndOfStream)
+                            Directory.CreateDirectory(Path.Combine(newFolderPath, "Results"));
+                            while (!newFolderReader.EndOfStream || !oldFolderReader.EndOfStream)
                             {
-                                string newLine = newFolderReader.ReadLine();
-                                string oldLine = oldFolderReader.ReadLine();
+                                string newLine = "";
+                                if (!newFolderReader.EndOfStream)
+                                { 
+                                    newLine = newFolderReader.ReadLine().Trim().ToLower();
+                                }
+                                string oldLine = "";
+                                if (!oldFolderReader.EndOfStream)
+                                {
+                                    oldLine = oldFolderReader.ReadLine().Trim().ToLower();
+                                }
                                 if (!newLine.Equals(oldLine))
                                 {
-                                    Directory.CreateDirectory(Path.Combine(newFolderPath, "Results"));
                                     using (StreamWriter writer1 = new(Path.Combine(newFolderPath, "Results", Path.GetFileNameWithoutExtension(f) + ".txt"), append: true))
                                     {
-                                        if (!newLine.Contains("<jobalias>") && !newLine.Contains("<text type=\"spec\">"))
+                                        if (!newLine.Contains("<jobalias>") && !newLine.Contains("<text type=\"spec\">") && !newLine.Contains("<insitegroup>"))
                                         {
-                                            writer1.WriteLine(newLine);
+                                            if (skipRoom)
+                                            {
+                                                if (!newLine.Contains("<roomscene>"))
+                                                {
+                                                    writer1.WriteLine("--------------------------------------");
+                                                    writer1.WriteLine(oldLine);
+                                                    writer1.WriteLine(newLine);
+                                                    writer1.WriteLine("--------------------------------------");
+                                                }
+                                            }
+                                            else
+                                            {
+                                                writer1.WriteLine("--------------------------------------");
+                                                writer1.WriteLine(oldLine);
+                                                writer1.WriteLine(newLine);
+                                                writer1.WriteLine("--------------------------------------");
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
+                    bool deleteFile = false;
+                    if (File.Exists(Path.Combine(newFolderPath, "Results", Path.GetFileNameWithoutExtension(f) + ".txt")))
+                    {
+                        using (StreamReader reader = new StreamReader(Path.Combine(newFolderPath, "Results", Path.GetFileNameWithoutExtension(f) + ".txt")))
+                        {
+                            string text = reader.ReadToEnd();
+                            if (text.EqualsString(""))
+                            {
+                                deleteFile = true;
+                            }
+                        }
+                    }
+                    if (deleteFile)
+                    {
+                        if (File.Exists(Path.Combine(newFolderPath, "Results", Path.GetFileNameWithoutExtension(f) + ".txt")))
+                        {
+                            File.Delete(Path.Combine(newFolderPath, "Results", Path.GetFileNameWithoutExtension(f) + ".txt"));
+                        }
+                    }
                 }
+
             }
             StartupChoices();
         }
@@ -240,7 +589,7 @@ namespace CCAAutomation.App
                     foreach (string j in runJobListHS)
                     {
                         LARXlsSheet LARXlsSheet = GetLar(false, j);
-                        missingImagesProc.AddRange(Run(isShaw, files, j + " /f", export, LARXlsSheet));
+                        missingImagesProc.AddRange(Run(isShaw, files, j + " /f", export, LARXlsSheet, true));
                         var uniqueMissing = missingImagesProc.Distinct();
                         foreach (string s in uniqueMissing)
                         {
@@ -252,7 +601,7 @@ namespace CCAAutomation.App
                     foreach (string j in runJobListSS)
                     {
                         LARXlsSheet LARXlsSheet = GetLar(true, j);
-                        missingImagesProc.AddRange(Run(isShaw, files, j + " /f", export, LARXlsSheet));
+                        missingImagesProc.AddRange(Run(isShaw, files, j + " /f", export, LARXlsSheet, true));
                         var uniqueMissing = missingImagesProc.Distinct();
                         foreach (string s in uniqueMissing)
                         {
@@ -275,18 +624,32 @@ namespace CCAAutomation.App
         {
             string fileName = "";
             bool go = true;
+            bool checkRoomscenes = true;
+            bool isCanada = false;
             List<string> missingImagesProc = new();
 
             Console.WriteLine("What XLS File?");
             fileName = Console.ReadLine();
             fileName = fileName.Replace("\"", "");
+            Console.WriteLine("Is this for Canada? (y/n) Default (n)");
+            string isCanadaString = Console.ReadLine();
+            if (isCanadaString.EqualsString("y"))
+            {
+                isCanada = true;
+            }
+            Console.WriteLine("Check Roomscenes too? (y/n) Default (y)");
+            string checkRoomscsnesString = Console.ReadLine();
+            if (checkRoomscsnesString.EqualsString("n"))
+            {
+                checkRoomscenes = false;
+            }
 
             /*Console.WriteLine("Export XML Where?");
             string export = Console.ReadLine();
             export = export.Replace("\"", "");
             if (export.EqualsString(""))
             {*/
-                string export = Path.GetDirectoryName(fileName);
+            string export = Path.GetDirectoryName(fileName);
             //}
             //Console.WriteLine(export);
 
@@ -314,7 +677,7 @@ namespace CCAAutomation.App
                 {
                     StartupChoices();
                 }
-                missingImagesProc.AddRange(Run(isShaw, files, plateId, export, LARXlsSheet));
+                missingImagesProc.AddRange(Run(isShaw, files, plateId, export, LARXlsSheet, checkRoomscenes, isCanada));
                 var uniqueMissing = missingImagesProc.Distinct();
                 foreach (string s in uniqueMissing)
                 {
@@ -324,6 +687,13 @@ namespace CCAAutomation.App
             }
 
             StartupChoices();
+        }
+        [DllImport("user32.dll")]
+        public static extern void keybd_event(uint bVk, uint bScan, uint dwFlags, uint dwExtraInfo);
+        private const int VK_ESCAPE = 0x1B;
+        public static void EscapeKey()
+        {
+            keybd_event(VK_ESCAPE, 0, 0, 0);
         }
     }
 }

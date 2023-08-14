@@ -15,7 +15,7 @@ namespace CCAAutomation.Lib
         static List<LarModels.LARFinal> runList = new();
         string[] files = CommonMethods.ApprovedRoomscenes();
 
-        public static List<string> Run(bool isShaw, string[] files, string plateId, string export, LarModels.LARXlsSheet LARXlsSheet)
+        public static List<string> Run(bool isShaw, string[] files, string plateId, string export, LarModels.LARXlsSheet LARXlsSheet, bool checkRoomscenes, bool isCanada = false)
         {
             List<string> missingImagesRun = new();
             List<string> approvedPlateIdsList = new();
@@ -42,7 +42,7 @@ namespace CCAAutomation.Lib
             }
             if (plateId.Equals(""))
             {                
-                List<LarModels.LARFinal> aRFinals = new (Lar.GetLarFinal(LARXlsSheet, plateId));
+                List<LarModels.LARFinal> aRFinals = new (Lar.GetLarFinal(LARXlsSheet, plateId, isCanada));
                 List<string> plateList = new();
                 foreach (LarModels.LARFinal lf in aRFinals)
                 {
@@ -63,11 +63,18 @@ namespace CCAAutomation.Lib
                 }
                 foreach (string p in plateList.Distinct())
                 {
-                    runList = aRFinals.Where(l => (l.DetailsFinal.Plate_ID.EqualsString(p) && ((l.DetailsFinal.Division_List.ToLower().Trim().Contains("c1")) || (l.DetailsFinal.Division_List.ToLower().Trim().Contains("fa"))))).ToList();
+                    if (!isCanada)
+                    {
+                        runList = aRFinals.Where(l => (l.DetailsFinal.Plate_ID.EqualsString(p) && ((l.DetailsFinal.Division_List.ToLower().Trim().Contains("c1")) || (l.DetailsFinal.Division_List.ToLower().Trim().Contains("fa"))))).ToList();
+                    }
+                    else
+                    {
+                        runList = aRFinals.Where(l => (l.DetailsFinal.Plate_ID.EqualsString(p) && ((l.DetailsFinal.Division_List.ToLower().Trim().Contains("cn")) || (l.DetailsFinal.Division_List.ToLower().Trim().Contains("fc"))))).ToList();
+                    }
                     if (!runList.Count.Equals(0))
                     {
                         string key = GetKey(runList[0].DetailsFinal.ArtType);
-                        files = GoSwitch(forced, isShaw, files, export, plateId, missingImagesRun, key);
+                        files = GoSwitch(forced, isShaw, files, export, plateId, missingImagesRun, key, checkRoomscenes, isCanada);
                     }
                 }
             }
@@ -92,7 +99,7 @@ namespace CCAAutomation.Lib
                         plateId = plateSplit[0];
                     }
                 }
-                List<LarModels.LARFinal> aRFinals = new(Lar.GetLarFinal(LARXlsSheet, plateId));
+                List<LarModels.LARFinal> aRFinals = new(Lar.GetLarFinal(LARXlsSheet, plateId, isCanada));
                 if (aRFinals.Count == 0)
                 {
                     Console.WriteLine("---------------------------------------");
@@ -115,7 +122,7 @@ namespace CCAAutomation.Lib
                     if (!runList.Count.Equals(0))
                     {
                         string key = GetKey(runList[0].DetailsFinal.ArtType);
-                        files = GoSwitch(forced, isShaw, files, export, plateId, missingImagesRun, key);
+                        files = GoSwitch(forced, isShaw, files, export, plateId, missingImagesRun, key, checkRoomscenes, isCanada);
                     }
                 }
             }
@@ -123,7 +130,7 @@ namespace CCAAutomation.Lib
             return missingImagesRun;
         }
 
-        private static string[] GoSwitch(bool forced, bool isShaw, string[] files, string export, string plateId, List<string> missingImagesRun, string key)
+        private static string[] GoSwitch(bool forced, bool isShaw, string[] files, string export, string plateId, List<string> missingImagesRun, string key, bool checkRoomscenes, bool isCanada)
         {
             switch (key)
             {
@@ -132,7 +139,7 @@ namespace CCAAutomation.Lib
                     Console.WriteLine("Plate #: " + runList[0].DetailsFinal.Plate_ID);
                     if (runList.Count.Equals(1))
                     {
-                        missingImagesRun.AddRange(HSBL18x24.CreateXMLHS18x24BL(forced, files, false, runList[0], plateId, export));
+                        missingImagesRun.AddRange(HSBL18x24.CreateXMLHS18x24BL(forced, files, false, runList[0], plateId, export, checkRoomscenes, isCanada));
                     }
                     else
                     {
@@ -145,7 +152,7 @@ namespace CCAAutomation.Lib
                     Console.WriteLine("Plate #: " + runList[0].DetailsFinal.Plate_ID);
                     if (runList.Count.Equals(1))
                     {
-                        missingImagesRun.AddRange(HSFL4_5x2_1875.CreateXMLHS4_5x2_1875(runList[0], export));
+                        missingImagesRun.AddRange(HSFL4_5x2_1875.CreateXMLHS4_5x2_1875(runList[0], export, isCanada));
                     }
                     else
                     {

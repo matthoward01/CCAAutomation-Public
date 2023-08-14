@@ -15,6 +15,8 @@
                 <input type="checkbox" class="form-check-inline" @bind-value="hardSurface" @onclick="SetHardSurface" name="hardSurface" />
                 <label>Soft Surface:</label>
                 <input type="checkbox" class="form-check-inline" @bind-value="softSurface" @onclick="SetSoftSurface" name="softSurface" />
+                <label>Base Lar?</label>
+                <input type="checkbox" class="form-check-inline" @bind-value="baseLAR" name="baseLAR" />
             </p>
             @if ((hardSurface && !softSurface) || (!hardSurface && softSurface))
             {
@@ -41,6 +43,7 @@
     private string fileName;
     private LarModels.LARXlsSheet LARXlsSheet;
     private bool show = false;
+    private bool baseLAR = false;
     private bool hardSurface = false;
     private bool softSurface = false;
     private bool isSoftSurface = false;
@@ -85,7 +88,7 @@
 
     private void UpdateSqlDB()
     {
-        SqlMethods.SqlWebDBUpdate(LARXlsSheet, isSoftSurface);
+        SqlMethods.SqlWebDBUpdate(LARXlsSheet, isSoftSurface, baseLAR);
         show = false;
     }
 

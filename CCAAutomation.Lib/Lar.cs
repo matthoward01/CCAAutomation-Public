@@ -16,7 +16,7 @@ namespace CCAAutomation.Lib
         /// Get the lar info from a hardsurface spreadsheet
         /// </summary>
         /// <param name="fileName">The file and path to the xls file</param>
-        /// <returns>Returns a LAR Sheet for Hardsurface</returns>
+        /// <returns>Returns a LAR Sheet for processing</returns>
         public static LARXlsSheet GetLar(string fileName)
         {
             LARXlsSheet larXlsSheet = new();            
@@ -107,10 +107,11 @@ namespace CCAAutomation.Lib
         }
 
         /// <summary>
-        /// Get the lar info from a hardsurface spreadsheet
+        /// Get the lar info from a hardsurface sql table
         /// </summary>
-        /// <param name="fileName">The file and path to the xls file</param>
-        /// <returns>Returns a LAR Sheet for Hardsurface</returns>
+        /// <param name="isSoftSurface">Bool: Is the info for HS or SS</param>
+        /// <param name="plateId">The platd id of the set to pull.</param>
+        /// <returns>Returns a LAR Sheet for processing.</returns>
         public static LARXlsSheet GetLar(bool isSoftSurface, string plateId)
         {
             LARXlsSheet larXlsSheet = new();
@@ -121,17 +122,18 @@ namespace CCAAutomation.Lib
 
             return larXlsSheet;
         }
+
         /// <summary>
-        /// Get the details tab of the LAR Spreadsheet for Hardsurface
+        /// Get the details tab of the LAR Spreadsheet.
         /// </summary>
         /// <param name="sheet">The sheet of the spreadsheet to look at.</param>
         /// <param name="detailHeaderList">List of headers for the details tab.</param>
-        /// <param name="i">The numberof rows in the Tab</param>
-        /// <returns>Returns the details of the details tab of a Hardsurface spreadsheet.</returns>
+        /// <param name="i">The number of rows in the Tab</param>
+        /// <returns>Returns the details of the details tab of a LAR spreadsheet.</returns>
         public static Details GetDetails(ISheet sheet, List<string> detailHeaderList, int i)
         {
             Details details = new();
-            details.Plate_ID = GetCell(sheet, i, detailHeaderList.IndexOf("Plate_#"));
+            details.Plate_ID = GetCell(sheet, i, detailHeaderList.IndexOf("Plate"));
             details.Plate_ID_BL = GetCell(sheet, i, detailHeaderList.IndexOf("Back Label Plate #"));
             details.Plate_ID_FL = GetCell(sheet, i, detailHeaderList.IndexOf("Face Label Plate #"));
             if (details.Plate_ID_BL.EqualsString(""))
@@ -161,6 +163,8 @@ namespace CCAAutomation.Lib
             {
                 details.ArtType_FL = GetCell(sheet, i, detailHeaderList.IndexOf("Art Type - FP"));
             }
+            details.Job_Number_BL = GetCell(sheet, i, detailHeaderList.IndexOf("Job Number - BL"));
+            details.Job_Number_FL = GetCell(sheet, i, detailHeaderList.IndexOf("Job Number - FL"));
             details.ADDNumber = GetCell(sheet, i, detailHeaderList.IndexOf("ADDNumber"));
             details.Layout = GetCell(sheet, i, detailHeaderList.IndexOf("Layout"));
             details.Appearance = GetCell(sheet, i, detailHeaderList.IndexOf("Appearance"));
@@ -274,6 +278,14 @@ namespace CCAAutomation.Lib
 
             return details;
         }
+
+        /// <summary>
+        /// Get the sample tab of the LAR Spreadsheet.
+        /// </summary>
+        /// <param name="sheet">The sheet of the spreadsheet to look at.</param>
+        /// <param name="sampleHeaderList">List of headers for the sample tab.</param>
+        /// <param name="i">The number of rows in the Tab</param>
+        /// <returns>Returns the sample list of the sample tab of a LAR spreadsheet.</returns>
         public static Sample GetSample(ISheet sheet, List<string> sampleHeaderList, int i)
         {
             Sample sample = new();
@@ -304,6 +316,14 @@ namespace CCAAutomation.Lib
 
             return sample;
         }
+
+        /// <summary>
+        /// Get the Labels tab of the LAR Spreadsheet.
+        /// </summary>
+        /// <param name="sheet">The sheet of the spreadsheet to look at.</param>
+        /// <param name="labelsHeaderList">List of headers for the labels tab.</param>
+        /// <param name="i">The number of rows in the Tab</param>
+        /// <returns>Returns the labels list of the labels tab of a LAR spreadsheet.</returns>
         public static Labels GetLabels(ISheet sheet, List<string> labelsHeaderList, int i)
         {
             Labels labels = new();
@@ -314,6 +334,14 @@ namespace CCAAutomation.Lib
 
             return labels;
         }
+
+        /// <summary>
+        /// Get the Warranties tab of the LAR Spreadsheet.
+        /// </summary>
+        /// <param name="sheet">The sheet of the spreadsheet to look at.</param>
+        /// <param name="warrantiesHeaderList">List of headers for the warranties tab.</param>
+        /// <param name="i">The number of rows in the Tab</param>
+        /// <returns>Returns the warranties list of the warranties tab of a LAR spreadsheet.</returns>
         public static Warranties GetWarranties(ISheet sheet, List<string> warrantiesHeaderList, int i)
         {
             Warranties warranties = new();
@@ -326,13 +354,20 @@ namespace CCAAutomation.Lib
 
             return warranties;
         }
-        public static List<LARFinal> GetLarFinal(LARXlsSheet larXlsSheet, string plateId)
+
+        /// <summary>
+        /// Gets the LAR final for a specific sample based on the plateid.
+        /// </summary>
+        /// <param name="larXlsSheet">The full lar information.</param>
+        /// <param name="plateId">The plate needed to be pulled</param>
+        /// <returns>Returns the final lar to be used in building the label.</returns>
+        public static List<LARFinal> GetLarFinal(LARXlsSheet larXlsSheet, string plateId, bool isCanada = false)
         {
             LARFinal lARFinal = new();
             List<LARFinal> lARFinalList = new();
             foreach (Details d in larXlsSheet.DetailsList)
             {
-                if (d.Plate_ID.Equals(plateId))
+                if (d.Plate_ID.Equals(plateId) || d.Plate_ID_FL.EqualsString(plateId))
                 {
                     lARFinal.DetailsFinal = d;
 
@@ -361,7 +396,7 @@ namespace CCAAutomation.Lib
                             lARFinal.WarrantiesFinal.Add(w);
                         }
                     }*/
-                    lARFinal = GetMerchandisedProductColorIds(lARFinal, larXlsSheet);
+                    lARFinal = GetMerchandisedProductColorIds(lARFinal, larXlsSheet, isCanada);
                     lARFinalList.Add(lARFinal);
                     lARFinal = new LARFinal();
                 }
@@ -394,7 +429,7 @@ namespace CCAAutomation.Lib
                             lARFinal.WarrantiesFinal.Add(w);
                         }
                     }*/
-                    lARFinal = GetMerchandisedProductColorIds(lARFinal, larXlsSheet);
+                    lARFinal = GetMerchandisedProductColorIds(lARFinal, larXlsSheet, isCanada);
                     lARFinalList.Add(lARFinal);
                     lARFinal = new LARFinal();
                 }

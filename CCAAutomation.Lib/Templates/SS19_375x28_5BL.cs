@@ -34,6 +34,8 @@ namespace CCAAutomation.Lib
             foreach (LARFinal lf in lARFinal)
             {
                 details.Add(lf.DetailsFinal);
+
+                //Gets a list if all Swatch Colors and Color Sequences
                 Swatches.SwatchColors colors = new();
                 if (!lf.DetailsFinal.Color_Sequence.EqualsString("0") && int.TryParse(lf.DetailsFinal.Color_Sequence, out int result))
                 {
@@ -42,23 +44,33 @@ namespace CCAAutomation.Lib
                     swatchColors.Add(colors);
                 }
 
-                if (lf.SampleFinal.Sample_Name.Contains("/") && lf.SampleFinal.Shared_Card.Trim().ToLower().Equals("yes"))
+                //NOTE: Testing Removal
+                //Gets a list of CCASKUIDs where Shared Card and Style Name Separated by a /.
+                /*if (lf.SampleFinal.Sample_Name.Contains("/") && lf.SampleFinal.Shared_Card.Trim().ToLower().Equals("yes"))
                 {
                     string[] style = lf.SampleFinal.Sample_Name.Split('/');
                     if (style[0].Trim().ToLower().Equals(lf.DetailsFinal.Division_Product_Name.Trim().ToLower()) && lf.DetailsFinal.Merch_Color_Name.Trim().ToLower().Equals(lf.SampleFinal.Feeler.Trim().ToLower()))
                     {
                         ccaSkuId.Add(lf.DetailsFinal.CcaSkuId);
                     }
-                }
+                }*/
+
+                //Gets the feeler position in the LAR Model where Merch Color Name
+                //matches the Feeler name from the Sample Tab and Where the Merch Color Name
+                //is marked 'yes' as the Manufacturer Feeler
                 if (lf.DetailsFinal.Merch_Color_Name.EqualsString(lf.SampleFinal.Feeler) && lf.DetailsFinal.Manufacturer_Feeler.EqualsString("yes"))
                 {
                     featurePositionList.Add(featurePosition);
                 }
                 featurePosition++;
+
+                //If the Color sequence is empty trigger the seqerr Bool
                 if (lf.DetailsFinal.Color_Sequence.EqualsString(""))
                 {
                     seqError = true;
                 }
+
+                //Adds Width to the width list
                 widthList.Add(lf.DetailsFinal.Size_Name);
             }
             widthList.Sort();
@@ -595,7 +607,9 @@ namespace CCAAutomation.Lib
             }
             if (!mismatch || forced)
             {                
-                missingImages.AddRange(SS8_25x0_875FL.CreateXMLSS8_25x0_875FL(lARFinal, export, forced));
+                //missingImages.AddRange(SS8_25x0_875FL.CreateXMLSS8_25x0_875FL(lARFinal, export, forced));
+                missingImages.AddRange(SS8_25x0_875FL.CreateXMLSS8_25x0_875FL(missingImages, snippetWarranties, division, specList[5], styleName, feeler, lARFinal, export, forced));
+
             }
 
             using (StreamWriter textFile = new(Path.Combine(export, "Reports", "Swatch Sizes.txt"), append: true))
@@ -650,11 +664,11 @@ namespace CCAAutomation.Lib
                     }
                 }
             }*/
-            if (!lARFinal[0].DetailsFinal.Roomscene.Trim().Equals(""))
+            /*if (!lARFinal[0].DetailsFinal.Roomscene.Trim().Equals(""))
             {
                 roomScene = lARFinal[0].DetailsFinal.Roomscene + "<!--Roomscene-->";
                 roomsceneList.Add(lARFinal[0].DetailsFinal.Roomscene);
-            }
+            }*/
             if (roomScene.EqualsString("FPOwaitingonroom.tif"))
             {
                 //files = ApprovedRoomscenes();

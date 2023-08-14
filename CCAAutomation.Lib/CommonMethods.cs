@@ -14,6 +14,13 @@ namespace CCAAutomation.Lib
 {
     public class CommonMethods
     {
+        /// <summary>
+        ///     Creates a text document list of roomscenes used in a list of XML files.
+        /// </summary>
+        /// <param name="xmlFiles">Array of XML Files to check.</param>
+        /// <param name="larFile">Path to the LAR to get information from.</param>
+        /// <param name="program">The program involved (Soft Surface 2.0, Stone LVT, Hard Surface 2.0</param>
+        /// <param name="isSoftSurface">Bool of if the files are for SS or HS</param>
         public static void CreateListOfRoomscenes(string[] xmlFiles, string larFile, string program, bool isSoftSurface)
         {
             Settings.MainSettings mainSettings = Settings.GetMainSettings();
@@ -109,6 +116,7 @@ namespace CCAAutomation.Lib
                 Console.WriteLine("--------------------------------------");
             }
         }
+        
         /// <summary>
         /// Convert a fraction to a decimal
         /// </summary>
@@ -282,6 +290,17 @@ namespace CCAAutomation.Lib
         }
 
         /// <summary>
+        ///     Removed HTML tags from a string.
+        /// </summary>
+        /// <param name="passedString">The string to have HTML tags removed from</param>
+        /// <returns>The string cleaned of HTML tags.</returns>
+        public static string RemoveHTML(string passedString)
+        {
+            passedString = Regex.Replace(passedString, "<.*?>", String.Empty, RegexOptions.Singleline);
+            return passedString;
+        }
+
+        /// <summary>
         /// Make a Spec Line for WebShop XML from a spec list
         /// </summary>
         /// <param name="specList">The spec list to be made into a spec line.</param>
@@ -359,48 +378,76 @@ namespace CCAAutomation.Lib
         {
             //string[] files = Directory.GetFiles(searchPath, roomsceneName, SearchOption.AllDirectories);
             string[] files = Array.FindAll(approvedRoomscenes, x => x.Contains(roomsceneName, StringComparison.OrdinalIgnoreCase));
-
-            if (files.Length.Equals(0))
+            if (!doAliasOnly)
             {
-                if (!skip)
+                if (files.Length.Equals(0))
                 {
-                    Console.WriteLine(roomsceneName + " does not exist. Press any button to continue.");
-                    Console.WriteLine("Try again? (y/n)");
-                    string goAgain = Console.ReadLine();
-                    if (goAgain.ToLower().Trim().Equals("y"))
+                    if (!skip)
                     {
-                        approvedRoomscenes = ApprovedRoomscenes();
-                        var result = CopyRoomscene(approvedRoomscenes, skip, filePath, alias);
-                        skip = result.Skip;
-                        approvedRoomscenes = result.UpdatedFiles;
+                        Console.WriteLine(roomsceneName + " does not exist. Press any button to continue.");
+                        Console.WriteLine("Try again? (y/n)");
+                        string goAgain = Console.ReadLine();
+                        if (goAgain.ToLower().Trim().Equals("y"))
+                        {
+                            approvedRoomscenes = ApprovedRoomscenes();
+                            var result = CopyRoomscene(approvedRoomscenes, skip, filePath, alias);
+                            skip = result.Skip;
+                            approvedRoomscenes = result.UpdatedFiles;
+                        }
+                        else
+                        {
+                            skip = true;
+                        }
+                    }
+                }
+                else if (!files.Length.Equals(1))
+                {
+                    Console.WriteLine("Multiple files exsist with the name " + roomsceneName + " choose one via the number:");
+                    int count = 0;
+                    foreach (string f in files)
+                    {
+                        Console.WriteLine(count + ": " + f);
+                        count++;
+                    }
+                    string responseString = Console.ReadLine();
+                    int.TryParse(responseString, out int response);
+                    if (!responseString.Trim().Equals(""))
+                    {
+                        if (response < count)
+                        {
+                            FileInfo appovedRoomInfo = new(files[response]);
+                            FileInfo webShopRoomInfo = new(Path.Combine(copyPath, Path.GetFileName(files[response])));
+                            if (!webShopRoomInfo.Length.Equals(appovedRoomInfo.Length))
+                            {
+                                File.Copy(files[response], Path.Combine(copyPath, Path.GetFileName(files[response])), true);
+                                using (StreamWriter sw = new(Path.Combine(alias, Path.GetFileName(files[response]))))
+                                {
+                                    sw.WriteLine("Automated Alias");
+                                    Console.WriteLine("Alias Created");
+                                }
+                                Console.WriteLine(Path.GetFileName(files[0]) + " has been copied.");
+                            }
+                            else
+                            {
+                                Console.WriteLine("Roomscene is Up to date.");
+                            }
+                        }
                     }
                     else
                     {
-                        skip = true;
+                        Console.WriteLine("Skipping...");
                     }
                 }
-            }
-            else if (!files.Length.Equals(1))
-            {
-                Console.WriteLine("Multiple files exsist with the name " + roomsceneName + " choose one via the number:");
-                int count = 0;
-                foreach (string f in files)
+                else
                 {
-                    Console.WriteLine(count + ": " + f);
-                    count++;
-                }
-                string responseString = Console.ReadLine();
-                int.TryParse(responseString, out int response);
-                if (!responseString.Trim().Equals(""))
-                {
-                    if (response < count)
+                    FileInfo appovedRoomInfo = new(files[0]);
+                    FileInfo webShopRoomInfo = new(Path.Combine(copyPath, Path.GetFileName(files[0])));
+                    if (webShopRoomInfo.Exists)
                     {
-                        FileInfo appovedRoomInfo = new(files[response]);
-                        FileInfo webShopRoomInfo = new(Path.Combine(copyPath, Path.GetFileName(files[response])));
                         if (!webShopRoomInfo.Length.Equals(appovedRoomInfo.Length))
                         {
-                            File.Copy(files[response], Path.Combine(copyPath, Path.GetFileName(files[response])), true);
-                            using (StreamWriter sw = new(Path.Combine(alias, Path.GetFileName(files[response]))))
+                            File.Copy(files[0], Path.Combine(copyPath, Path.GetFileName(files[0])), true);
+                            using (StreamWriter sw = new(Path.Combine(alias, Path.GetFileName(files[0]))))
                             {
                                 sw.WriteLine("Automated Alias");
                                 Console.WriteLine("Alias Created");
@@ -412,19 +459,7 @@ namespace CCAAutomation.Lib
                             Console.WriteLine("Roomscene is Up to date.");
                         }
                     }
-                }
-                else
-                {
-                    Console.WriteLine("Skipping...");
-                }
-            }
-            else
-            {
-                FileInfo appovedRoomInfo = new(files[0]);
-                FileInfo webShopRoomInfo = new(Path.Combine(copyPath, Path.GetFileName(files[0])));
-                if (webShopRoomInfo.Exists)
-                {
-                    if (!webShopRoomInfo.Length.Equals(appovedRoomInfo.Length))
+                    else
                     {
                         File.Copy(files[0], Path.Combine(copyPath, Path.GetFileName(files[0])), true);
                         using (StreamWriter sw = new(Path.Combine(alias, Path.GetFileName(files[0]))))
@@ -434,20 +469,6 @@ namespace CCAAutomation.Lib
                         }
                         Console.WriteLine(Path.GetFileName(files[0]) + " has been copied.");
                     }
-                    else
-                    {
-                        Console.WriteLine("Roomscene is Up to date.");
-                    }
-                }
-                else
-                {
-                    File.Copy(files[0], Path.Combine(copyPath, Path.GetFileName(files[0])), true);
-                    using (StreamWriter sw = new(Path.Combine(alias, Path.GetFileName(files[0]))))
-                    {
-                        sw.WriteLine("Automated Alias");
-                        Console.WriteLine("Alias Created");
-                    }
-                    Console.WriteLine(Path.GetFileName(files[0]) + " has been copied.");
                 }
             }
 
@@ -653,6 +674,8 @@ namespace CCAAutomation.Lib
         public static List<string> InsiteXMLSnippet(string surface, string type, string supplier, string division, string styleName, string colorName, string template)
         {
             List<string> xmlData = new();
+            bool isCanada = false;
+            string canadaIndicator = "";
             if (division.ToLower().Contains("c1"))
             {
                 division = "C1";
@@ -661,14 +684,30 @@ namespace CCAAutomation.Lib
             {
                 division = "FA";
             }
+            if (division.ToLower().Contains("cn"))
+            {
+                division = "CN";
+                isCanada = true;
+            }
+            if (division.ToLower().Contains("fc"))
+            {
+                division = "FC";
+                isCanada = true;
+            }  
+            if (isCanada)
+            {
+                canadaIndicator = " - cn";
+            }
+
             /*if (type.ToLower().Trim().Equals("fl"))
             {
                 xmlData.Add("       <InsiteGroup>" + XmlMethods.XmlRemapping(supplier.ToLower() + surface, "InsiteCustomers") + "_FL" + "</InsiteGroup>");
             }
             else
             {*/
-                xmlData.Add("       <InsiteGroup>" + XmlMethods.XmlRemapping(supplier.ToLower() + surface, "InsiteCustomers") + "</InsiteGroup>");
+            xmlData.Add("       <InsiteGroup>" + XmlMethods.XmlRemapping(supplier.ToLower() + surface + canadaIndicator, "InsiteCustomers") + "</InsiteGroup>");
             //}
+            //Console.WriteLine(xmlData[xmlData.Count - 1]);
             xmlData.Add("       <alias>");
             xmlData.Add("           <jobaliass>");
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -684,15 +723,21 @@ namespace CCAAutomation.Lib
 
             return xmlData;
         }
-        public static void CreateDeleteXML(string export, string jobName)
+
+        /// <summary>
+        ///     Creates an XML file to be used in workshop to batch send files to press.
+        /// </summary>
+        /// <param name="export">Path the folder containing the batch xml files will be located.</param>
+        /// <param name="plateId">The plate ID of the art needing to be sent.</param>
+        public static void CreateBatchXML(string export, string plateId)
         {
             List<string> xmlData = new();
 
             xmlData.Add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
             xmlData.Add("   <RBAImpTest xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">");
-            xmlData.Add("       <JobName>" + jobName + "</JobName>");
+            xmlData.Add("       <JobName>" + plateId + "</JobName>");
             xmlData.Add("	</RBAImpTest>");            
-            ExportXML(jobName, xmlData, export, "Delete XML");
+            ExportXML(plateId, xmlData, export, "Batch XML");
         }
 
         /// <summary>
@@ -806,7 +851,7 @@ namespace CCAAutomation.Lib
         /// <param name="lf">The lar for a single style.</param>
         /// <param name="ls">The full Lar.</param>
         /// <returns>Returns the lar for a single style with the possible merchandised product color id's added.</returns>
-        public static LarModels.LARFinal GetMerchandisedProductColorIds(LarModels.LARFinal lf, LarModels.LARXlsSheet ls)
+        public static LarModels.LARFinal GetMerchandisedProductColorIds(LarModels.LARFinal lf, LarModels.LARXlsSheet ls, bool isCanada)
         {
             string manufacturerProductColorID = "";
 
@@ -830,18 +875,37 @@ namespace CCAAutomation.Lib
                     manufacturerProductColorID = lf.DetailsFinal.Manufacturer_Product_Color_ID;
                 }
             }
-
-            foreach (LarModels.Details d in ls.DetailsList)
+            if (isCanada)
             {
-                if (d.Manufacturer_Product_Color_ID.Equals(manufacturerProductColorID))
+                foreach (LarModels.Details d in ls.DetailsList)
                 {
-                    if (d.Division_List.Trim().ToLower().Contains("fa") && !d.Division_List.Trim().ToLower().Equals("fc"))
+                    if (d.Manufacturer_Product_Color_ID.Equals(manufacturerProductColorID))
                     {
-                        lf.SampleFinal.Merchandised_Product_Color_ID_FA.Add(d.Merchandised_Product_Color_ID);
+                        if (d.Division_List.Trim().ToLower().Contains("fc"))
+                        {
+                            lf.SampleFinal.Merchandised_Product_Color_ID_FA.Add(d.Merchandised_Product_Color_ID);
+                        }
+                        if (d.Division_List.Trim().ToLower().Contains("cn"))
+                        {
+                            lf.SampleFinal.Merchandised_Product_Color_ID_C1.Add(d.Merchandised_Product_Color_ID);
+                        }
                     }
-                    if (d.Division_List.Trim().ToLower().Contains("c1") && !d.Division_List.Trim().ToLower().Equals("cn"))
+                }
+            }
+            else
+            {
+                foreach (LarModels.Details d in ls.DetailsList)
+                {
+                    if (d.Manufacturer_Product_Color_ID.Equals(manufacturerProductColorID))
                     {
-                        lf.SampleFinal.Merchandised_Product_Color_ID_C1.Add(d.Merchandised_Product_Color_ID);
+                        if (d.Division_List.Trim().ToLower().Contains("fa") && !d.Division_List.Trim().ToLower().Equals("fc"))
+                        {
+                            lf.SampleFinal.Merchandised_Product_Color_ID_FA.Add(d.Merchandised_Product_Color_ID);
+                        }
+                        if (d.Division_List.Trim().ToLower().Contains("c1") && !d.Division_List.Trim().ToLower().Equals("cn"))
+                        {
+                            lf.SampleFinal.Merchandised_Product_Color_ID_C1.Add(d.Merchandised_Product_Color_ID);
+                        }
                     }
                 }
             }
