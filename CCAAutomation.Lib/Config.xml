@@ -10,8 +10,8 @@
 		<MailServer>imap.gmail.com</MailServer>
 		<Port>993</Port>
 		<SSL>true</SSL>
-		<User>matthoward.mktalliance@gmail.com</User>
-		<Password>zfgvrimidlpzwqcg</Password>
+		<User></User>
+		<Password></Password>
 	</MailSettings>
 	<Types>
 		<Type name="wood">		
